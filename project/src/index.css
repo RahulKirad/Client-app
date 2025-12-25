@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import custom animations */
+@import './animations.css';
+
+/* Pastel Beige Color Palette - Pesco Template Style - Light Shades Only */
+:root {
+  /* Primary Colors - Very Light Pastel Beige */
+  --primary-color: #E8D4B8;
+  --primary-dark-color: #D4C4A8;
+  --primary-light-color: #F2E8D8;
+  
+  /* Secondary Colors - Light Warm Beige */
+  --secondary-color: #E0D4C2;
+  --secondary-light-color: #F5E6D3;
+  
+  /* Neutral Beige Shades - All Light */
+  --beige-50: #FEFCF9;
+  --beige-100: #FAF7F2;
+  --beige-200: #F5F0E8;
+  --beige-300: #EDE4D6;
+  --beige-400: #E8D4B8;
+  --beige-500: #E0D4C2;
+  --beige-600: #D4C4A8;
+  --beige-700: #C9B89A;
+  --beige-800: #B8A88C;
+  --beige-900: #A89B8F;
+  
+  /* Text Colors - Soft and Light */
+  --white-color: #FFFFFF;
+  --text-color: #8B7D6F;
+  --light-gray: #B8A88C;
+  
+  /* Background Colors - Very Light */
+  --main-bg: #FEFCF9;
+  --gray-bg: #FAF7F2;
+  
+  /* Fonts */
+  --heading-font: 'Aoboshi One', serif;
+  --body-font: 'DM Sans', sans-serif;
+  
+  /* Font Sizes */
+  --font-16: 16px;
+  --font-18: 18px;
+}
+
+/* Pastel Beige Background */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply antialiased;
+    background: var(--main-bg);
+    font-family: var(--body-font);
+    color: var(--text-color);
+  }
+}
+
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Pastel Beige Backgrounds */
+  .pastel-beige-bg {
+    background: var(--main-bg);
+  }
+  
+  .pastel-beige-light {
+    background: var(--gray-bg);
+  }
+  
+  .pastel-beige-card {
+    background: var(--beige-100);
+  }
+  
+  /* Soft shadows for beige theme */
+  .soft-shadow {
+    box-shadow: 0 4px 20px rgba(212, 165, 116, 0.1);
+  }
+  
+  .soft-shadow-lg {
+    box-shadow: 0 8px 30px rgba(212, 165, 116, 0.15);
+  }
+  
+  /* Gradient text with beige */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Smooth transitions */
+  .smooth-transition {
+    transition: all 0.3s ease-out;
+  }
+  
+  /* Grid auto-rows for equal height cards */
+  .auto-rows-fr {
+    grid-auto-rows: 1fr;
+  }
+  
+  /* Custom border widths */
+  .border-3 {
+    border-width: 3px;
+  }
+  
+  /* Beige border */
+  .beige-border {
+    border: 1px solid var(--beige-300);
+  }
+  
+  /* Primary button style */
+  .btn-primary-beige {
+    background: var(--primary-color);
+    color: var(--white-color);
+    border: none;
+    padding: 12px 32px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary-beige:hover {
+    background: var(--primary-dark-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+  }
+}
