@@ -1,103 +1,125 @@
-import { Target, BookOpen, Award, CheckCircle } from 'lucide-react';
+import { Target, Award } from 'lucide-react';
 
 export default function About() {
-  const certifications = [
-    { name: 'GOTS', description: 'Global Organic Textile Standard' },
-    { name: 'FSC', description: 'Forest Stewardship Council' },
-    { name: 'MSME', description: 'Export Compliance Certified' },
-  ];
 
   return (
-    <section id="about" className="py-20 pastel-beige-bg relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl animate-float-slow" style={{backgroundColor: 'rgba(201, 168, 130, 0.1)'}}></div>
-      <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full blur-3xl animate-float-slow" style={{backgroundColor: 'rgba(232, 212, 184, 0.1)', animationDelay: '2s'}}></div>
-      
+    <section id="about" className="pt-32 pb-20 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-4" style={{color: 'var(--primary-dark-color)', fontFamily: 'var(--heading-font)'}}>ABOUT US</h2>
-          <p className="text-xl max-w-3xl mx-auto font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>
-            Where sustainability meets sophistication
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-12 mb-16">
-          <div className="space-y-6 animate-fade-in-up stagger-1">
-            <div className="flex items-start space-x-4 p-6 rounded-lg soft-shadow hover:shadow-xl transition-all duration-300 hover-lift group beige-border" style={{backgroundColor: 'var(--beige-100)'}}>
-              <div className="p-3 rounded-lg group-hover:scale-110 transition-transform duration-300" style={{backgroundColor: 'var(--beige-400)'}}>
-                <Target size={28} style={{color: 'var(--text-color)'}} />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-3 group-hover:opacity-80 transition-colors duration-300" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Our Mission</h3>
-                <p className="leading-relaxed font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>
-                  To deliver premium, sustainable tote bags that meet the highest global standards—ethically sourced,
-                  intelligently designed, and export-ready. We bridge the gap between conscious consumption and
-                  commercial excellence.
-                </p>
-              </div>
+        <div className="grid lg:grid-cols-2 gap-16 items-start">
+          {/* Left Side - Text Content */}
+          <div className="space-y-10">
+            {/* Large Heading */}
+            <div>
+              <h2 className="text-4xl sm:text-5xl lg:text-8xl font-bold leading-tight mb-4" style={{color: '#1a1a1a', fontFamily: 'var(--heading-font)'}}>
+                ABOUT US
+              </h2>
+              <p className="text-xl sm:text-2xl font-semibold mb-8" style={{color: '#1a1a1a', fontFamily: 'var(--heading-font)'}}>
+                Premium Sustainable Tote Bags
+              </p>
             </div>
-          </div>
 
-          <div className="space-y-6 animate-fade-in-up stagger-2">
-            <div className="flex items-start space-x-4 p-6 rounded-lg soft-shadow hover:shadow-xl transition-all duration-300 hover-lift group beige-border" style={{backgroundColor: 'var(--beige-100)'}}>
-              <div className="p-3 rounded-lg group-hover:scale-110 transition-transform duration-300" style={{backgroundColor: 'var(--beige-300)'}}>
-                <BookOpen size={28} style={{color: 'var(--text-color)'}} />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-3 group-hover:opacity-80 transition-colors duration-300" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Our Story</h3>
-                <p className="leading-relaxed font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>
-                  Born from a passion for sustainability and global commerce, Cottoniq blends natural materials with
-                  modern branding to serve clients across continents. We understand that today's businesses need
-                  partners who can deliver both quality and compliance.
-                </p>
-              </div>
+            {/* Main Description */}
+            <div className="space-y-4">
+              <p className="body-text-lg" style={{color: 'var(--text-primary)'}}>
+                <strong>Modern Elegance:</strong> Designs featuring clean lines, sustainable materials, and premium quality.
+              </p>
+              <ul className="space-y-2 pl-4">
+                <li className="body-text flex items-start gap-2" style={{color: 'var(--text-primary)'}}>
+                  <span className="text-[var(--beige-700)] mt-1">•</span>
+                  <span>We create tote bags that combine style with environmental responsibility</span>
+                </li>
+                <li className="body-text flex items-start gap-2" style={{color: 'var(--text-primary)'}}>
+                  <span className="text-[var(--beige-700)] mt-1">•</span>
+                  <span>Crafted for businesses and individuals who value both aesthetics and sustainability</span>
+                </li>
+              </ul>
             </div>
-          </div>
-        </div>
 
-        <div className="rounded-lg p-8 sm:p-12 soft-shadow-lg animate-fade-in-up stagger-3 beige-border" style={{backgroundColor: 'var(--beige-100)'}}>
-          <div className="flex items-center justify-center mb-8">
-            <Award className="mr-3 animate-bounce-subtle" size={36} style={{color: 'var(--beige-700)'}} />
-            <h3 className="text-3xl font-bold" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Our Certifications</h3>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-8">
-            {certifications.map((cert, index) => (
-              <div
-                key={index}
-                className="rounded-lg p-6 soft-shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 beige-border group"
-                style={{backgroundColor: 'var(--beige-50)', animationDelay: `${index * 0.1}s`}}
-              >
-                <div className="flex items-center justify-center mb-4">
-                  <div className="p-4 rounded-lg group-hover:scale-110 transition-transform duration-300 animate-float" style={{backgroundColor: 'var(--beige-300)'}}>
-                    <CheckCircle size={32} style={{color: 'var(--text-color)'}} />
-                  </div>
+            {/* Our Mission */}
+            <div className="space-y-3 pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg" style={{backgroundColor: 'var(--beige-200)'}}>
+                  <Target size={24} style={{color: 'var(--beige-700)'}} />
                 </div>
-                <h4 className="text-2xl font-bold text-center mb-2 group-hover:opacity-80 transition-colors duration-300" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>{cert.name}</h4>
-                <p className="text-center text-sm font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>{cert.description}</p>
+                <h3 className="heading-h4" style={{color: 'var(--heading-color)'}}>Our Mission</h3>
               </div>
-            ))}
+              <ul className="space-y-2 pl-12">
+                <li className="body-text flex items-start gap-2" style={{color: 'var(--text-primary)'}}>
+                  <span className="text-[var(--beige-700)] mt-1">•</span>
+                  <span>Deliver premium, sustainable tote bags that meet the highest global standards</span>
+                </li>
+                <li className="body-text flex items-start gap-2" style={{color: 'var(--text-primary)'}}>
+                  <span className="text-[var(--beige-700)] mt-1">•</span>
+                  <span>Ethically sourced, intelligently designed, and export-ready products</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Our Values */}
+            <div className="space-y-3 pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg" style={{backgroundColor: 'var(--beige-200)'}}>
+                  <Award size={24} style={{color: 'var(--beige-700)'}} />
+                </div>
+                <h3 className="heading-h4" style={{color: 'var(--heading-color)'}}>Our Values</h3>
+              </div>
+              <ul className="space-y-2 pl-12">
+                <li className="body-text flex items-start gap-2" style={{color: 'var(--text-primary)'}}>
+                  <span className="text-[var(--beige-700)] mt-1">•</span>
+                  <span><strong>Sustainability First:</strong> 100% organic cotton with GOTS certification</span>
+                </li>
+                <li className="body-text flex items-start gap-2" style={{color: 'var(--text-primary)'}}>
+                  <span className="text-[var(--beige-700)] mt-1">•</span>
+                  <span><strong>Quality Excellence:</strong> Premium materials and craftsmanship in every product</span>
+                </li>
+              </ul>
+            </div>
+
           </div>
 
-          <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center p-6 rounded-lg soft-shadow hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover-lift beige-border" style={{backgroundColor: 'var(--beige-200)', color: 'var(--text-color)'}}>
-              <p className="text-4xl font-bold mb-2 animate-bounce-subtle">100%</p>
-              <p className="font-medium">Organic Cotton</p>
+          {/* Right Side - Images and Philosophy */}
+          <div className="space-y-6">
+            {/* Smaller Image at Top */}
+            <div className="relative group">
+              <div className="relative rounded-2xl overflow-hidden shadow-lg">
+                <img
+                  src="/images/new/WhatsApp Image 2025-12-27 at 6.17.04 PM.jpeg"
+                  alt="Cottoniq Products"
+                  className="w-full h-[250px] object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
             </div>
-            <div className="text-center p-6 rounded-lg soft-shadow hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover-lift beige-border" style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-400)'}}>
-              <p className="text-4xl font-bold mb-2 animate-bounce-subtle" style={{color: 'var(--beige-700)', animationDelay: '0.2s'}}>50+</p>
-              <p className="font-medium" style={{color: 'var(--text-color)'}}>Countries Served</p>
+
+            {/* Philosophy Section */}
+            <div className="space-y-4">
+              <h3 className="heading-h3" style={{color: 'var(--heading-color)'}}>
+                Our Philosophy
+              </h3>
+              <ul className="space-y-2">
+                <li className="body-text flex items-start gap-2" style={{color: 'var(--text-primary)'}}>
+                  <span className="text-[var(--beige-700)] mt-1">•</span>
+                  <span>Creating luxurious, sustainable products that reflect our commitment to quality</span>
+                </li>
+                <li className="body-text flex items-start gap-2" style={{color: 'var(--text-primary)'}}>
+                  <span className="text-[var(--beige-700)] mt-1">•</span>
+                  <span>Every tote bag is designed with care and attention to detail</span>
+                </li>
+              </ul>
             </div>
-            <div className="text-center p-6 rounded-lg soft-shadow hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover-lift beige-border" style={{backgroundColor: 'var(--beige-300)', color: 'var(--text-color)'}}>
-              <p className="text-4xl font-bold mb-2 animate-bounce-subtle" style={{animationDelay: '0.4s'}}>10K+</p>
-              <p className="font-medium">Orders Fulfilled</p>
-            </div>
-            <div className="text-center p-6 rounded-lg soft-shadow hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover-lift beige-border" style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-500)'}}>
-              <p className="text-4xl font-bold mb-2 animate-bounce-subtle" style={{color: 'var(--beige-600)', animationDelay: '0.6s'}}>Zero</p>
-              <p className="font-medium" style={{color: 'var(--text-color)'}}>Plastic Packaging</p>
+
+            {/* Larger Main Image */}
+            <div className="relative group mt-6">
+              <div className="relative rounded-2xl overflow-hidden shadow-xl">
+                <img
+                  src="/images/new/WhatsApp Image 2025-12-27 at 6.17.03 PM (2).jpeg"
+                  alt="About Cottoniq"
+                  className="w-full h-[300px] md:h-[300px] object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );

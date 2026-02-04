@@ -53,8 +53,8 @@ export default function Contact() {
     <section id="contact" className="py-20 bg-[#FDF6E3] paper-texture">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-black text-[#78350F] mb-4 uppercase tracking-tight" style={{fontFamily: 'serif', textShadow: '3px 3px 0px rgba(220, 38, 38, 0.3)'}}>Get in Touch</h2>
-          <p className="text-xl text-[#78350F] max-w-3xl mx-auto font-medium" style={{fontFamily: 'serif'}}>
+          <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>Get in Touch</h2>
+          <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>
             Ready to start your sustainable journey? Let's create something amazing together.
           </p>
         </div>
@@ -62,65 +62,65 @@ export default function Contact() {
         <div className="grid lg:grid-cols-2 gap-12">
           <div>
             <div className="rounded-lg p-8 soft-shadow-lg mb-8 beige-border" style={{backgroundColor: 'var(--beige-200)'}}>
-              <h3 className="text-2xl font-bold mb-6" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Contact Information</h3>
+              <h3 className="text-2xl font-bold mb-6" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Contact Information</h3>
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <div className="p-3 rounded-lg beige-border" style={{backgroundColor: 'var(--beige-300)'}}>
-                    <Mail size={24} style={{color: 'var(--text-color)'}} />
+                    <Mail size={24} style={{color: '#78350F'}} />
                   </div>
                   <div>
-                    <p className="font-bold uppercase tracking-wide" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Email Us</p>
-                    <p className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>info@cottoniq.com</p>
-                    <p className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>sales@cottoniq.com</p>
+                    <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Email Us</p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>info@cottoniq.com</p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>sales@cottoniq.com</p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-4">
                   <div className="p-3 rounded-lg beige-border" style={{backgroundColor: 'var(--beige-300)'}}>
-                    <Phone size={24} style={{color: 'var(--text-color)'}} />
+                    <Phone size={24} style={{color: '#78350F'}} />
                   </div>
                   <div>
-                    <p className="font-bold uppercase tracking-wide" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Call Us</p>
-                    <p className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>+91 (xxx) xxx-xxxx</p>
-                    <p className="text-sm font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>Mon-Fri, 9am-6pm IST</p>
+                    <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Call Us</p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>+91 (xxx) xxx-xxxx</p>
+                    <p className="text-sm font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>Mon-Fri, 9am-6pm IST</p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-4">
                   <div className="p-3 rounded-lg beige-border" style={{backgroundColor: 'var(--beige-300)'}}>
-                    <MapPin size={24} style={{color: 'var(--text-color)'}} />
+                    <MapPin size={24} style={{color: '#78350F'}} />
                   </div>
                   <div>
-                    <p className="font-bold uppercase tracking-wide" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Visit Us</p>
-                    <p className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>Export-ready facility</p>
-                    <p className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>India</p>
+                    <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Visit Us</p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>Export-ready facility</p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>India</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="rounded-lg p-8 soft-shadow-lg beige-border" style={{backgroundColor: 'var(--beige-200)'}}>
-              <h4 className="text-2xl font-bold mb-4" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Why Choose Cottoniq?</h4>
+              <h4 className="text-2xl font-bold mb-4" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Why Choose Cottoniq?</h4>
               <ul className="space-y-3">
                 <li className="flex items-start space-x-3">
-                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: 'var(--beige-700)'}} />
-                  <span className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>GOTS & FSC certified sustainable materials</span>
+                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: '#78350F'}} />
+                  <span className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>GOTS & FSC certified sustainable materials</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: 'var(--beige-700)'}} />
-                  <span className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>Complete export documentation support</span>
+                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: '#78350F'}} />
+                  <span className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>Complete export documentation support</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: 'var(--beige-700)'}} />
-                  <span className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>Custom branding and design services</span>
+                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: '#78350F'}} />
+                  <span className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>Custom branding and design services</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: 'var(--beige-700)'}} />
-                  <span className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>Flexible MOQ for pilot programs</span>
+                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: '#78350F'}} />
+                  <span className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>Flexible MOQ for pilot programs</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: 'var(--beige-700)'}} />
-                  <span className="font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>Global delivery to 50+ countries</span>
+                  <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: '#78350F'}} />
+                  <span className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>Global delivery to 50+ countries</span>
                 </li>
               </ul>
             </div>
@@ -132,15 +132,15 @@ export default function Contact() {
                 <div className="w-20 h-20 rounded-lg flex items-center justify-center mx-auto mb-6 beige-border soft-shadow" style={{backgroundColor: 'var(--beige-300)'}}>
                   <CheckCircle size={40} style={{color: 'var(--beige-700)'}} />
                 </div>
-                <h3 className="text-2xl font-black text-[#78350F] mb-4 uppercase tracking-wide" style={{fontFamily: 'serif'}}>Thank You!</h3>
-                <p className="text-[#78350F] font-medium" style={{fontFamily: 'serif'}}>
+                <h3 className="text-2xl font-black text-[#78350F] mb-4 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Thank You!</h3>
+                <p className="text-[#78350F] font-medium" style={{fontFamily: 'var(--heading-font)'}}>
                   Your inquiry has been received. We'll get back to you within 24 hours.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-bold mb-2" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>
+                  <label htmlFor="name" className="block text-sm font-bold mb-2" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>
                     Full Name *
                   </label>
                   <input
@@ -151,7 +151,7 @@ export default function Contact() {
                     value={formData.name}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg beige-border transition-all duration-200 font-normal"
-                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: 'var(--text-color)'}}
+                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: '#3a2f1f'}}
                     onFocus={(e) => {e.currentTarget.style.borderColor = 'var(--beige-600)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(212, 165, 116, 0.2)'}}
                     onBlur={(e) => {e.currentTarget.style.borderColor = 'var(--beige-300)'; e.currentTarget.style.boxShadow = 'none'}}
                     placeholder="John Doe"
@@ -159,7 +159,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label htmlFor="company" className="block text-sm font-bold mb-2" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>
+                  <label htmlFor="company" className="block text-sm font-bold mb-2" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>
                     Company Name
                   </label>
                   <input
@@ -169,7 +169,7 @@ export default function Contact() {
                     value={formData.company}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg beige-border transition-all duration-200 font-normal"
-                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: 'var(--text-color)'}}
+                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: '#3a2f1f'}}
                     onFocus={(e) => {e.currentTarget.style.borderColor = 'var(--beige-600)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(212, 165, 116, 0.2)'}}
                     onBlur={(e) => {e.currentTarget.style.borderColor = 'var(--beige-300)'; e.currentTarget.style.boxShadow = 'none'}}
                     placeholder="Your Company"
@@ -177,7 +177,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-bold mb-2" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>
+                  <label htmlFor="email" className="block text-sm font-bold mb-2" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>
                     Email Address *
                   </label>
                   <input
@@ -188,7 +188,7 @@ export default function Contact() {
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg beige-border transition-all duration-200 font-normal"
-                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: 'var(--text-color)'}}
+                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: '#3a2f1f'}}
                     onFocus={(e) => {e.currentTarget.style.borderColor = 'var(--beige-600)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(212, 165, 116, 0.2)'}}
                     onBlur={(e) => {e.currentTarget.style.borderColor = 'var(--beige-300)'; e.currentTarget.style.boxShadow = 'none'}}
                     placeholder="john@example.com"
@@ -196,7 +196,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label htmlFor="region" className="block text-sm font-bold mb-2" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>
+                  <label htmlFor="region" className="block text-sm font-bold mb-2" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>
                     Region
                   </label>
                   <select
@@ -205,7 +205,7 @@ export default function Contact() {
                     value={formData.region}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg beige-border transition-all duration-200 font-normal"
-                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: 'var(--text-color)'}}
+                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: '#3a2f1f'}}
                     onFocus={(e) => {e.currentTarget.style.borderColor = 'var(--beige-600)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(212, 165, 116, 0.2)'}}
                     onBlur={(e) => {e.currentTarget.style.borderColor = 'var(--beige-300)'; e.currentTarget.style.boxShadow = 'none'}}
                   >
@@ -220,7 +220,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label htmlFor="order_type" className="block text-sm font-bold mb-2" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>
+                  <label htmlFor="order_type" className="block text-sm font-bold mb-2" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>
                     Order Type
                   </label>
                   <select
@@ -229,7 +229,7 @@ export default function Contact() {
                     value={formData.order_type}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg beige-border transition-all duration-200 font-normal"
-                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: 'var(--text-color)'}}
+                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: '#3a2f1f'}}
                     onFocus={(e) => {e.currentTarget.style.borderColor = 'var(--beige-600)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(212, 165, 116, 0.2)'}}
                     onBlur={(e) => {e.currentTarget.style.borderColor = 'var(--beige-300)'; e.currentTarget.style.boxShadow = 'none'}}
                   >
@@ -242,7 +242,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-bold mb-2" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>
+                  <label htmlFor="message" className="block text-sm font-bold mb-2" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>
                     Tell us what you need *
                   </label>
                   <textarea
@@ -252,7 +252,10 @@ export default function Contact() {
                     rows={4}
                     value={formData.message}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-none border-3 border-[#78350F] focus:border-[#DC2626] focus:ring-2 focus:ring-[#DC2626]/20 transition-all duration-200 resize-none bg-[#FDF6E3] font-medium"
+                    className="w-full px-4 py-3 rounded-lg beige-border transition-all duration-200 resize-none font-normal"
+                    style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: '#3a2f1f'}}
+                    onFocus={(e) => {e.currentTarget.style.borderColor = 'var(--beige-600)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(212, 165, 116, 0.2)'}}
+                    onBlur={(e) => {e.currentTarget.style.borderColor = 'var(--beige-300)'; e.currentTarget.style.boxShadow = 'none'}}
                     placeholder="Please describe your requirements..."
                   />
                 </div>
@@ -264,10 +267,9 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 font-medium soft-shadow beige-border disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{backgroundColor: 'var(--beige-300)', color: 'var(--text-color)', borderColor: 'var(--beige-500)'}}
-                  onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = 'var(--beige-400)', e.currentTarget.style.borderColor = 'var(--beige-600)')}
-                  onMouseLeave={(e) => !loading && (e.currentTarget.style.backgroundColor = 'var(--beige-300)', e.currentTarget.style.borderColor = 'var(--beige-500)')}
+                  className="w-full btn-cta-primary"
+                  style={{backgroundColor: loading ? 'var(--beige-400)' : 'var(--beige-700)', color: 'white', opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer'}}
+                  aria-label="Send Inquiry"
                 >
                   {loading ? (
                     <span>Sending...</span>

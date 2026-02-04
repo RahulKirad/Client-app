@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Package, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { Product } from '../../lib/api';
 
 interface ProductCarouselProps {
@@ -105,7 +105,7 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
         </>
       )}
 
-      {/* Products Container */}
+      {/* Products Container - Carousel */}
       <div className="overflow-hidden">
         <div 
           className="flex transition-transform duration-500 ease-in-out"
@@ -114,61 +114,98 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
             width: `${(products.length / itemsPerView) * 100}%`
           }}
         >
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="flex-shrink-0 px-3"
-              style={{ width: `${100 / products.length}%` }}
-            >
-              <div className="rounded-lg overflow-hidden soft-shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full beige-border" style={{backgroundColor: 'var(--beige-100)'}}>
-                <div className="relative h-64 overflow-hidden group" style={{backgroundColor: 'var(--beige-200)'}}>
-                  <img
-                    src={product.image_url ? `http://localhost:3001${product.image_url}` : '/images/placeholder-product.jpg'}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  {product.is_featured && (
-                    <div className="absolute top-4 right-4 px-3 py-1 rounded-lg text-sm font-bold uppercase tracking-wide beige-border soft-shadow" style={{backgroundColor: 'var(--beige-300)', color: 'var(--text-color)'}}>
-                      Featured
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>{product.name}</h3>
-                  <p className="text-sm mb-4 line-clamp-2 font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>{product.description}</p>
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm" style={{color: 'var(--text-color)'}}>
-                      <Package size={16} className="mr-2" style={{color: 'var(--beige-700)'}} />
-                      <span className="font-medium">{product.material}</span>
-                    </div>
-                    {product.specifications?.dimensions && (
-                      <div className="flex items-center text-sm" style={{color: 'var(--text-color)'}}>
-                        <ShoppingBag size={16} className="mr-2" style={{color: 'var(--beige-700)'}} />
-                        <span className="font-medium">{product.specifications.dimensions}</span>
-                      </div>
-                    )}
+          {products.map((product) => {
+            return (
+              <div
+                key={product.id}
+                className="flex-shrink-0 px-3"
+                style={{ width: `${100 / products.length}%` }}
+              >
+                <div 
+                  className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 h-[500px] flex flex-col group"
+                >
+                  {/* Background Image */}
+                  <div className="absolute inset-0">
+                    <img
+                      src={product.image_url 
+                        ? (product.image_url.startsWith('http') || product.image_url.startsWith('/images') 
+                            ? product.image_url 
+                            : `http://localhost:3001${product.image_url}`)
+                        : '/images/placeholder-product.jpg'}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
                   </div>
 
-                  <div className="border-t-2 pt-4 beige-border" style={{borderColor: 'var(--beige-300)'}}>
-                    <p className="text-xs mb-3 font-medium" style={{color: 'var(--text-color)'}}>
-                      <span className="font-bold">MOQ:</span> {product.moq}
-                    </p>
-                    <button
-                      onClick={onRequestSample}
-                      className="w-full py-2.5 rounded-lg transition-all duration-300 font-bold uppercase tracking-wide soft-shadow beige-border"
-                      style={{backgroundColor: 'var(--beige-200)', color: 'var(--text-color)', borderColor: 'var(--beige-400)'}}
-                      onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-300)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
-                      onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-200)'; e.currentTarget.style.borderColor = 'var(--beige-400)'}}
-                    >
-                      Request Sample
-                    </button>
+                  {/* Dark Gradient Overlay - Lighter by default, darker on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent group-hover:from-black/85 group-hover:via-black/70 group-hover:to-transparent transition-all duration-500 pointer-events-none" 
+                    style={{
+                      background: 'linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 30%, rgba(0, 0, 0, 0.1) 50%, transparent 100%)'
+                    }}
+                  />
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.3) 60%, transparent 100%)'
+                    }}
+                  />
+
+                  {/* Featured Badge */}
+                  {product.is_featured && (
+                    <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg border border-white/30 uppercase tracking-wider z-20">
+                      ⭐ Featured
+                    </div>
+                  )}
+
+                  {/* Content Overlay */}
+                  <div className="relative z-10 flex flex-col h-full justify-end p-6">
+                    {/* Title - Always Visible */}
+                    <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3 drop-shadow-lg">
+                      {product.name}
+                    </h3>
+
+                    {/* Description - Hidden by default, appears on hover */}
+                    <div className="overflow-hidden">
+                      <p className="text-white/90 text-sm sm:text-base mb-4 drop-shadow-md leading-relaxed transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100 max-h-0 group-hover:max-h-32">
+                        {product.description}
+                      </p>
+                    </div>
+
+                    {/* Info Pills - Always Visible but more prominent on hover */}
+                    <div className="flex items-center gap-3 mb-5 opacity-70 group-hover:opacity-100 transition-opacity duration-500">
+                      {/* Rating Pill */}
+                      <div className="bg-gray-800/60 backdrop-blur-sm group-hover:bg-gray-800/80 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-1.5 transition-all duration-500">
+                        <span className="font-bold">4.5</span>
+                        <div className="flex">
+                          {[...Array(4)].map((_, i) => (
+                            <span key={i} className="text-yellow-400">★</span>
+                          ))}
+                          <span className="text-yellow-400/50">★</span>
+                        </div>
+                      </div>
+
+                      {/* MOQ Pill */}
+                      <div className="bg-gray-800/60 backdrop-blur-sm group-hover:bg-gray-800/80 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-500">
+                        {product.moq}
+                      </div>
+                    </div>
+
+        {/* Call to Action Button - Always Visible */}
+        <button
+          onClick={onRequestSample}
+          className="w-full btn-cta-primary"
+          style={{backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#78350F'}}
+          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.transform = 'translateY(-2px)';}}
+          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'; e.currentTarget.style.transform = 'translateY(0)';}}
+          aria-label="Request Sample"
+        >
+          Request Sample
+        </button>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

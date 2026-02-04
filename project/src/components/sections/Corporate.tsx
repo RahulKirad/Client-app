@@ -58,47 +58,68 @@ export default function Corporate() {
     <section id="corporate" className="py-20 bg-[#FDF6E3] paper-texture">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-black text-[#78350F] mb-4 uppercase tracking-tight" style={{fontFamily: 'serif', textShadow: '3px 3px 0px rgba(220, 38, 38, 0.3)'}}>
+          <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
             Smart Branding for Global Teams
           </h2>
-          <p className="text-xl text-[#78350F] max-w-3xl mx-auto font-medium" style={{fontFamily: 'serif'}}>
+          <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>
             Transform your corporate gifting with sustainable, custom-branded solutions
           </p>
         </div>
 
+        {/* Corporate Image Section */}
+        <div className="mb-12 rounded-lg overflow-hidden soft-shadow-lg">
+          <div className="relative h-64 md:h-96">
+            <img
+              src="/images/new/WhatsApp Image 2025-12-27 at 6.17.04 PM.jpeg"
+              alt="Corporate Solutions"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            <div className="absolute bottom-8 left-8 right-8 text-white">
+              <h3 className="text-3xl md:text-4xl font-black mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Premium Corporate Branding</h3>
+              <p className="text-lg font-medium" style={{fontFamily: 'var(--heading-font)'}}>Elevate your brand with sustainable, custom-branded solutions</p>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-20">
-          <h3 className="text-3xl font-black text-[#78350F] text-center mb-12 uppercase tracking-wide" style={{fontFamily: 'serif'}}>What We Offer</h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <h3 className="text-3xl font-black text-[#78350F] text-center mb-12 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>What We Offer</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((service, index) => (
               <div
                 key={index}
-                className="bg-[#FDF6E3] rounded-none p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 vintage-border"
+                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-[var(--beige-200)] group"
+                style={{backgroundColor: 'white'}}
               >
-                <div className="w-14 h-14 rounded-lg flex items-center justify-center mb-4 beige-border" style={{backgroundColor: 'var(--beige-400)'}}>
-                  <service.icon size={28} style={{color: 'var(--text-color)'}} />
+                <div className="flex flex-col items-center text-center">
+                  <div className="p-4 rounded-xl mb-4 transition-all duration-300 group-hover:scale-110" style={{backgroundColor: 'var(--beige-200)'}}>
+                    <service.icon size={32} style={{color: 'var(--beige-700)'}} />
+                  </div>
+                  <div className="w-full">
+                    <h4 className="text-lg font-bold mb-3 leading-tight" style={{color: 'var(--heading-color)', fontFamily: 'var(--heading-font)'}}>{service.title}</h4>
+                    <p className="text-sm leading-relaxed" style={{color: 'var(--text-primary)', fontFamily: 'var(--body-font)'}}>{service.description}</p>
+                  </div>
                 </div>
-                <h4 className="text-xl font-black text-[#78350F] mb-3 uppercase tracking-wide" style={{fontFamily: 'serif'}}>{service.title}</h4>
-                <p className="text-[#78350F] leading-relaxed font-medium" style={{fontFamily: 'serif'}}>{service.description}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-[#FDF6E3] rounded-none p-8 sm:p-12 mb-12 shadow-lg vintage-border">
-          <h3 className="text-3xl font-black text-[#78350F] text-center mb-12 uppercase tracking-wide" style={{fontFamily: 'serif'}}>Industries We Serve</h3>
-          <div className="grid sm:grid-cols-2 gap-8">
+        <div className="mb-12">
+          <h3 className="text-3xl font-black text-[#78350F] text-center mb-12 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Industries We Serve</h3>
+          <div className="grid sm:grid-cols-2 gap-6">
             {industries.map((industry, index) => (
               <div
                 key={index}
-                className="bg-[#FEF3C7] rounded-none p-8 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 vintage-border"
+                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-[var(--beige-300)] group"
               >
                 <div className="flex items-start space-x-4">
-                  <div className="p-3 rounded-lg flex-shrink-0 beige-border" style={{backgroundColor: 'var(--beige-400)'}}>
-                    <industry.icon size={28} style={{color: 'var(--text-color)'}} />
+                  <div className="p-4 rounded-xl flex-shrink-0 transition-all duration-300 group-hover:scale-110" style={{backgroundColor: 'var(--beige-400)'}}>
+                    <industry.icon size={32} style={{color: 'var(--beige-700)'}} />
                   </div>
-                  <div>
-                    <h4 className="text-xl font-black text-[#78350F] mb-2 uppercase tracking-wide" style={{fontFamily: 'serif'}}>{industry.name}</h4>
-                    <p className="text-[#78350F] font-medium" style={{fontFamily: 'serif'}}>{industry.description}</p>
+                  <div className="flex-1 pt-1">
+                    <h4 className="text-lg font-bold text-[#78350F] mb-2 uppercase tracking-wide leading-tight" style={{fontFamily: 'var(--heading-font)'}}>{industry.name}</h4>
+                    <p className="text-sm text-[#5a4a3a] leading-relaxed" style={{fontFamily: 'var(--body-font)'}}>{industry.description}</p>
                   </div>
                 </div>
               </div>
@@ -108,24 +129,23 @@ export default function Corporate() {
 
         <div className="rounded-lg p-8 sm:p-12 soft-shadow-lg beige-border" style={{backgroundColor: 'var(--beige-300)'}}>
           <div className="max-w-3xl mx-auto text-center">
-            <h3 className="text-3xl sm:text-4xl font-bold mb-4" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Ready to Elevate Your Brand?</h3>
-            <p className="text-lg mb-8 font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>
+            <h3 className="text-3xl sm:text-4xl font-bold mb-4" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Ready to Elevate Your Brand?</h3>
+            <p className="text-lg mb-8 font-normal" style={{color: '#5a4a3a', fontFamily: 'var(--body-font)'}}>
               Let's create sustainable, custom-branded solutions that reflect your company's values
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={scrollToContact}
-                className="px-8 py-3 rounded-lg transition-all duration-300 font-medium soft-shadow beige-border"
-                style={{backgroundColor: 'var(--beige-100)', color: 'var(--text-color)', borderColor: 'var(--beige-400)'}}
-                onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-200)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
-                onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-100)'; e.currentTarget.style.borderColor = 'var(--beige-400)'}}
+                className="btn-cta-primary"
+                style={{backgroundColor: 'var(--beige-700)', color: 'white'}}
+                aria-label="Book a Consultation"
               >
                 Book a Consultation
               </button>
-              <button className="px-8 py-3 rounded-lg transition-all duration-300 font-medium soft-shadow beige-border"
-                style={{backgroundColor: 'var(--beige-400)', color: 'var(--text-color)', borderColor: 'var(--beige-500)'}}
-                onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-500)'; e.currentTarget.style.borderColor = 'var(--beige-600)'}}
-                onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-400)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
+              <button 
+                className="btn-cta-secondary"
+                style={{backgroundColor: 'var(--beige-200)', color: '#78350F', borderColor: 'var(--beige-500)'}}
+                aria-label="View Case Studies"
               >
                 View Case Studies
               </button>

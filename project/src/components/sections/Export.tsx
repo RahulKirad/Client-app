@@ -1,4 +1,4 @@
-import { Globe, FileText, Languages, Shield, Download, CheckCircle } from 'lucide-react';
+import { Globe, FileText, Languages, Shield, Download, CheckCircle, Award } from 'lucide-react';
 
 export default function Export() {
   const regions = [
@@ -53,18 +53,34 @@ export default function Export() {
     <section id="export" className="py-20 bg-[#FDF6E3] paper-texture">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-black text-[#78350F] mb-4 uppercase tracking-tight" style={{fontFamily: 'serif', textShadow: '3px 3px 0px rgba(220, 38, 38, 0.3)'}}>
+          <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
             Export & Compliance
           </h2>
-          <p className="text-xl text-[#78350F] max-w-3xl mx-auto font-medium" style={{fontFamily: 'serif'}}>
+          <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>
             Seamless global delivery with complete regulatory compliance
           </p>
+        </div>
+
+        {/* Export Image Section */}
+        <div className="mb-12 rounded-lg overflow-hidden soft-shadow-lg">
+          <div className="relative h-64 md:h-96">
+            <img
+              src="/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg"
+              alt="Global Export"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            <div className="absolute bottom-8 left-8 right-8 text-white">
+              <h3 className="text-3xl md:text-4xl font-black mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Global Reach, Local Compliance</h3>
+              <p className="text-lg font-medium" style={{fontFamily: 'var(--heading-font)'}}>Seamless global delivery with complete regulatory compliance</p>
+            </div>
+          </div>
         </div>
 
         <div className="mb-16">
           <div className="flex items-center justify-center mb-12">
             <Globe className="mr-3" size={36} style={{color: 'var(--beige-700)'}} />
-            <h3 className="text-3xl font-black text-[#78350F] uppercase tracking-wide" style={{fontFamily: 'serif'}}>Regions We Serve</h3>
+            <h3 className="text-3xl font-black text-[#78350F] uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Regions We Serve</h3>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {regions.map((region, index) => (
@@ -73,7 +89,7 @@ export default function Export() {
                 className="bg-[#FDF6E3] rounded-none p-6 text-center shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 vintage-border"
               >
                 <div className="text-6xl mb-4">{region.flag}</div>
-                <h4 className="text-xl font-black text-[#78350F] mb-2 uppercase tracking-wide" style={{fontFamily: 'serif'}}>{region.name}</h4>
+                <h4 className="text-xl font-black text-[#78350F] mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>{region.name}</h4>
                 <p className="font-bold uppercase tracking-wide" style={{color: 'var(--beige-700)'}}>{region.code}</p>
               </div>
             ))}
@@ -81,7 +97,7 @@ export default function Export() {
         </div>
 
         <div className="mb-16">
-          <h3 className="text-3xl font-black text-[#78350F] text-center mb-12 uppercase tracking-wide" style={{fontFamily: 'serif'}}>Export Support Services</h3>
+          <h3 className="text-3xl font-black text-[#78350F] text-center mb-12 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Export Support Services</h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {services.map((service, index) => (
               <div
@@ -91,56 +107,147 @@ export default function Export() {
                 <div className="w-14 h-14 rounded-lg flex items-center justify-center mb-4 beige-border" style={{backgroundColor: 'var(--beige-400)'}}>
                   <service.icon size={28} style={{color: 'var(--text-color)'}} />
                 </div>
-                <h4 className="text-lg font-black text-[#78350F] mb-3 uppercase tracking-wide" style={{fontFamily: 'serif'}}>{service.title}</h4>
-                <p className="text-[#78350F] text-sm leading-relaxed font-medium" style={{fontFamily: 'serif'}}>{service.description}</p>
+                <h4 className="text-lg font-black text-[#78350F] mb-3 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>{service.title}</h4>
+                <p className="text-[#78350F] text-sm leading-relaxed font-medium" style={{fontFamily: 'var(--heading-font)'}}>{service.description}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-[#FDF6E3] rounded-none p-8 sm:p-12 shadow-xl vintage-border">
-          <h3 className="text-3xl font-black text-[#78350F] text-center mb-12 uppercase tracking-wide" style={{fontFamily: 'serif'}}>
+        <div className="bg-white rounded-xl p-8 sm:p-12 shadow-2xl border border-[var(--beige-300)]">
+          <h3 className="text-3xl font-black text-[#78350F] text-center mb-12 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>
             Complete Documentation Package
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {documents.map((doc, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 bg-[#FEF3C7] p-4 rounded-none shadow-md hover:shadow-lg transition-shadow duration-300 vintage-border"
+                className="flex items-center space-x-3 bg-[#FEF3C7] p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-[var(--beige-300)] group"
               >
-                <CheckCircle className="flex-shrink-0" size={20} style={{color: 'var(--beige-700)'}} />
-                <span className="text-[#78350F] font-bold text-sm uppercase tracking-wide" style={{fontFamily: 'serif'}}>{doc}</span>
+                <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{backgroundColor: 'var(--beige-400)'}}>
+                  <CheckCircle size={16} style={{color: '#78350F'}} />
+                </div>
+                <span className="text-[#78350F] font-bold text-sm uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>{doc}</span>
               </div>
             ))}
           </div>
 
-          <div className="rounded-lg p-8 beige-border soft-shadow-lg" style={{backgroundColor: 'var(--beige-300)'}}>
+          <div className="rounded-xl p-8 sm:p-10 shadow-lg border border-[var(--beige-300)]" style={{backgroundColor: 'var(--beige-200)'}}>
             <div className="max-w-3xl mx-auto text-center">
-              <FileText className="mx-auto mb-4" size={48} style={{color: 'var(--beige-700)'}} />
-              <h4 className="text-2xl font-bold mb-4" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Export-Ready From Day One</h4>
-              <p className="mb-6 leading-relaxed font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>
+              <div className="mb-6">
+                <FileText className="mx-auto" size={56} style={{color: '#78350F'}} />
+              </div>
+              <h4 className="text-3xl font-bold mb-4" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Export-Ready From Day One</h4>
+              <p className="mb-8 leading-relaxed text-base" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
                 We handle all the paperwork, compliance, and logistics so you can focus on growing your business.
                 Every order ships with complete documentation and region-specific compliance.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="flex items-center justify-center space-x-2 px-8 py-3 rounded-lg transition-all duration-300 font-medium soft-shadow beige-border"
-                  style={{backgroundColor: 'var(--beige-100)', color: 'var(--text-color)', borderColor: 'var(--beige-400)'}}
-                  onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-200)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
-                  onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-100)'; e.currentTarget.style.borderColor = 'var(--beige-400)'}}
+                <button className="btn-cta-secondary flex items-center justify-center space-x-2"
+                  style={{backgroundColor: 'var(--beige-100)', color: '#78350F', borderColor: 'var(--beige-500)'}}
+                  onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-200)'; e.currentTarget.style.borderColor = 'var(--beige-600)'}}
+                  onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-100)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
                 >
                   <Download size={20} />
                   <span>Download Export Pack</span>
                 </button>
                 <button
                   onClick={scrollToContact}
-                  className="flex items-center justify-center space-x-2 px-8 py-3 rounded-lg transition-all duration-300 font-medium soft-shadow beige-border"
-                  style={{backgroundColor: 'var(--beige-400)', color: 'var(--text-color)', borderColor: 'var(--beige-500)'}}
-                  onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-500)'; e.currentTarget.style.borderColor = 'var(--beige-600)'}}
-                  onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-400)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
+                  className="btn-cta-primary flex items-center justify-center space-x-2"
+                  style={{backgroundColor: 'var(--beige-700)', color: 'white'}}
+                  aria-label="Talk to Our Compliance Team"
                 >
                   <span>Talk to Our Compliance Team</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Our Certifications Section */}
+        <div className="mt-12 rounded-2xl p-6 sm:p-8 soft-shadow-lg" style={{backgroundColor: 'var(--beige-50)'}}>
+          <div className="flex items-center justify-center mb-8">
+            <div className="p-2 rounded-full" style={{backgroundColor: 'var(--beige-200)'}}>
+              <Award className="animate-bounce-subtle" size={28} style={{color: '#78350F'}} />
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black ml-3 uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Our Certifications</h3>
+          </div>
+
+          {/* Certifications Cards */}
+          <div className="grid sm:grid-cols-3 gap-5 mb-10">
+            {[
+              { name: 'GOTS', description: 'Global Organic Textile Standard' },
+              { name: 'FSC', description: 'Forest Stewardship Council' },
+              { name: 'MSME', description: 'Export Compliance Certified' },
+            ].map((cert, index) => (
+              <div
+                key={index}
+                className="relative rounded-2xl p-5 shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-[1.02] group overflow-hidden"
+              >
+                {/* Decorative Background Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
+                  style={{background: `linear-gradient(135deg, var(--beige-100) 0%, var(--beige-200) 100%)`}}
+                ></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="p-4 rounded-xl group-hover:scale-110 transition-all duration-500 shadow-lg" 
+                      style={{backgroundColor: 'var(--beige-300)'}}
+                    >
+                      <CheckCircle size={28} style={{color: '#78350F'}} className="group-hover:rotate-12 transition-transform duration-500" />
+                    </div>
+                  </div>
+                  <h4 className="text-2xl font-black text-center mb-2 group-hover:opacity-90 transition-all duration-300" 
+                    style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}
+                  >
+                    {cert.name}
+                  </h4>
+                  <p className="text-center text-sm font-medium leading-relaxed" 
+                    style={{color: '#5a4a3a', fontFamily: 'var(--body-font)'}}
+                  >
+                    {cert.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Our Commitments / Metrics */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="text-center p-5 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 transform hover:scale-105 group">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3 shadow-lg group-hover:scale-110 transition-transform duration-500" 
+                style={{backgroundColor: 'var(--beige-200)'}}
+              >
+                <p className="text-3xl font-black animate-bounce-subtle" style={{color: '#78350F'}}>100%</p>
+              </div>
+              <p className="font-bold text-base mt-1" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Organic Cotton</p>
+            </div>
+            
+            <div className="text-center p-5 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 transform hover:scale-105 group">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3 shadow-lg group-hover:scale-110 transition-transform duration-500" 
+                style={{backgroundColor: 'var(--beige-200)'}}
+              >
+                <p className="text-3xl font-black animate-bounce-subtle" style={{color: '#78350F', animationDelay: '0.2s'}}>50+</p>
+              </div>
+              <p className="font-bold text-base mt-1" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Countries Served</p>
+            </div>
+            
+            <div className="text-center p-5 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 transform hover:scale-105 group">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3 shadow-lg group-hover:scale-110 transition-transform duration-500" 
+                style={{backgroundColor: 'var(--beige-200)'}}
+              >
+                <p className="text-3xl font-black animate-bounce-subtle" style={{color: '#78350F', animationDelay: '0.4s'}}>10K+</p>
+              </div>
+              <p className="font-bold text-base mt-1" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Orders Fulfilled</p>
+            </div>
+            
+            <div className="text-center p-5 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 transform hover:scale-105 group">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3 shadow-lg group-hover:scale-110 transition-transform duration-500" 
+                style={{backgroundColor: 'var(--beige-200)'}}
+              >
+                <p className="text-3xl font-black animate-bounce-subtle" style={{color: '#78350F', animationDelay: '0.6s'}}>Zero</p>
+              </div>
+              <p className="font-bold text-base mt-1" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Plastic Packaging</p>
             </div>
           </div>
         </div>
