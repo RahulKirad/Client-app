@@ -55,7 +55,11 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed w-full top-0 z-50 bg-white border-b border-[var(--beige-300)] transition-all duration-300 animate-fade-in soft-shadow" style={{fontFamily: 'var(--body-font)'}}>
+    <header className="fixed w-full top-0 z-50 transition-all duration-300 animate-fade-in" style={{
+      fontFamily: 'var(--body-font)', 
+      background: 'linear-gradient(to bottom, #ffffff, var(--beige-100))',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+    }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center cursor-pointer group" onClick={() => scrollToSection('#home', '/')}>
@@ -75,13 +79,13 @@ export default function Header() {
                 style={{animationDelay: `${index * 0.1}s`, fontFamily: 'var(--body-font)'}}
               >
                 {link.name}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all duration-300" style={{backgroundColor: 'var(--beige-600)'}}></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all duration-300 bg-[var(--beige-600)]"></span>
               </button>
             ))}
             <button
               onClick={() => scrollToSection('#contact')}
-              className="px-6 py-2.5 rounded transition-all duration-200 flex items-center space-x-2 soft-shadow font-medium text-sm"
-              style={{backgroundColor: 'var(--beige-400)', color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}
+              className="px-6 py-2.5 rounded transition-all duration-200 flex items-center space-x-2 font-medium text-sm"
+              style={{backgroundColor: 'var(--beige-400)', color: 'var(--text-color)', fontFamily: 'var(--body-font)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'}}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--beige-500)'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--beige-400)'}
             >
@@ -100,13 +104,16 @@ export default function Header() {
       </div>
 
       {isMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-[var(--beige-300)] soft-shadow">
+        <div className="lg:hidden border-t border-[var(--beige-200)]" style={{
+          background: 'linear-gradient(to bottom, #ffffff, var(--beige-100))',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        }}>
           <nav className="px-4 pt-4 pb-6 space-y-3">
             {navLinks.map((link) => (
               <button
                 key={link.name}
                 onClick={() => scrollToSection(link.path, link.route)}
-                className="block w-full text-left px-4 py-3 text-[var(--text-color)] hover:bg-[var(--beige-100)] hover:text-[var(--primary-color)] rounded-lg transition-all duration-200 font-medium text-sm"
+                className="block w-full text-left px-4 py-3 text-[var(--text-color)] hover:bg-[var(--beige-100)] hover:text-[var(--beige-700)] rounded-lg transition-all duration-200 font-medium text-sm"
                 style={{fontFamily: 'var(--body-font)'}}
               >
                 {link.name}
@@ -114,8 +121,8 @@ export default function Header() {
             ))}
             <button
               onClick={() => scrollToSection('#contact')}
-              className="w-full bg-[var(--primary-color)] text-white px-6 py-3 rounded hover:bg-[var(--primary-dark-color)] transition-all duration-200 flex items-center justify-center space-x-2 font-medium text-sm soft-shadow"
-              style={{fontFamily: 'var(--body-font)'}}
+              className="w-full bg-[var(--beige-400)] text-[var(--text-color)] px-6 py-3 rounded hover:bg-[var(--beige-500)] transition-all duration-200 flex items-center justify-center space-x-2 font-medium text-sm"
+              style={{fontFamily: 'var(--body-font)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'}}
             >
               <ShoppingBag size={18} />
               <span>Get a Quote</span>
