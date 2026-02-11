@@ -1,4 +1,4 @@
-import { Leaf, Recycle, Droplets, TreePine, TrendingDown, Users, Download } from 'lucide-react';
+import { Leaf, Recycle, Droplets, TreePine, TrendingDown, Users, Download, Package, Factory, CheckCircle } from 'lucide-react';
 
 export default function Sustainability() {
   const materials = [
@@ -55,82 +55,161 @@ export default function Sustainability() {
     <section id="sustainability" className="py-20 bg-[#FDF6E3] paper-texture">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-black text-[#78350F] mb-4 uppercase tracking-tight" style={{fontFamily: 'serif', textShadow: '3px 3px 0px rgba(220, 38, 38, 0.3)'}}>
+          <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
             More Than Just a Bag
           </h2>
-          <p className="text-xl text-[#78350F] max-w-3xl mx-auto font-medium" style={{fontFamily: 'serif'}}>
+          <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>
             Every Cottoniq product tells a story of sustainable practices and positive impact
           </p>
         </div>
 
+        {/* Sustainability Image Section */}
+        <div className="mb-12 rounded-lg overflow-hidden soft-shadow-lg">
+          <div className="relative h-64 md:h-96">
+            <img
+              src="/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg"
+              alt="Sustainable Practices"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            <div className="absolute bottom-8 left-8 right-8 text-white">
+              <h3 className="text-3xl md:text-4xl font-black mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Sustainable by Design</h3>
+              <p className="text-lg font-medium" style={{fontFamily: 'var(--heading-font)'}}>Every product tells a story of sustainable practices and positive impact</p>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-20">
           <div className="flex items-center justify-center mb-12">
-            <Leaf className="mr-3" size={36} style={{color: 'var(--beige-700)'}} />
-            <h3 className="text-3xl font-black text-[#78350F] uppercase tracking-wide" style={{fontFamily: 'serif'}}>Our Materials</h3>
+            <Leaf className="mr-3" size={36} style={{color: '#78350F'}} />
+            <h3 className="text-3xl font-black text-[#78350F] uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Our Materials</h3>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {materials.map((material, index) => (
               <div
                 key={index}
-                className="bg-[#FEF3C7] rounded-none p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 vintage-border"
+                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-[var(--beige-300)] group"
               >
-                <div className="w-16 h-16 rounded-lg flex items-center justify-center mb-4 mx-auto beige-border" style={{backgroundColor: 'var(--beige-400)'}}>
-                  <material.icon size={32} style={{color: 'var(--text-color)'}} />
+                <div className="w-20 h-20 rounded-xl flex items-center justify-center mb-4 mx-auto transition-all duration-300 group-hover:scale-110" style={{backgroundColor: 'var(--beige-200)'}}>
+                  <material.icon size={36} style={{color: '#78350F'}} />
                 </div>
-                <h4 className="text-lg font-black text-[#78350F] text-center mb-3 uppercase tracking-wide" style={{fontFamily: 'serif'}}>{material.title}</h4>
-                <p className="text-[#78350F] text-center text-sm font-medium" style={{fontFamily: 'serif'}}>{material.description}</p>
+                <h4 className="text-base font-bold text-[#78350F] text-center mb-3 uppercase tracking-wide leading-tight" style={{fontFamily: 'var(--heading-font)'}}>{material.title}</h4>
+                <p className="text-sm text-[#5a4a3a] text-center leading-relaxed" style={{fontFamily: 'var(--body-font)'}}>{material.description}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-[#FEF3C7] rounded-none p-8 sm:p-12 shadow-xl mb-12 vintage-border">
+        <div className="mb-20">
           <div className="flex items-center justify-center mb-12">
-            <TrendingDown className="mr-3" size={36} style={{color: 'var(--beige-700)'}} />
-            <h3 className="text-3xl font-black text-[#78350F] uppercase tracking-wide" style={{fontFamily: 'serif'}}>Our Impact</h3>
+            <TrendingDown className="mr-3" size={36} style={{color: '#78350F'}} />
+            <h3 className="text-3xl font-black text-[#78350F] uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Our Impact</h3>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {impacts.map((impact, index) => (
-              <div
-                key={index}
-                className="text-center p-6 bg-[#FDF6E3] rounded-none hover:shadow-lg transition-shadow duration-300 vintage-border"
-              >
-                <div className="flex justify-center mb-4">
-                  <div className="w-14 h-14 rounded-lg flex items-center justify-center beige-border" style={{backgroundColor: 'var(--beige-400)'}}>
-                    <impact.icon size={24} style={{color: 'var(--text-color)'}} />
+          <div className="relative overflow-x-auto pb-8">
+            <div className="flex items-center justify-center gap-16 sm:gap-20 lg:gap-24 xl:gap-32 min-w-max px-4">
+              {impacts.map((impact, index) => {
+                return (
+                  <div key={index} className="flex flex-col items-center relative">
+                    {/* Icon */}
+                    <div className="mb-3">
+                      <impact.icon size={48} style={{color: '#1a1a1a'}} />
+                    </div>
+                    
+                    {/* Metric */}
+                    <p className="text-4xl font-bold mb-2" style={{color: 'var(--beige-600)'}}>{impact.metric}</p>
+                    
+                    {/* Label */}
+                    <p className="text-sm font-bold text-[#78350F] mb-1 uppercase tracking-wide text-center max-w-[180px]" style={{fontFamily: 'var(--heading-font)'}}>
+                      {impact.label}
+                    </p>
+                    
+                    {/* Description */}
+                    <p className="text-xs text-[#5a4a3a] text-center max-w-[180px] leading-relaxed" style={{fontFamily: 'var(--body-font)'}}>
+                      {impact.description}
+                    </p>
                   </div>
-                </div>
-                <p className="text-4xl font-bold mb-2" style={{color: 'var(--beige-700)'}}>{impact.metric}</p>
-                <p className="text-lg font-black text-[#78350F] mb-2 uppercase tracking-wide" style={{fontFamily: 'serif'}}>{impact.label}</p>
-                <p className="text-sm text-[#78350F] font-medium" style={{fontFamily: 'serif'}}>{impact.description}</p>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        <div className="rounded-lg p-8 sm:p-12 relative overflow-hidden soft-shadow-lg beige-border" style={{backgroundColor: 'var(--beige-400)'}}>
-          <div className="relative z-10">
-            <div className="max-w-3xl mx-auto text-center">
-              <Leaf className="mx-auto mb-6" size={48} style={{color: 'var(--beige-700)'}} />
-              <h3 className="text-3xl sm:text-4xl font-bold mb-4" style={{color: 'var(--beige-700)', fontFamily: 'var(--heading-font)'}}>Traceable Supply Chain</h3>
-              <p className="text-lg mb-8 leading-relaxed font-normal" style={{color: 'var(--text-color)', fontFamily: 'var(--body-font)'}}>
-                From farm to finished product, every step in our supply chain is documented and verified. We believe
-                in complete transparency, so you can trust that your tote bags are truly sustainable.
-              </p>
-              <div className="grid sm:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 beige-border">
-                  <p className="text-2xl font-bold mb-2" style={{color: 'var(--beige-700)'}}>Step 1</p>
-                  <p className="text-sm font-medium uppercase tracking-wide" style={{color: 'var(--text-color)'}}>Organic Cotton Farms</p>
+        <div className="rounded-lg p-8 sm:p-12 relative overflow-hidden" style={{backgroundColor: 'var(--beige-200)'}}>
+          <div className="max-w-6xl mx-auto">
+            <h3 className="text-3xl sm:text-4xl font-bold mb-8 text-center" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Traceable Supply Chain</h3>
+            
+            {/* Three Step Flow */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-4 relative py-8">
+              {/* Step 1 */}
+              <div className="flex-1 flex flex-col items-center text-center max-w-xs mx-auto relative">
+                <div className="w-28 h-28 rounded-xl flex items-center justify-center mb-4 shadow-sm" style={{backgroundColor: 'var(--beige-300)'}}>
+                  <Package size={56} style={{color: '#78350F'}} />
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 beige-border">
-                  <p className="text-2xl font-bold mb-2" style={{color: 'var(--beige-700)'}}>Step 2</p>
-                  <p className="text-sm font-medium uppercase tracking-wide" style={{color: 'var(--text-color)'}}>Ethical Manufacturing</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 beige-border">
-                  <p className="text-2xl font-bold mb-2" style={{color: 'var(--beige-700)'}}>Step 3</p>
-                  <p className="text-sm font-medium uppercase tracking-wide" style={{color: 'var(--text-color)'}}>Quality Assurance</p>
-                </div>
+                <h4 className="text-base font-bold mb-3 uppercase tracking-wide" style={{color: '#78350F'}}>Organic Cotton Farms</h4>
+                <p className="text-sm leading-relaxed text-center" style={{color: '#5a4a3a'}}>
+                  From farm to finished product, every step in our supply chain is documented and verified. We believe in complete transparency, so you can trust that your tote bags are truly sustainable.
+                </p>
               </div>
+
+              {/* Arrow 1 - Between Step 1 and Step 2 */}
+              <div className="hidden md:flex items-center justify-center flex-shrink-0 px-4">
+                <svg width="120" height="80" viewBox="0 0 120 80" className="overflow-visible">
+                  <path
+                    d="M 10 40 Q 40 10, 60 40 T 110 40"
+                    stroke="#78350F"
+                    strokeWidth="2.5"
+                    fill="none"
+                    strokeDasharray="6,6"
+                  />
+                  <polygon
+                    points="105,37 110,40 105,43"
+                    fill="#78350F"
+                  />
+                </svg>
+              </div>
+
+              {/* Step 2 */}
+              <div className="flex-1 flex flex-col items-center text-center max-w-xs mx-auto relative">
+                <div className="w-28 h-28 rounded-xl flex items-center justify-center mb-4 shadow-sm" style={{backgroundColor: 'var(--beige-300)'}}>
+                  <Factory size={56} style={{color: '#78350F'}} />
+                </div>
+                <h4 className="text-base font-bold mb-3 uppercase tracking-wide" style={{color: '#78350F'}}>Ethical Manufacturing</h4>
+                <p className="text-sm leading-relaxed text-center" style={{color: '#5a4a3a'}}>
+                  From farm to finished product, every step in our supply chain is documented and verified. We believe in complete transparency, so you can trust that your tote bags are truly sustainable.
+                </p>
+              </div>
+
+              {/* Arrow 2 - Between Step 2 and Step 3 */}
+              <div className="hidden md:flex items-center justify-center flex-shrink-0 px-4">
+                <svg width="120" height="80" viewBox="0 0 120 80" className="overflow-visible">
+                  <path
+                    d="M 10 40 Q 40 10, 60 40 T 110 40"
+                    stroke="#78350F"
+                    strokeWidth="2.5"
+                    fill="none"
+                    strokeDasharray="6,6"
+                  />
+                  <polygon
+                    points="105,37 110,40 105,43"
+                    fill="#78350F"
+                  />
+                </svg>
+              </div>
+
+              {/* Step 3 */}
+              <div className="flex-1 flex flex-col items-center text-center max-w-xs mx-auto relative">
+                <div className="w-28 h-28 rounded-xl flex items-center justify-center mb-4 shadow-sm" style={{backgroundColor: 'var(--beige-300)'}}>
+                  <CheckCircle size={56} style={{color: '#78350F'}} />
+                </div>
+                <h4 className="text-base font-bold mb-3 uppercase tracking-wide" style={{color: '#78350F'}}>Quality Assurance</h4>
+                <p className="text-sm leading-relaxed text-center" style={{color: '#5a4a3a'}}>
+                  From farm to finished product, every step in our supply chain is documented and verified. We believe in complete transparency, so you can trust that your tote bags are truly sustainable.
+                </p>
+              </div>
+            </div>
+
+            {/* Button */}
+            <div className="mt-12 text-center">
               <button className="flex items-center justify-center space-x-2 px-8 py-3 rounded-lg transition-all duration-300 font-medium soft-shadow mx-auto beige-border"
                 style={{backgroundColor: 'var(--beige-300)', color: 'var(--text-color)', borderColor: 'var(--beige-500)'}}
                 onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-400)'; e.currentTarget.style.borderColor = 'var(--beige-600)'}}

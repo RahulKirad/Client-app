@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Hero from '../components/sections/Hero';
 import About from '../components/sections/About';
+import EcoToteDuoPack from '../components/sections/EcoToteDuoPack';
 import Products from '../components/sections/Products';
 import Corporate from '../components/sections/Corporate';
 import Sustainability from '../components/sections/Sustainability';
@@ -17,6 +18,7 @@ function MainPage() {
       <main>
         <Hero />
         <About />
+        <EcoToteDuoPack />
         <Products />
         <Corporate />
         <Sustainability />
