@@ -50,7 +50,11 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" className="py-20 bg-[#FDF6E3] paper-texture">
+    <section
+      id="contact"
+      className="py-20 paper-texture"
+      style={{ background: 'linear-gradient(to top, #EDE4D6, #FDF8F0)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>Get in Touch</h2>
@@ -70,8 +74,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Email Us</p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>info@cottoniq.com</p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>sales@cottoniq.com</p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>info@cottonunique.com</p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>sales@cottonunique.com</p>
                   </div>
                 </div>
 
@@ -100,7 +104,7 @@ export default function Contact() {
             </div>
 
             <div className="rounded-lg p-8 soft-shadow-lg beige-border" style={{backgroundColor: 'var(--beige-200)'}}>
-              <h4 className="text-2xl font-bold mb-4" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Why Choose Cottoniq?</h4>
+              <h4 className="text-2xl font-bold mb-4" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Why Choose Cottonunique?</h4>
               <ul className="space-y-3">
                 <li className="flex items-start space-x-3">
                   <CheckCircle className="flex-shrink-0 mt-1" size={20} style={{color: '#78350F'}} />

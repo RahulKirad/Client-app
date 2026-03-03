@@ -1,7 +1,7 @@
 # Green Food-Style Website Redesign Complete ✨
 
 ## Overview
-Your Cottoniq website has been completely transformed with a vibrant green food-style aesthetic matching the template design, while preserving all existing content and functionality.
+Your Cottonunique website has been completely transformed with a vibrant green food-style aesthetic matching the template design, while preserving all existing content and functionality.
 
 ## Design Changes Applied
 

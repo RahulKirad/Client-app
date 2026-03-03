@@ -8,7 +8,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  User
+  User,
+  MessageCircle
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -26,6 +27,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Products', href: '/admin/products', icon: Package },
     { name: 'Inquiries', href: '/admin/inquiries', icon: MessageSquare },
     { name: 'Content', href: '/admin/content', icon: FileText },
+    { name: 'Chatbot Control', href: '/admin/chatbot', icon: MessageCircle },
   ];
 
   const isActive = (href: string) => {
@@ -50,7 +52,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200">
-          <h1 className="text-xl font-bold text-emerald-600">Cottoniq Admin</h1>
+          <h1 className="text-xl font-bold text-emerald-600">Cottonunique Admin</h1>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-slate-500 hover:text-slate-700"

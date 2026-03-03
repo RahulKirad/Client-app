@@ -10,9 +10,9 @@ async function setupDatabase() {
     user: process.env.DB_USER || 'root',
     multipleStatements: true
   };
-
-  // Force no password for root user
-  console.log('🔧 Forcing no password for MySQL connection');
+  if (process.env.DB_PASSWORD !== undefined && String(process.env.DB_PASSWORD).trim() !== '') {
+    config.password = process.env.DB_PASSWORD;
+  }
 
   console.log('🔧 Database config:', {
     host: config.host,

@@ -1,8 +1,8 @@
-# 🔐 Cottoniq Admin Panel - Complete Guide
+# 🔐 Cottonunique Admin Panel - Complete Guide
 
 ## Overview
 
-A comprehensive admin panel has been created for managing your Cottoniq e-commerce platform with full authentication, product management, and content control.
+A comprehensive admin panel has been created for managing your Cottonunique e-commerce platform with full authentication, product management, and content control.
 
 ## 🚀 Current Status
 

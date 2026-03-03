@@ -1,4 +1,4 @@
-# Cottoniq - MySQL Version
+# Cottonunique - MySQL Version
 
 A sustainable tote bag e-commerce platform built with React, TypeScript, and MySQL.
 
@@ -13,21 +13,21 @@ A sustainable tote bag e-commerce platform built with React, TypeScript, and MyS
 1. Install MySQL Server on your system
 2. Create a new database:
    ```sql
-   CREATE DATABASE cottoniq_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE DATABASE cottonunique_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 
 3. Import the database schema:
    ```bash
-   mysql -u root -p cottoniq_db < database/mysql_schema.sql
+   mysql -u root -p cottonunique_db < database/mysql_schema.sql
    ```
 
 ## Environment Configuration
 
 1. Copy the `.env` file and update the database credentials:
    ```env
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_NAME=cottoniq_db
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=cottonunique_db
    DB_USER=root
    DB_PASSWORD=your_password_here
    VITE_API_URL=http://localhost:3001/api

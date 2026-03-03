@@ -1,6 +1,6 @@
 # Migration from Supabase to MySQL
 
-This guide outlines the complete migration from Supabase to MySQL for the Cottoniq application.
+This guide outlines the complete migration from Supabase to MySQL for the Cottonunique application.
 
 ## What Was Changed
 
@@ -42,7 +42,7 @@ This guide outlines the complete migration from Supabase to MySQL for the Cotton
    ```env
    DB_HOST=localhost
    DB_PORT=3306
-   DB_NAME=cottoniq_db
+   DB_NAME=cottonunique_db
    DB_USER=root
    DB_PASSWORD=your_password_here
    VITE_API_URL=http://localhost:3001/api

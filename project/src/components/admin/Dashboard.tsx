@@ -94,7 +94,7 @@ export default function Dashboard() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Dashboard</h1>
-        <p className="text-slate-600">Overview of your Cottoniq admin panel</p>
+        <p className="text-slate-600">Overview of your Cottonunique admin panel</p>
       </div>
 
       {/* Stats Grid */}

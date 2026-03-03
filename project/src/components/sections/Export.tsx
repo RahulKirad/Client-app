@@ -50,7 +50,7 @@ export default function Export() {
   };
 
   return (
-    <section id="export" className="py-20 bg-[#FDF6E3] paper-texture">
+    <section id="export" className="py-20 paper-texture" style={{ backgroundColor: '#FFFBF5' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
@@ -86,7 +86,7 @@ export default function Export() {
             {regions.map((region, index) => (
               <div
                 key={index}
-                className="bg-[#FDF6E3] rounded-none p-6 text-center shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 vintage-border"
+                className="bg-[#F0E6D8] rounded-none p-6 text-center shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 vintage-border"
               >
                 <div className="text-6xl mb-4">{region.flag}</div>
                 <h4 className="text-xl font-black text-[#78350F] mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>{region.name}</h4>
@@ -102,7 +102,7 @@ export default function Export() {
             {services.map((service, index) => (
               <div
                 key={index}
-                className="bg-[#FDF6E3] rounded-none p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 vintage-border"
+                className="bg-[#F0E6D8] rounded-none p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 vintage-border"
               >
                 <div className="w-14 h-14 rounded-lg flex items-center justify-center mb-4 beige-border" style={{backgroundColor: 'var(--beige-400)'}}>
                   <service.icon size={28} style={{color: 'var(--text-color)'}} />
@@ -122,7 +122,7 @@ export default function Export() {
             {documents.map((doc, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 bg-[#FEF3C7] p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-[var(--beige-300)] group"
+                className="flex items-center space-x-3 bg-[#F0E6D8] p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-[var(--beige-300)] group"
               >
                 <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{backgroundColor: 'var(--beige-400)'}}>
                   <CheckCircle size={16} style={{color: '#78350F'}} />

@@ -96,6 +96,32 @@ class ApiClient {
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     return this.request<{ status: string; timestamp: string }>('/health');
   }
+
+  // Chatbot
+  async getChatbotSettings(): Promise<{ enabled: boolean; welcomeMessage: string | null }> {
+    const url = `${API_BASE_URL}/chatbot/settings?t=${Date.now()}`;
+    const res = await fetch(url, { cache: 'no-store', headers: { 'Content-Type': 'application/json' } });
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    const data = await res.json();
+    return {
+      enabled: data.enabled === true || data.enabled === 1,
+      welcomeMessage: data.welcomeMessage ?? null,
+    };
+  }
+
+  async sendChatMessage(
+    message: string,
+    conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>
+  ): Promise<{ message: string; timestamp: string }> {
+    return this.request<{ message: string; timestamp: string }>('/chatbot/message', {
+      method: 'POST',
+      body: JSON.stringify({ message, conversationHistory }),
+    });
+  }
+
+  async getChatbotDiagnostics(): Promise<any> {
+    return this.request<any>('/chatbot/diagnostics');
+  }
 }
 
 export const apiClient = new ApiClient();

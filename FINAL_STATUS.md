@@ -1,10 +1,10 @@
-# 🎉 Cottoniq Application - FULLY OPERATIONAL
+# 🎉 Cottonunique Application - FULLY OPERATIONAL
 
 ## Current Status: ✅ ALL SYSTEMS RUNNING
 
 ### Backend API Server
 - **Status**: ✅ Running on http://localhost:3001
-- **Database**: ✅ Connected to MySQL (cottoniq_db)
+- **Database**: ✅ Connected to MySQL (cottonunique_db)
 - **API Endpoints**: ✅ All functional
 - **Sample Data**: ✅ Loaded (4 products, 5 content sections)
 
@@ -15,7 +15,7 @@
 
 ### Database
 - **Type**: MySQL
-- **Database**: cottoniq_db
+- **Database**: cottonunique_db
 - **Tables**: products, inquiries, content_sections
 - **Connection**: ✅ No password authentication (root user)
 
@@ -119,4 +119,4 @@ npm run preview      # Preview production build
 
 ---
 
-🚀 **Your Cottoniq application is now fully operational with MySQL backend!**
+🚀 **Your Cottonunique application is now fully operational with MySQL backend!**

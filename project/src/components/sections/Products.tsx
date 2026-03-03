@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShoppingBag, Download, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient, Product } from '../../lib/api';
 import ProductCarousel from '../ui/ProductCarousel';
@@ -205,13 +205,13 @@ export default function Products() {
   };
 
   return (
-    <section id="products" className="py-20">
+    <section id="products" className="pt-4 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="heading-h2 mb-4 text-center" style={{color: 'var(--heading-color)'}}>
+          <h2 className="heading-h2 text-4xl sm:text-5xl lg:text-6xl mb-4 text-center" style={{color: 'var(--heading-color)'}}>
             Eco Totes for Every Market
           </h2>
-          <p className="body-text-lg max-w-3xl mx-auto text-center" style={{color: 'var(--text-primary)'}}>
+          <p className="body-text-lg text-lg sm:text-xl max-w-3xl mx-auto text-center" style={{color: 'var(--text-primary)'}}>
             Premium sustainable bags designed for global commerce
           </p>
         </div>
@@ -245,14 +245,6 @@ export default function Products() {
             <span>View All Products</span>
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </Link>
-          <button className="flex items-center justify-center space-x-2 px-8 py-3 rounded-lg transition-all duration-300 soft-shadow font-medium"
-            style={{backgroundColor: 'var(--beige-200)', color: 'var(--text-color)', border: '2px solid var(--beige-500)', borderColor: 'var(--beige-500)'}}
-            onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-500)'; e.currentTarget.style.borderColor = 'var(--beige-700)'}}
-            onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-200)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
-          >
-            <Download size={20} />
-            <span>Download Product Catalog</span>
-          </button>
           <button
             onClick={scrollToContact}
             className="btn-cta-primary flex items-center justify-center space-x-2"

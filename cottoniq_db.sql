@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `cottoniq_db`
+-- Database: `cottonunique_db`
 --
 
 -- --------------------------------------------------------
@@ -64,7 +64,7 @@ INSERT INTO `content_sections` (`id`, `section_key`, `title`, `content`, `is_act
 ('34cdb083-b7a1-11f0-a83e-9c5a446d56b7', 'hero', 'Homepage Hero', '{\"headline\": \"Where intelligent design meets ethical craftsmanship\", \"subheadline\": \"Smart. Sustainable. Global.\", \"cta_primary\": \"Explore Our Totes\", \"cta_secondary\": \"Corporate Solutions\"}', 1, '2025-11-02 04:05:45'),
 ('34cdb2e8-b7a1-11f0-a83e-9c5a446d56b7', 'highlights', 'Key Highlights', '{\"items\": [\"GOTS-certified cotton\", \"FSC-compliant packaging\", \"Export-ready documentation\", \"Custom branding for corporate gifting\"]}', 1, '2025-11-02 04:05:45'),
 ('34cdb3d6-b7a1-11f0-a83e-9c5a446d56b7', 'about_mission', 'Our Mission', '{\"content\": \"To deliver premium, sustainable tote bags that meet the highest global standards—ethically sourced, intelligently designed, and export-ready.\"}', 1, '2025-11-02 04:05:45'),
-('34cdb4fb-b7a1-11f0-a83e-9c5a446d56b7', 'about_story', 'Our Story', '{\"content\": \"Born from a passion for sustainability and global commerce, Cottoniq blends natural materials with modern branding to serve clients across continents.\"}', 1, '2025-11-02 04:05:45'),
+('34cdb4fb-b7a1-11f0-a83e-9c5a446d56b7', 'about_story', 'Our Story', '{\"content\": \"Born from a passion for sustainability and global commerce, Cottonunique blends natural materials with modern branding to serve clients across continents.\"}', 1, '2025-11-02 04:05:45'),
 ('34cdb5e7-b7a1-11f0-a83e-9c5a446d56b7', 'certifications', 'Certifications', '{\"items\": [\"GOTS\", \"FSC\", \"MSME & export compliance\"]}', 1, '2025-11-02 04:05:45');
 
 -- --------------------------------------------------------

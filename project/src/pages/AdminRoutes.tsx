@@ -1,28 +1,27 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-// TEMPORARILY DISABLED: Authentication imports
-// import { useAuth } from '../contexts/AuthContext';
-// import AdminLogin from '../components/admin/AdminLogin';
+import { useAuth } from '../contexts/AuthContext';
+import AdminLogin from '../components/admin/AdminLogin';
 import AdminLayout from '../components/admin/AdminLayout';
 import Dashboard from '../components/admin/Dashboard';
 import ProductsManager from '../components/admin/ProductsManager';
 import InquiriesManager from '../components/admin/InquiriesManager';
 import ContentManager from '../components/admin/ContentManager';
+import ChatbotControl from '../components/admin/ChatbotControl';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  // TEMPORARILY DISABLED: Authentication bypassed for direct admin access
-  // const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-600 border-t-transparent"></div>
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-600 border-t-transparent"></div>
+      </div>
+    );
+  }
 
-  // if (!user) {
-  //   return <AdminLogin />;
-  // }
+  if (!user) {
+    return <AdminLogin />;
+  }
 
   return <>{children}</>;
 }
@@ -55,6 +54,13 @@ export default function AdminRoutes() {
         <ProtectedRoute>
           <AdminLayout>
             <ContentManager />
+          </AdminLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/chatbot" element={
+        <ProtectedRoute>
+          <AdminLayout>
+            <ChatbotControl />
           </AdminLayout>
         </ProtectedRoute>
       } />

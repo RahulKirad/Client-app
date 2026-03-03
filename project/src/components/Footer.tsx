@@ -12,13 +12,12 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div className="animate-fade-in-up" style={{animationDelay: '0.1s'}}>
-            <div className="flex items-center space-x-3 mb-4 group">
+            <div className="flex items-center mb-4 group">
               <img
-                src="/images/WhatsApp Image 2025-11-01 at 11.44.47 PM.jpeg"
-                alt="Cottoniq Logo"
-                className="h-10 w-auto bg-white rounded-none p-1 border-2 border-white transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                src="/images/logo/logo.png"
+                alt="Cottonunique Logo"
+                className="h-14 w-auto bg-white rounded-none p-1.5 border-2 border-white transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
               />
-              <span className="text-xl font-black uppercase tracking-wider transform transition-all duration-300 group-hover:scale-105" style={{fontFamily: 'var(--heading-font)', textShadow: '2px 2px 0px rgba(0, 0, 0, 0.3)'}}>COTTONIQ</span>
             </div>
             <p className="text-white/90 text-sm leading-relaxed font-medium" style={{fontFamily: 'var(--heading-font)'}}>
               Premium sustainable tote bags that meet the highest global standards—ethically sourced, intelligently designed, and export-ready.
@@ -74,7 +73,7 @@ export default function Footer() {
             <ul className="space-y-3 text-white/90">
               <li className="flex items-start space-x-2 group transform transition-all duration-300 hover:translate-x-2">
                 <Mail size={18} className="mt-1 flex-shrink-0 text-[#FBBF24] transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
-                <span className="text-sm font-medium" style={{fontFamily: 'var(--heading-font)'}}>info@cottoniq.com</span>
+                <span className="text-sm font-medium" style={{fontFamily: 'var(--heading-font)'}}>info@cottonunique.com</span>
               </li>
               <li className="flex items-start space-x-2 group transform transition-all duration-300 hover:translate-x-2">
                 <Phone size={18} className="mt-1 flex-shrink-0 text-[#FBBF24] transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
@@ -110,7 +109,7 @@ export default function Footer() {
 
         <div className="border-t-2 border-white/30 pt-8 flex flex-col md:flex-row justify-between items-center animate-fade-in-up" style={{animationDelay: '0.6s'}}>
           <p className="text-white/90 text-sm font-medium transform transition-all duration-300 hover:scale-105" style={{fontFamily: 'var(--heading-font)'}}>
-            © {currentYear} Cottoniq. All rights reserved.
+            © {currentYear} Cottonunique. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             {[
