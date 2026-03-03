@@ -63,7 +63,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Set default authorization header
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Login failed');
+      if (error.code === 'ERR_NETWORK' || !error.response) {
+        throw new Error('Cannot reach server. Is the backend running at ' + API_BASE_URL + '?');
+      }
+      const msg = error.response?.data?.error || error.response?.data?.message || 'Login failed';
+      throw new Error(msg);
     }
   };
 

@@ -1,9 +1,9 @@
--- Cottoniq MySQL Database Schema
--- This script creates the complete database schema for the Cottoniq e-commerce platform
+-- Cottonunique MySQL Database Schema
+-- This script creates the complete database schema for the Cottonunique e-commerce platform
 
 -- Create database (run this separately if needed)
--- CREATE DATABASE cottoniq_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
--- USE cottoniq_db;
+-- CREATE DATABASE cottonunique_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE cottonunique_db;
 
 -- Create products table
 CREATE TABLE IF NOT EXISTS products (
@@ -76,10 +76,25 @@ INSERT IGNORE INTO products (name, category, description, image_url, is_featured
 ('Foldable Travel Tote', 'Foldable Travel Totes', 'Compact and convenient. Folds into a small pouch for easy carrying. Perfect for travel and on-the-go lifestyle.', '/images/products/WhatsApp Image 2025-11-01 at 11.44.47 PM (1).jpeg', FALSE, '{"dimensions": "15x17 inches", "folded_size": "4x5 inches", "weight": "120g", "features": "Built-in pouch"}'),
 ('Seasonal Gift Edition', 'Seasonal Gift Editions', 'Special edition tote bags designed for gifting. Beautiful designs that make perfect presents for any occasion.', '/images/products/WhatsApp Image 2025-11-01 at 11.44.47 PM (2).jpeg', FALSE, '{"dimensions": "14x16 inches", "weight": "150g", "packaging": "Premium gift box included", "seasonal": "Holiday collection"}');
 
+-- Create chatbot_settings table (single row for app-wide chatbot control)
+CREATE TABLE IF NOT EXISTS chatbot_settings (
+    id INT PRIMARY KEY DEFAULT 1,
+    is_enabled TINYINT(1) NOT NULL DEFAULT 1,
+    custom_instructions TEXT COMMENT 'What the chatbot should respond to / extra rules',
+    disallowed_topics TEXT COMMENT 'What the chatbot should NOT respond to (e.g. topics, keywords)',
+    welcome_message TEXT COMMENT 'Optional custom welcome message',
+    preferred_model VARCHAR(128) NULL COMMENT 'Admin-selected Gemini model ID; NULL = auto',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT single_row CHECK (id = 1)
+);
+
+INSERT IGNORE INTO chatbot_settings (id, is_enabled, welcome_message) VALUES
+(1, 1, NULL);
+
 -- Insert default content sections (only if table is empty)
 INSERT IGNORE INTO content_sections (section_key, title, content) VALUES
 ('hero', 'Homepage Hero', '{"headline": "Where intelligent design meets ethical craftsmanship", "subheadline": "Smart. Sustainable. Global.", "cta_primary": "Explore Our Totes", "cta_secondary": "Corporate Solutions"}'),
 ('highlights', 'Key Highlights', '{"items": ["GOTS-certified cotton", "FSC-compliant packaging", "Export-ready documentation", "Custom branding for corporate gifting"]}'),
 ('about_mission', 'Our Mission', '{"content": "To deliver premium, sustainable tote bags that meet the highest global standards—ethically sourced, intelligently designed, and export-ready."}'),
-('about_story', 'Our Story', '{"content": "Born from a passion for sustainability and global commerce, Cottoniq blends natural materials with modern branding to serve clients across continents."}'),
+('about_story', 'Our Story', '{"content": "Born from a passion for sustainability and global commerce, Cottonunique blends natural materials with modern branding to serve clients across continents."}'),
 ('certifications', 'Certifications', '{"items": ["GOTS", "FSC", "MSME & export compliance"]}');

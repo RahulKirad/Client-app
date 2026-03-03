@@ -32,7 +32,7 @@ export default function AdminLogin() {
             <Lock className="text-emerald-600" size={32} />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Admin Login</h1>
-          <p className="text-slate-600">Access Cottoniq Admin Panel</p>
+          <p className="text-slate-600">Access Cottonunique Admin Panel</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -94,9 +94,12 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-1">
           <p className="text-sm text-slate-500">
-            Default credentials: admin / admin
+            First-time or no admin yet: use <strong>admin</strong> / <strong>admin</strong> to create the default account.
+          </p>
+          <p className="text-xs text-slate-400">
+            If login fails: ensure the backend is running and <code className="bg-slate-100 px-1 rounded">admin_users</code> table exists (run backend/database/mysql_schema.sql).
           </p>
         </div>
       </div>

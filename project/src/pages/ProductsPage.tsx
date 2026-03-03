@@ -170,6 +170,32 @@ const demoProducts: Product[] = [
   }
 ];
 
+/** Normalize API product rows to frontend Product shape (id string, specs/gallery objects). */
+function normalizeProducts(rows: unknown[]): Product[] {
+  return rows.map((row: any) => {
+    const specs = row.specifications;
+    const gallery = row.gallery_images;
+    return {
+      id: String(row.id ?? ''),
+      name: row.name ?? '',
+      category: row.category ?? '',
+      description: row.description ?? '',
+      material: row.material ?? '',
+      print_type: row.print_type ?? '',
+      packaging: row.packaging ?? '',
+      moq: row.moq != null ? String(row.moq) : '',
+      price: typeof row.price === 'number' ? row.price : parseFloat(row.price) || 0,
+      image_url: row.image_url ?? '',
+      gallery_images: Array.isArray(gallery) ? gallery : (typeof gallery === 'string' ? (() => { try { return JSON.parse(gallery); } catch { return []; } })() : []),
+      specifications: specs && typeof specs === 'object' ? specs : (typeof specs === 'string' ? (() => { try { return JSON.parse(specs); } catch { return {}; } })() : {}),
+      is_featured: Boolean(row.is_featured),
+      is_active: row.is_active !== false && row.is_active !== 0,
+      created_at: row.created_at ?? '',
+      updated_at: row.updated_at ?? '',
+    };
+  });
+}
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>(demoProducts);
   const [loading, setLoading] = useState(true);
@@ -202,16 +228,14 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      // Temporarily always use demo products
-      setProducts(demoProducts);
-      // const data = await apiClient.getProducts();
-      // // If API returns products, use them; otherwise keep demo products
-      // if (data && data.length > 0) {
-      //   setProducts(data);
-      // }
+      const data = await apiClient.getProducts();
+      if (data && data.length > 0) {
+        setProducts(normalizeProducts(data));
+      } else {
+        setProducts(demoProducts);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
-      // Keep demo products on error
       setProducts(demoProducts);
     } finally {
       setLoading(false);

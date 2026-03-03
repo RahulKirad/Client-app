@@ -1,6 +1,6 @@
-# Cottoniq Backend API
+# Cottonunique Backend API
 
-A Node.js/Express REST API for the Cottoniq e-commerce platform with MySQL database.
+A Node.js/Express REST API for the Cottonunique e-commerce platform with MySQL database.
 
 ## Features
 
@@ -95,7 +95,7 @@ The application uses three main tables:
 # MySQL Database Configuration
 DB_HOST=localhost
 DB_PORT=3306
-DB_NAME=cottoniq_db
+DB_NAME=cottonunique_db
 DB_USER=root
 DB_PASSWORD=your_password_here
 
@@ -105,7 +105,15 @@ NODE_ENV=development
 
 # CORS Configuration
 FRONTEND_URL=http://localhost:5173
+
+# Inquiry email notifications (optional; if set, inquiries are emailed to cottonunique.co@gmail.com)
+EMAIL_USER=cottonunique.co@gmail.com
+EMAIL_APP_PASSWORD=your_gmail_app_password
+# Optional: override recipient (default: cottonunique.co@gmail.com)
+# INQUIRY_RECIPIENT_EMAIL=cottonunique.co@gmail.com
 ```
+
+**Inquiry email:** When a user submits "Send Inquiry" on the contact form, the backend can send a notification to `cottonunique.co@gmail.com`. Set `EMAIL_USER` and `EMAIL_APP_PASSWORD` (Gmail [App Password](https://support.google.com/accounts/answer/185833)) in `.env`. If these are not set, inquiries are still saved to the database but no email is sent.
 
 ## Scripts
 

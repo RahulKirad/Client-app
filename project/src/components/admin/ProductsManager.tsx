@@ -62,6 +62,8 @@ export default function ProductsManager() {
     { code: 'kwd', symbol: 'د.ك', name: 'Kuwaiti Dinar', flag: '🇰🇼', region: 'Middle East' }
   ];
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -82,11 +84,19 @@ export default function ProductsManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Merge pricing data into specifications
-    const specs = formData.specifications ? JSON.parse(formData.specifications) : {};
+    setSubmitError(null);
+    setSubmitting(true);
+
+    let specs: Record<string, unknown> = {};
+    try {
+      specs = formData.specifications ? JSON.parse(formData.specifications) : {};
+    } catch {
+      setSubmitError('Specifications must be valid JSON.');
+      setSubmitting(false);
+      return;
+    }
     specs.pricing = pricing;
-    
+
     const submitData = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
       if (key === 'specifications') {
@@ -95,7 +105,7 @@ export default function ProductsManager() {
         submitData.append(key, value.toString());
       }
     });
-    
+
     if (imageFile) {
       submitData.append('image', imageFile);
     }
@@ -110,12 +120,16 @@ export default function ProductsManager() {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
       }
-      
       fetchProducts();
       resetForm();
       setShowModal(false);
-    } catch (error) {
-      console.error('Error saving product:', error);
+    } catch (err: unknown) {
+      const ax = err && typeof err === 'object' && 'response' in err ? (err as { response?: { data?: { error?: string }; status?: number } }).response : null;
+      const message = ax?.data?.error || (ax?.status === 401 ? 'Please log in again.' : 'Failed to save product. Check console for details.');
+      setSubmitError(message);
+      console.error('Error saving product:', err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -140,6 +154,7 @@ export default function ProductsManager() {
       setPricing(specs.pricing);
     }
     
+    setSubmitError(null);
     setShowModal(true);
   };
 
@@ -205,7 +220,7 @@ export default function ProductsManager() {
           <p className="text-slate-600">Manage your product catalog</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => { setSubmitError(null); setShowModal(true); }}
           className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
         >
           <Plus size={20} className="mr-2" />
@@ -296,6 +311,11 @@ export default function ProductsManager() {
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {submitError && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm" role="alert">
+                  {submitError}
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
@@ -532,6 +552,7 @@ export default function ProductsManager() {
                 <button
                   type="button"
                   onClick={() => {
+                    setSubmitError(null);
                     setShowModal(false);
                     resetForm();
                   }}
@@ -541,9 +562,10 @@ export default function ProductsManager() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {editingProduct ? 'Update' : 'Create'} Product
+                  {submitting ? 'Saving…' : editingProduct ? 'Update' : 'Create'} Product
                 </button>
               </div>
             </form>

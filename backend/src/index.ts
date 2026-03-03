@@ -5,6 +5,8 @@ import mysql from 'mysql2/promise';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import adminRoutes from './routes/admin';
+import chatbotRoutes from './routes/chatbot';
+import { sendInquiryEmail } from './services/email';
 
 // Load environment variables
 dotenv.config();
@@ -19,10 +21,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Rate limiting
+// Rate limiting (skip GET /chatbot/settings so chatbot polling doesn't hit limit)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  skip: (req) => req.method === 'GET' && req.path === '/chatbot/settings'
 });
 app.use('/api', limiter);
 
@@ -116,19 +119,25 @@ app.get('/api/products/:id', async (req: Request, res: Response) => {
 app.post('/api/inquiries', async (req: Request, res: Response) => {
   try {
     const { name, company, email, region, order_type, message } = req.body;
-    
+
     if (!name || !email || !message) {
       return res.status(400).json({ error: 'Name, email, and message are required' });
     }
-    
+
     const [result] = await pool.execute(
       'INSERT INTO inquiries (name, company, email, region, order_type, message) VALUES (?, ?, ?, ?, ?, ?)',
       [name, company, email, region, order_type, message]
     );
-    
-    res.status(201).json({ 
+
+    // Send inquiry notification to cottonunique.co@gmail.com (non-blocking; inquiry already saved)
+    const payload = { name, company, email, region, order_type, message };
+    sendInquiryEmail(payload).catch(() => {
+      // Already logged in sendInquiryEmail
+    });
+
+    res.status(201).json({
       message: 'Inquiry submitted successfully',
-      id: (result as any).insertId 
+      id: (result as any).insertId
     });
   } catch (error) {
     console.error('Error submitting inquiry:', error);
@@ -157,6 +166,130 @@ app.get('/api/content/:sectionKey', async (req: Request, res: Response) => {
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// Public chatbot settings (enabled + welcome message only; used by frontend to show/hide widget)
+app.get('/api/chatbot/settings', async (req: Request, res: Response) => {
+  try {
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS chatbot_settings (
+        id INT PRIMARY KEY DEFAULT 1,
+        is_enabled TINYINT(1) NOT NULL DEFAULT 1,
+        custom_instructions TEXT,
+        disallowed_topics TEXT,
+        welcome_message TEXT,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    const [rows] = await pool.execute(
+      'SELECT is_enabled AS enabled, welcome_message AS welcomeMessage FROM chatbot_settings WHERE id = 1'
+    );
+    if (Array.isArray(rows) && rows.length === 0) {
+      await pool.execute('INSERT INTO chatbot_settings (id, is_enabled) VALUES (1, 1)');
+      return res.json({ enabled: true, welcomeMessage: null });
+    }
+    const row = (rows as any[])[0];
+    const raw = row?.enabled;
+    const enabled = raw === 1 || raw === true || (typeof raw === 'string' && raw.trim() === '1');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.json({
+      enabled: !!enabled,
+      welcomeMessage: row?.welcomeMessage ?? null,
+    });
+  } catch (error) {
+    console.error('Error fetching chatbot settings:', error);
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ enabled: true, welcomeMessage: null });
+  }
+});
+
+// Public visibility diagnostics (no auth - so admin can run diagnostics even when not logged in)
+app.get('/api/chatbot/visibility-diagnostics', async (req: Request, res: Response) => {
+  try {
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS chatbot_settings (
+        id INT PRIMARY KEY DEFAULT 1,
+        is_enabled TINYINT(1) NOT NULL DEFAULT 1,
+        custom_instructions TEXT,
+        disallowed_topics TEXT,
+        welcome_message TEXT,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    // Use the EXACT same query and logic as GET /api/chatbot/settings so diagnostics match reality
+    const [rows] = await pool.execute(
+      'SELECT is_enabled AS enabled, welcome_message AS welcomeMessage FROM chatbot_settings WHERE id = 1'
+    );
+    const rowExists = Array.isArray(rows) && rows.length > 0;
+    const row = rowExists ? (rows as any[])[0] : null;
+    const raw = row?.enabled;
+    const rawType = raw === undefined ? 'undefined' : typeof raw;
+    const rawString = raw != null ? String(raw) : 'null';
+    // Exact same condition as the public settings route
+    const publicEnabled = raw === 1 || raw === true || (typeof raw === 'string' && raw.trim() === '1');
+    const steps: { step: string; pass: boolean; detail: string }[] = [];
+    steps.push({
+      step: '1. Database row exists',
+      pass: rowExists,
+      detail: rowExists ? `Row id=1 exists. is_enabled (as "enabled") = ${JSON.stringify(raw)} (${rawType})` : 'No row with id=1. Public API would insert (1,1) and return enabled: true.',
+    });
+    steps.push({
+      step: '2. Database value means "disabled"',
+      pass: rowExists && !publicEnabled,
+      detail: rowExists
+        ? `Value ${JSON.stringify(raw)} is treated as ${publicEnabled ? 'ENABLED (1/true/"1")' : 'DISABLED (0 or anything else)'}. Public API will return enabled: ${publicEnabled}.`
+        : 'N/A (no row).',
+    });
+    steps.push({
+      step: '3. Public API would return enabled: false',
+      pass: !publicEnabled,
+      detail: !publicEnabled
+        ? 'GET /api/chatbot/settings returns { enabled: false }. Frontend should hide the chatbot.'
+        : 'GET /api/chatbot/settings returns { enabled: true }. Frontend will show the chatbot.',
+    });
+    const possibleCauses: string[] = [];
+    if (!rowExists) possibleCauses.push('Chatbot settings row (id=1) is missing. Save from Admin once to create it.');
+    else if (publicEnabled) {
+      possibleCauses.push('Toggle is On or was not saved. Set toggle to Off and click Save.');
+      possibleCauses.push('Admin and public API use the same DB; if this diagnostic shows enabled: false but the site still shows the button, the site may be using a different API URL (check .env VITE_API_URL) or a cached response.');
+    }
+    if (rowExists && !publicEnabled) {
+      possibleCauses.push('Backend is correct. If the chatbot still shows: refresh the main site tab or click on it (refetch on focus), or check the browser Network tab for GET .../chatbot/settings response.');
+    }
+    res.json({
+      timestamp: new Date().toISOString(),
+      database: {
+        rowExists,
+        rawValue: raw,
+        rawType,
+        rawString,
+        json: JSON.stringify(row),
+      },
+      publicApiLogic: {
+        enabled: Boolean(publicEnabled),
+        description: 'Exactly what GET /api/chatbot/settings returns for "enabled" (same logic as the route)',
+      },
+      steps,
+      possibleCauses,
+      verdict: {
+        chatbotWillShowOnSite: Boolean(publicEnabled),
+        suggestion: publicEnabled
+          ? 'Chatbot will SHOW. Set toggle to Off, click Save, then run diagnostics again. Then refresh or focus the main site tab.'
+          : 'Chatbot should be HIDDEN. Refresh the main site tab (or switch to it) so it refetches settings.',
+      },
+      frontendNote: 'Main site uses VITE_API_URL or http://localhost:3001/api. It calls GET /chatbot/settings and hides the button when enabled === false.',
+    });
+  } catch (error: any) {
+    console.error('Chatbot visibility diagnostics error:', error);
+    res.status(500).json({
+      timestamp: new Date().toISOString(),
+      error: error.message,
+      suggestion: 'Check backend logs and database connection.',
+    });
+  }
+});
+
+// Chatbot routes (pass pool for loading settings in message handler)
+app.use('/api/chatbot', chatbotRoutes(pool));
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {

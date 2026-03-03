@@ -55,7 +55,11 @@ export default function Corporate() {
   };
 
   return (
-    <section id="corporate" className="py-20 bg-[#FDF6E3] paper-texture">
+    <section
+      id="corporate"
+      className="py-20 paper-texture"
+      style={{ background: 'linear-gradient(to right, #F0EBE3, #FFFBF7)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
@@ -70,9 +74,9 @@ export default function Corporate() {
         <div className="mb-12 rounded-lg overflow-hidden soft-shadow-lg">
           <div className="relative h-64 md:h-96">
             <img
-              src="/images/new/WhatsApp Image 2025-12-27 at 6.17.04 PM.jpeg"
-              alt="Corporate Solutions"
-              className="w-full h-full object-cover"
+              src="/images/corporate/image2.png"
+              alt="Cottonunique corporate tote bags with natural styling"
+              className="w-full h-full object-cover object-center"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             <div className="absolute bottom-8 left-8 right-8 text-white">

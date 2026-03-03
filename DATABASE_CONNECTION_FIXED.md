@@ -38,7 +38,7 @@ Updated `backend/database/mysql_schema.sql` to:
 ```bash
 npm run setup-db
 # ✅ Database setup completed successfully!
-# 📊 Database: cottoniq_db
+# 📊 Database: cottonunique_db
 # 🎯 Tables created: products, inquiries, content_sections
 # 📝 Sample data inserted
 ```

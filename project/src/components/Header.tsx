@@ -65,8 +65,8 @@ export default function Header() {
           <div className="flex items-center cursor-pointer group" onClick={() => scrollToSection('#home', '/')}>
             <img
               src="/images/logo/logo.png"
-              alt="Cottoniq Logo"
-              className="h-20 w-auto transform group-hover:scale-105 transition-transform duration-300"
+              alt="Cottonunique Logo"
+              className="h-20 w-auto transform group-hover:scale-110 transition-transform duration-300"
             />
           </div>
 

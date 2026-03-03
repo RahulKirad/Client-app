@@ -1,4 +1,4 @@
-# Cottoniq Project Setup Guide
+# Cottonunique Project Setup Guide
 
 Your project has been successfully reorganized with a separate backend folder. Here's how to get everything running:
 
@@ -73,7 +73,7 @@ npm run dev
 ```env
 DB_HOST=localhost
 DB_PORT=3306
-DB_NAME=cottoniq_db
+DB_NAME=cottonunique_db
 DB_USER=root
 DB_PASSWORD=your_mysql_password_here
 PORT=3001

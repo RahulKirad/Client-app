@@ -2,7 +2,7 @@ import { CheckCircle, ShoppingBag, Package, Leaf } from 'lucide-react';
 
 export default function EcoToteDuoPack() {
   return (
-    <section id="ecotote-duopack" className="pt-20 pb-20 bg-white relative overflow-hidden">
+    <section id="ecotote-duopack" className="pt-8 pb-20 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Hero Section: Image on Left, Text on Right */}
