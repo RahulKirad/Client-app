@@ -69,10 +69,11 @@
   --text-secondary: #8B7D6F;
 }
 
-/* Pastel Beige Background */
+/* Pastel Beige Background + Responsive base */
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
@@ -80,6 +81,18 @@
     background: var(--main-bg);
     font-family: var(--body-font);
     color: var(--text-color);
+    overflow-x: hidden;
+    min-width: 0;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Prevent flex/grid children from overflowing on small screens */
+  .min-w-0 {
+    min-width: 0;
   }
 }
 

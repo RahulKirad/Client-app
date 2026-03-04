@@ -53,7 +53,7 @@ export default function Sustainability() {
 
   return (
     <section id="sustainability" className="py-20 paper-texture" style={{ backgroundColor: '#FFFBF5' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
             More Than Just a Bag

@@ -61,12 +61,12 @@ export default function Header() {
       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
     }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          <div className="flex items-center cursor-pointer group" onClick={() => scrollToSection('#home', '/')}>
+        <div className="flex justify-between items-center h-14 sm:h-16 md:h-20">
+          <div className="flex items-center min-w-0 cursor-pointer group" onClick={() => scrollToSection('#home', '/')}>
             <img
               src="/images/logo/logo.png"
               alt="Cottonunique Logo"
-              className="h-20 w-auto transform group-hover:scale-110 transition-transform duration-300"
+              className="h-12 sm:h-14 md:h-20 w-auto max-h-20 transform group-hover:scale-110 transition-transform duration-300"
             />
           </div>
 

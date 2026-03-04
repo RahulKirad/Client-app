@@ -9,8 +9,8 @@ export default function Footer() {
       <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20 animate-float-slow" style={{backgroundColor: 'rgba(255, 255, 255, 0.1)'}}></div>
       <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full blur-3xl opacity-15 animate-float-slow" style={{backgroundColor: 'rgba(255, 255, 255, 0.1)', animationDelay: '2s'}}></div>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10 min-w-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 min-w-0">
           <div className="animate-fade-in-up" style={{animationDelay: '0.1s'}}>
             <div className="flex items-center mb-4 group">
               <img
@@ -73,7 +73,7 @@ export default function Footer() {
             <ul className="space-y-3 text-white/90">
               <li className="flex items-start space-x-2 group transform transition-all duration-300 hover:translate-x-2">
                 <Mail size={18} className="mt-1 flex-shrink-0 text-[#FBBF24] transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
-                <span className="text-sm font-medium" style={{fontFamily: 'var(--heading-font)'}}>info@cottonunique.com</span>
+                <span className="text-sm font-medium break-all" style={{fontFamily: 'var(--heading-font)'}}>info@cottonunique.com</span>
               </li>
               <li className="flex items-start space-x-2 group transform transition-all duration-300 hover:translate-x-2">
                 <Phone size={18} className="mt-1 flex-shrink-0 text-[#FBBF24] transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />

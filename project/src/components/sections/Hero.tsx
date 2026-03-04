@@ -88,10 +88,10 @@ export default function Hero() {
   };
 
   return (
-    <section id="home" className="relative min-h-[70vh] flex items-center pt-20 overflow-hidden">
+    <section id="home" className="relative min-h-[60vh] sm:min-h-[70vh] flex items-center pt-20 overflow-hidden">
       {/* Carousel Container - Full Width */}
       <div 
-        className="relative w-full h-[70vh] min-h-[500px] max-h-[700px]"
+        className="relative w-full h-[60vh] min-h-[380px] sm:min-h-[500px] sm:h-[70vh] max-h-[700px]"
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
@@ -134,14 +134,14 @@ export default function Hero() {
                     <span style={{color: 'var(--beige-700)'}}>{slide.badge}</span>
                   </div>
 
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-white drop-shadow-lg" style={{fontFamily: 'var(--heading-font)'}}>
+                  <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-white drop-shadow-lg" style={{fontFamily: 'var(--heading-font)'}}>
                     {slide.title}{' '}
                     <span className="block mt-2 text-white/95">
                       {slide.subtitle}
                     </span>
                   </h1>
 
-                  <p className="text-base sm:text-lg leading-relaxed font-normal text-white/90 drop-shadow-md max-w-xl" style={{fontFamily: 'var(--body-font)'}}>
+                  <p className="text-sm sm:text-base lg:text-lg leading-relaxed font-normal text-white/90 drop-shadow-md max-w-xl" style={{fontFamily: 'var(--body-font)'}}>
                     {slide.description}
                   </p>
                 </div>
@@ -153,21 +153,21 @@ export default function Hero() {
         {/* Navigation Arrows */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/80 backdrop-blur-sm soft-shadow hover:shadow-xl transition-all duration-300 hover:scale-110 z-30 group hover:bg-white"
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/80 backdrop-blur-sm soft-shadow hover:shadow-xl transition-all duration-300 hover:scale-110 z-30 group hover:bg-white"
           aria-label="Previous slide"
         >
-          <ChevronLeft size={24} className="text-slate-900 group-hover:opacity-80" />
+          <ChevronLeft size={22} className="text-slate-900 group-hover:opacity-80" />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/80 backdrop-blur-sm soft-shadow hover:shadow-xl transition-all duration-300 hover:scale-110 z-30 group hover:bg-white"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/80 backdrop-blur-sm soft-shadow hover:shadow-xl transition-all duration-300 hover:scale-110 z-30 group hover:bg-white"
           aria-label="Next slide"
         >
-          <ChevronRight size={24} className="text-slate-900 group-hover:opacity-80" />
+          <ChevronRight size={22} className="text-slate-900 group-hover:opacity-80" />
         </button>
 
         {/* Slide Indicators */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-30">
+        <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex space-x-2 sm:space-x-3 z-30">
           {slides.map((_, index) => (
             <button
               key={index}

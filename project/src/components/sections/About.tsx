@@ -7,7 +7,7 @@ const mainContentBulletColor = '#4A352F';
 export default function About() {
   return (
     <section id="about" className="pt-32 pb-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <div className="mb-10">
           <h2
@@ -24,9 +24,9 @@ export default function About() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-10 lg:gap-14 items-start">
+        <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-10 lg:gap-14 items-start min-w-0">
           {/* Left column - Modern Elegance + image */}
-          <div>
+          <div className="min-w-0">
             {/* Modern Elegance block */}
             <div className="mb-6">
               <p className="font-semibold mb-3 leading-snug" style={{ color: '#1a1a1a', fontFamily: 'var(--heading-font)' }}>
@@ -56,7 +56,7 @@ export default function About() {
           </div>
 
           {/* Right column - top image + Main Content (Our Philosophy, Our Mission, Our Values) */}
-          <div className="space-y-6 lg:-mt-56">
+          <div className="space-y-6 lg:-mt-56 min-w-0">
             {/* Top image */}
             <img
               src="/images/aboutus/about1.png"

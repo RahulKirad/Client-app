@@ -13,7 +13,7 @@ import ProductsPage from './ProductsPage';
 
 function MainPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden w-full">
       <Header />
       <main>
         <Hero />

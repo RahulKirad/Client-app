@@ -55,7 +55,7 @@ export default function Contact() {
       className="py-20 paper-texture"
       style={{ background: 'linear-gradient(to top, #EDE4D6, #FDF8F0)' }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>Get in Touch</h2>
           <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>
