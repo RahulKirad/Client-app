@@ -42,6 +42,32 @@ export interface ContentSection {
   updated_at: string;
 }
 
+/** Normalize API product rows (DB shape) to frontend Product shape. */
+export function normalizeProducts(rows: unknown[]): Product[] {
+  return rows.map((row: Record<string, unknown>) => {
+    const specs = row.specifications;
+    const gallery = row.gallery_images;
+    return {
+      id: String(row.id ?? ''),
+      name: String(row.name ?? ''),
+      category: String(row.category ?? ''),
+      description: String(row.description ?? ''),
+      material: String(row.material ?? ''),
+      print_type: String(row.print_type ?? ''),
+      packaging: String(row.packaging ?? ''),
+      moq: row.moq != null ? String(row.moq) : '',
+      price: typeof row.price === 'number' ? row.price : parseFloat(String(row.price)) || 0,
+      image_url: String(row.image_url ?? ''),
+      gallery_images: Array.isArray(gallery) ? (gallery as string[]) : (typeof gallery === 'string' ? (() => { try { return JSON.parse(gallery) as string[]; } catch { return []; } })() : []),
+      specifications: specs && typeof specs === 'object' && specs !== null ? specs as Record<string, any> : (typeof specs === 'string' ? (() => { try { return JSON.parse(specs) as Record<string, any>; } catch { return {}; } })() : {}),
+      is_featured: Boolean(row.is_featured),
+      is_active: row.is_active !== false && row.is_active !== 0,
+      created_at: String(row.created_at ?? ''),
+      updated_at: String(row.updated_at ?? ''),
+    };
+  });
+}
+
 class ApiClient {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -68,15 +94,20 @@ class ApiClient {
 
   // Products
   async getProducts(): Promise<Product[]> {
-    return this.request<Product[]>('/products');
+    const data = await this.request<unknown[]>('/products');
+    return Array.isArray(data) ? normalizeProducts(data) : [];
   }
 
   async getFeaturedProducts(): Promise<Product[]> {
-    return this.request<Product[]>('/products/featured');
+    const data = await this.request<unknown[]>('/products/featured');
+    return Array.isArray(data) ? normalizeProducts(data) : [];
   }
 
   async getProduct(id: string): Promise<Product> {
-    return this.request<Product>(`/products/${id}`);
+    const data = await this.request<Record<string, unknown>>(`/products/${id}`);
+    const list = normalizeProducts([data]);
+    if (!list.length) throw new Error('Product not found');
+    return list[0];
   }
 
   // Inquiries

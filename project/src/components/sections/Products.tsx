@@ -1,173 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { apiClient, Product } from '../../lib/api';
+import { apiClient, Product, normalizeProducts } from '../../lib/api';
 import ProductCarousel from '../ui/ProductCarousel';
-
-// Demo products using local images
-const demoProducts: Product[] = [
-  {
-    id: 'demo-1',
-    name: 'Floral Elegance Tote Bag',
-    category: 'Classic Cotton Totes',
-    description: 'Beautiful cream canvas tote bag featuring vibrant floral designs. Perfect blend of style and sustainability for your everyday needs.',
-    material: '100% Organic Cotton',
-    print_type: 'Screen Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 12.99,
-    image_url: '/images/products/product1.jpeg',
-    gallery_images: ['/images/products/product1.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-2',
-    name: 'Bee Joy Tote Bag',
-    category: 'Classic Cotton Totes',
-    description: 'Light beige canvas tote with cheerful bee design. Spread positivity and joy with our beautifully crafted, eco-friendly tote bags.',
-    material: '100% Organic Cotton',
-    print_type: 'Digital Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 13.99,
-    image_url: '/images/products/product2.jpeg',
-    gallery_images: ['/images/products/product2.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-3',
-    name: 'Watercolor Floral Tote',
-    category: 'Classic Cotton Totes',
-    description: 'Stunning watercolor floral prints on premium canvas. Each tote is a work of art, combining functionality with beautiful aesthetics.',
-    material: '100% Organic Cotton',
-    print_type: 'Screen Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 14.99,
-    image_url: '/images/products/product3.jpeg',
-    gallery_images: ['/images/products/product3.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-4',
-    name: 'Sunflower Embroidered Tote',
-    category: 'Classic Cotton Totes',
-    description: 'Exquisite embroidered sunflower design on natural canvas. Handcrafted with attention to detail for a truly special tote bag.',
-    material: '100% Organic Cotton',
-    print_type: 'Embroidered',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 16.99,
-    image_url: '/images/products/product4.jpeg',
-    gallery_images: ['/images/products/product4.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-5',
-    name: 'Premium Canvas Tote Bag',
-    category: 'Classic Cotton Totes',
-    description: 'Elegant and versatile canvas tote bag perfect for everyday use. Durable construction with stylish design elements.',
-    material: '100% Organic Cotton',
-    print_type: 'Screen Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 15.99,
-    image_url: '/images/products/product5.jpeg',
-    gallery_images: ['/images/products/product5.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-6',
-    name: 'Designer Collection Tote',
-    category: 'Classic Cotton Totes',
-    description: 'Stylish designer tote bag with modern aesthetics. Perfect for fashion-forward individuals who value sustainability.',
-    material: '100% Organic Cotton',
-    print_type: 'Digital Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 17.99,
-    image_url: '/images/products/product6.jpeg',
-    gallery_images: ['/images/products/product6.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-7',
-    name: 'Artistic Print Tote Bag',
-    category: 'Classic Cotton Totes',
-    description: 'Unique artistic print design on premium canvas. A statement piece that combines art and functionality seamlessly.',
-    material: '100% Organic Cotton',
-    print_type: 'Screen Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 18.99,
-    image_url: '/images/products/product7.jpeg',
-    gallery_images: ['/images/products/product7.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -179,19 +14,11 @@ export default function Products() {
 
   const fetchProducts = async () => {
     try {
-      // Temporarily always use demo products
-      setProducts(demoProducts);
-      // const data = await apiClient.getFeaturedProducts();
-      // // If API returns products, use them; otherwise use demo products
-      // if (data && data.length > 0) {
-      //   setProducts(data.slice(0, 8));
-      // } else {
-      //   setProducts(demoProducts);
-      // }
+      const data = await apiClient.getFeaturedProducts();
+      setProducts(normalizeProducts(Array.isArray(data) ? data : []).slice(0, 8));
     } catch (error) {
       console.error('Error fetching products:', error);
-      // Use demo products as fallback
-      setProducts(demoProducts);
+      setProducts([]);
     } finally {
       setLoading(false);
     }

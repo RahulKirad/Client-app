@@ -102,7 +102,6 @@ export default function Sustainability() {
 
         <div className="mb-20">
           <div className="flex items-center justify-center mb-12">
-            <TrendingDown className="mr-3" size={36} style={{color: '#78350F'}} />
             <h3 className="text-3xl font-black text-[#78350F] uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Our Impact</h3>
           </div>
           <div className="relative overflow-x-auto pb-8">

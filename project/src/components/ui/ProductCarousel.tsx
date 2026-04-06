@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { Product } from '../../lib/api';
 
@@ -121,9 +122,10 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
                 className="flex-shrink-0 px-3"
                 style={{ width: `${100 / products.length}%` }}
               >
-                <div 
-                  className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 h-[500px] flex flex-col group"
-                >
+                <Link to={`/products/${product.id}`} className="block">
+                  <div
+                    className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 h-[500px] flex flex-col group cursor-pointer"
+                  >
                   {/* Background Image */}
                   <div className="absolute inset-0">
                     <img
@@ -149,13 +151,6 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
                       background: 'linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.3) 60%, transparent 100%)'
                     }}
                   />
-
-                  {/* Featured Badge */}
-                  {product.is_featured && (
-                    <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg border border-white/30 uppercase tracking-wider z-20">
-                      ⭐ Featured
-                    </div>
-                  )}
 
                   {/* Content Overlay */}
                   <div className="relative z-10 flex flex-col h-full justify-end p-6">
@@ -190,19 +185,25 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
                       </div>
                     </div>
 
-        {/* Call to Action Button - Always Visible */}
-        <button
-          onClick={onRequestSample}
-          className="w-full btn-cta-primary"
-          style={{backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#78350F'}}
-          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.transform = 'translateY(-2px)';}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'; e.currentTarget.style.transform = 'translateY(0)';}}
-          aria-label="Request Sample"
-        >
-          Request Sample
-        </button>
+                    {/* Call to Action Button - Always Visible */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onRequestSample();
+                      }}
+                      className="w-full btn-cta-primary"
+                      style={{backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#78350F'}}
+                      onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.transform = 'translateY(-2px)';}}
+                      onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'; e.currentTarget.style.transform = 'translateY(0)';}}
+                      aria-label="Request Sample"
+                    >
+                      Request Sample
+                    </button>
                   </div>
-                </div>
+                  </div>
+                </Link>
               </div>
             );
           })}

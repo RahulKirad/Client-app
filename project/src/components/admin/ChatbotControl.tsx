@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Save, Loader2, Stethoscope } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ChatbotSettings {
   isEnabled: boolean;
@@ -37,6 +38,7 @@ interface DiagnosticResult {
 }
 
 export default function ChatbotControl() {
+  const { token } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -55,10 +57,16 @@ export default function ChatbotControl() {
   const [modelsLoading, setModelsLoading] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const authHeaders = () => {
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  };
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    if (t) fetchSettings();
+    else setLoading(false);
+  }, [token]);
 
   const fetchModels = async () => {
     setModelsLoading(true);
@@ -78,7 +86,7 @@ export default function ChatbotControl() {
 
   const fetchSettings = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/admin/chatbot-settings`);
+      const response = await axios.get(`${API_BASE_URL}/admin/chatbot-settings`, { headers: authHeaders() });
       const data = response.data;
       setSettings({
         isEnabled: data.isEnabled === true || data.isEnabled === 1,
@@ -105,7 +113,7 @@ export default function ChatbotControl() {
         disallowedTopics: settings.disallowedTopics || '',
         welcomeMessage: settings.welcomeMessage || '',
         preferredModel: settings.preferredModel || '',
-      });
+      }, { headers: authHeaders() });
       await fetchSettings();
       const savedEnabled = res.data?.isEnabled;
       setSaveMessage({

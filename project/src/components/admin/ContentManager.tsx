@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Edit, Save, X } from 'lucide-react';
+import { FileText, Edit, Save, X, ExternalLink } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ContentSection {
   id: string;
@@ -12,20 +13,28 @@ interface ContentSection {
 }
 
 export default function ContentManager() {
+  const { token } = useAuth();
   const [sections, setSections] = useState<ContentSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [dashboardPreviewHash, setDashboardPreviewHash] = useState<string | null>(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const authHeaders = () => {
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  };
 
   useEffect(() => {
-    fetchContent();
-  }, []);
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    if (t) fetchContent();
+    else setLoading(false);
+  }, [token]);
 
   const fetchContent = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/admin/content`);
+      const response = await axios.get(`${API_BASE_URL}/admin/content`, { headers: authHeaders() });
       setSections(response.data);
     } catch (error) {
       console.error('Error fetching content:', error);
@@ -45,7 +54,7 @@ export default function ContentManager() {
 
   const saveSection = async (sectionId: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/admin/content/${sectionId}`, editData);
+      await axios.put(`${API_BASE_URL}/admin/content/${sectionId}`, editData, { headers: authHeaders() });
       fetchContent();
       setEditingSection(null);
       setEditData({});
@@ -207,10 +216,48 @@ export default function ContentManager() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Content Management</h1>
-        <p className="text-slate-600">Manage website content sections</p>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Content Management</h1>
+          <p className="text-slate-600">Manage website content sections</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDashboardPreviewHash('')}
+          className="flex items-center px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors"
+        >
+          <ExternalLink size={18} className="mr-2" />
+          Preview on dashboard
+        </button>
       </div>
+
+      {/* Dashboard preview modal (iframe) */}
+      {dashboardPreviewHash !== null && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 shrink-0">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Dashboard preview — how content appears to users
+              </h2>
+              <button
+                type="button"
+                onClick={() => setDashboardPreviewHash(null)}
+                className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                aria-label="Close preview"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 p-4">
+              <iframe
+                title="Dashboard preview"
+                src={`${window.location.origin}/${dashboardPreviewHash ? `#${dashboardPreviewHash}` : ''}`}
+                className="w-full h-full min-h-[70vh] rounded-lg border border-slate-200 bg-white"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         {sections.map((section) => (
@@ -225,6 +272,15 @@ export default function ContentManager() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setDashboardPreviewHash(section.section_key?.startsWith('about') ? 'about' : '')}
+                    className="flex items-center px-3 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
+                    title="Preview how this section looks on the dashboard"
+                  >
+                    <ExternalLink size={14} className="mr-1" />
+                    Preview
+                  </button>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     section.is_active 
                       ? 'bg-green-100 text-green-800' 

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 
 export default function Footer() {
@@ -28,10 +29,10 @@ export default function Footer() {
             <h3 className="font-black text-lg mb-4 text-white uppercase tracking-wide transform transition-all duration-300 hover:translate-x-2" style={{fontFamily: 'var(--heading-font)'}}>Quick Links</h3>
             <ul className="space-y-2">
               {[
-                { name: 'About Us', href: '#about' },
-                { name: 'Products', href: '#products' },
-                { name: 'Corporate Solutions', href: '#corporate' },
-                { name: 'Sustainability', href: '#sustainability' }
+                { name: 'About Us', href: '/#about' },
+                { name: 'Products', href: '/#products' },
+                { name: 'Corporate Solutions', href: '/#corporate' },
+                { name: 'Sustainability', href: '/#sustainability' }
               ].map((link, index) => (
                 <li key={link.name} className="transform transition-all duration-300 hover:translate-x-2" style={{animationDelay: `${0.3 + index * 0.1}s`}}>
                   <a 
@@ -112,20 +113,22 @@ export default function Footer() {
             © {currentYear} Cottonunique. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            {[
-              { name: 'Privacy Policy', href: '#' },
-              { name: 'Terms of Service', href: '#' }
-            ].map((link, index) => (
-              <a 
-                key={link.name}
-                href={link.href} 
-                className="text-white/90 hover:text-[#FBBF24] text-sm transition-all duration-300 font-medium uppercase tracking-wide transform hover:scale-110 relative group" 
-                style={{fontFamily: 'var(--heading-font)', animationDelay: `${0.7 + index * 0.1}s`}}
-              >
-                {link.name}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#FBBF24] group-hover:w-full transition-all duration-300"></span>
-              </a>
-            ))}
+            <Link 
+              to="/privacy" 
+              className="text-white/90 hover:text-[#FBBF24] text-sm transition-all duration-300 font-medium uppercase tracking-wide transform hover:scale-110 relative group" 
+              style={{fontFamily: 'var(--heading-font)'}}
+            >
+              Privacy Policy
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#FBBF24] group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <a 
+              href="/#contact" 
+              className="text-white/90 hover:text-[#FBBF24] text-sm transition-all duration-300 font-medium uppercase tracking-wide transform hover:scale-110 relative group" 
+              style={{fontFamily: 'var(--heading-font)'}}
+            >
+              Contact Us
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#FBBF24] group-hover:w-full transition-all duration-300"></span>
+            </a>
           </div>
         </div>
       </div>

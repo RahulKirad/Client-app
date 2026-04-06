@@ -8,7 +8,8 @@ interface Message {
   timestamp: string;
 }
 
-const DEFAULT_WELCOME = "Hello! I'm your Cottonunique assistant. I'm here to help you with questions about our premium sustainable tote bags, products, certifications, ordering, and more. How can I assist you today?";
+const DEFAULT_WELCOME =
+  "Hi! I'm the Cottonunique assistant. I can help with our sustainable tote bags, GOTS certification, ordering (samples, bulk, custom), and how to get in touch. What would you like to know?";
 
 export default function Chatbot() {
   const [enabled, setEnabled] = useState<boolean | null>(null);
@@ -234,7 +235,7 @@ export default function Chatbot() {
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              Powered by Google Gemini AI • Cottonunique specific assistant
+              Powered by Google Gemini AI • Cottonunique assistant
             </p>
           </div>
         </div>

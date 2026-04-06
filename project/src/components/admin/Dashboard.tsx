@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, MessageSquare, FileText, TrendingUp } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Stats {
   totalProducts: number;
@@ -10,6 +11,7 @@ interface Stats {
 }
 
 export default function Dashboard() {
+  const { token } = useAuth();
   const [stats, setStats] = useState<Stats>({
     totalProducts: 0,
     totalInquiries: 0,
@@ -19,16 +21,22 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const authHeaders = () => {
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  };
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    if (t) fetchStats();
+    else setLoading(false);
+  }, [token]);
 
   const fetchStats = async () => {
     try {
       const [productsRes, inquiriesRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/admin/products`),
-        axios.get(`${API_BASE_URL}/admin/inquiries`)
+        axios.get(`${API_BASE_URL}/admin/products`, { headers: authHeaders() }),
+        axios.get(`${API_BASE_URL}/admin/inquiries`, { headers: authHeaders() })
       ]);
 
       const products = productsRes.data;

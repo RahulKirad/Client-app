@@ -16,9 +16,14 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
     return res.status(401).json({ error: 'Access token required' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err: any, user: any) => {
+  const secret = process.env.JWT_SECRET || 'your-secret-key';
+  jwt.verify(token, secret, (err: any, user: any) => {
     if (err) {
-      return res.status(403).json({ error: 'Invalid or expired token' });
+      const reason = err.name === 'TokenExpiredError' ? 'Token expired' : err.name === 'JsonWebTokenError' ? 'Invalid token' : 'Invalid or expired token';
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[auth] JWT verify failed:', err.message);
+      }
+      return res.status(403).json({ error: reason, code: err.name === 'TokenExpiredError' ? 'TOKEN_EXPIRED' : 'TOKEN_INVALID' });
     }
     req.user = user;
     next();

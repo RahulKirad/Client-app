@@ -20,10 +20,37 @@ export default function Contact() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError('');
+  };
+
+  const validateForm = (): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.name.trim()) {
+      setError('Please enter your full name.');
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setError('Please enter your email address.');
+      return false;
+    }
+    if (!emailRegex.test(formData.email.trim())) {
+      setError('Please enter a valid email address.');
+      return false;
+    }
+    if (!formData.message.trim()) {
+      setError('Please tell us what you need.');
+      return false;
+    }
+    if (formData.message.trim().length < 10) {
+      setError('Please provide more detail in your message (at least 10 characters).');
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
     setError('');
 

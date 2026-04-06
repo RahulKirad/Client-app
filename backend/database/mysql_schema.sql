@@ -69,12 +69,8 @@ CREATE TABLE IF NOT EXISTS content_sections (
     INDEX idx_is_active (is_active)
 );
 
--- Insert default product data (only if table is empty)
-INSERT IGNORE INTO products (name, category, description, image_url, is_featured, specifications) VALUES
-('Classic Cotton Tote', 'Classic Cotton Totes', 'Timeless design meets sustainability. Our classic cotton tote bags are perfect for everyday use, shopping, and casual outings.', '/images/products/WhatsApp Image 2025-11-01 at 11.44.47 PM (1).jpeg', TRUE, '{"dimensions": "14x16 inches", "weight": "150g", "handle_length": "24 inches", "capacity": "10L"}'),
-('Branded Corporate Tote', 'Branded Corporate Totes', 'Premium custom-branded totes for corporate gifting, events, and brand promotion. Your logo, our quality craftsmanship.', '/images/products/WhatsApp Image 2025-11-01 at 11.44.47 PM (2).jpeg', TRUE, '{"dimensions": "14x16 inches", "weight": "160g", "customization": "Full-color logo printing", "min_order": "100 units"}'),
-('Foldable Travel Tote', 'Foldable Travel Totes', 'Compact and convenient. Folds into a small pouch for easy carrying. Perfect for travel and on-the-go lifestyle.', '/images/products/WhatsApp Image 2025-11-01 at 11.44.47 PM (1).jpeg', FALSE, '{"dimensions": "15x17 inches", "folded_size": "4x5 inches", "weight": "120g", "features": "Built-in pouch"}'),
-('Seasonal Gift Edition', 'Seasonal Gift Editions', 'Special edition tote bags designed for gifting. Beautiful designs that make perfect presents for any occasion.', '/images/products/WhatsApp Image 2025-11-01 at 11.44.47 PM (2).jpeg', FALSE, '{"dimensions": "14x16 inches", "weight": "150g", "packaging": "Premium gift box included", "seasonal": "Holiday collection"}');
+-- No default/demo products inserted. Products are added via the admin panel only.
+-- To remove any existing demo products from an older install, run: DELETE FROM products;
 
 -- Create chatbot_settings table (single row for app-wide chatbot control)
 CREATE TABLE IF NOT EXISTS chatbot_settings (

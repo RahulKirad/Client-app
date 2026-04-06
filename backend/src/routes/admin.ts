@@ -137,53 +137,77 @@ router.get('/products', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
-/** Normalize specifications for DB: FormData sends string; avoid double-JSON.stringify. */
+/** Normalize specifications for DB: always return valid JSON string for CHECK (json_valid). */
 function normalizeSpecifications(specifications: unknown): string {
   if (specifications == null || specifications === '') return '{}';
   if (typeof specifications === 'string') {
     try {
-      JSON.parse(specifications);
-      return specifications;
+      const parsed = JSON.parse(specifications);
+      return JSON.stringify(parsed);
     } catch {
       return '{}';
     }
   }
-  return JSON.stringify(specifications);
+  try {
+    return JSON.stringify(specifications);
+  } catch {
+    return '{}';
+  }
 }
 
-// Create new product
-router.post('/products', authenticateToken, upload.single('image'), async (req: AuthRequest, res) => {
+// Create new product (up to 3 images). Accept both "image" and "images" field names.
+router.post('/products', authenticateToken, upload.any(), async (req: AuthRequest, res) => {
   try {
-    const { name, category, description, material, print_type, packaging, moq, price, specifications, is_featured } = req.body;
+    const body = req.body || {};
+    const { name, category, description, material, print_type, packaging, moq, price, specifications, is_featured } = body;
 
     if (!name || !category || !description) {
       return res.status(400).json({ error: 'Name, category, and description are required' });
     }
 
-    let image_url = null;
-    if (req.file) {
-      image_url = `/uploads/${req.file.filename}`;
-    }
+    const rawFiles = (req as any).files as Express.Multer.File[] | undefined;
+    const files = Array.isArray(rawFiles) ? rawFiles.slice(0, 3) : [];
+    const urls = Array.isArray(files) && files.length > 0
+      ? files.map((f) => `/uploads/${f.filename}`)
+      : [];
+    const image_url = urls[0] || null;
+    const gallery_images = JSON.stringify(urls);
 
     const specsStr = normalizeSpecifications(specifications);
+    const isFeatured = is_featured === 'true' || is_featured === true;
 
-    const [result] = await pool.execute(
-      `INSERT INTO products (name, category, description, material, print_type, packaging, moq, price, image_url, specifications, is_featured, is_active) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-      [
-        name,
-        category,
-        description,
-        material || '100% GOTS-certified cotton',
-        print_type || 'Water-based inks',
-        packaging || 'FSC-certified hangtags and labels',
-        moq || 'Flexible for pilot programs',
-        parseFloat(price) || 0,
-        image_url,
-        specsStr,
-        is_featured === 'true' || is_featured === true
-      ]
-    );
+    const baseParams = [
+      String(name),
+      String(category),
+      String(description),
+      material || '100% GOTS-certified cotton',
+      print_type || 'Water-based inks',
+      packaging || 'FSC-certified hangtags and labels',
+      moq || '',
+      parseFloat(price) || 0,
+      image_url,
+      specsStr,
+      isFeatured
+    ];
+
+    let result: any;
+    try {
+      [result] = await pool.execute(
+        `INSERT INTO products (name, category, description, material, print_type, packaging, moq, price, image_url, gallery_images, specifications, is_featured, is_active) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+        [baseParams[0], baseParams[1], baseParams[2], baseParams[3], baseParams[4], baseParams[5], baseParams[6], baseParams[7], baseParams[8], gallery_images, baseParams[9], baseParams[10]]
+      );
+    } catch (insertErr: any) {
+      if (insertErr?.code === 'ER_BAD_FIELD_ERROR' && insertErr?.sqlMessage?.includes('gallery_images')) {
+        [result] = await pool.execute(
+          `INSERT INTO products (name, category, description, material, print_type, packaging, moq, price, image_url, specifications, is_featured, is_active) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+          baseParams
+        );
+      } else {
+        throw insertErr;
+      }
+    }
 
     res.status(201).json({
       message: 'Product created successfully',
@@ -191,15 +215,16 @@ router.post('/products', authenticateToken, upload.single('image'), async (req: 
     });
   } catch (error: any) {
     console.error('Error creating product:', error);
-    const message = error?.code === 'ER_INVALID_JSON' || error?.sqlMessage?.includes('JSON')
+    const sqlMessage = error?.sqlMessage || '';
+    const message = error?.code === 'ER_INVALID_JSON' || sqlMessage.includes('JSON')
       ? 'Invalid specifications format'
-      : (error?.sqlMessage || 'Failed to create product');
-    res.status(500).json({ error: message });
+      : sqlMessage || error?.message || 'Failed to create product';
+    res.status(500).json({ error: message, code: error?.code });
   }
 });
 
-// Update product
-router.put('/products/:id', authenticateToken, upload.single('image'), async (req: AuthRequest, res) => {
+// Update product (up to 3 images). Accept both "image" and "images" field names.
+router.put('/products/:id', authenticateToken, upload.any(), async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const { name, category, description, material, print_type, packaging, moq, price, specifications, is_featured } = req.body;
@@ -213,7 +238,7 @@ router.put('/products/:id', authenticateToken, upload.single('image'), async (re
         updated_at = CURRENT_TIMESTAMP
     `;
     
-    let queryParams = [
+    const queryParams: any[] = [
       name,
       category,
       description,
@@ -226,9 +251,12 @@ router.put('/products/:id', authenticateToken, upload.single('image'), async (re
       is_featured === 'true' || is_featured === true
     ];
 
-    if (req.file) {
-      updateQuery += ', image_url = ?';
-      queryParams.push(`/uploads/${req.file.filename}`);
+    const rawFiles = (req as any).files as Express.Multer.File[] | undefined;
+    const files = Array.isArray(rawFiles) ? rawFiles.slice(0, 3) : [];
+    if (Array.isArray(files) && files.length > 0) {
+      const urls = files.map((f) => `/uploads/${f.filename}`);
+      updateQuery += ', image_url = ?, gallery_images = ?';
+      queryParams.push(urls[0], JSON.stringify(urls));
     }
 
     updateQuery += ' WHERE id = ?';

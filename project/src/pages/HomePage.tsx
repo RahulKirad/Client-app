@@ -8,8 +8,11 @@ import Products from '../components/sections/Products';
 import Corporate from '../components/sections/Corporate';
 import Sustainability from '../components/sections/Sustainability';
 import Export from '../components/sections/Export';
+import TrustStrip from '../components/sections/TrustStrip';
 import Contact from '../components/sections/Contact';
 import ProductsPage from './ProductsPage';
+import ProductDetailPage from './ProductDetailPage';
+import PrivacyPolicyPage from './PrivacyPolicyPage';
 
 function MainPage() {
   return (
@@ -23,6 +26,7 @@ function MainPage() {
         <Corporate />
         <Sustainability />
         <Export />
+        <TrustStrip />
         <Contact />
       </main>
       <Footer />
@@ -35,6 +39,8 @@ export default function HomePage() {
     <Routes>
       <Route path="/" element={<MainPage />} />
       <Route path="/products" element={<ProductsPage />} />
+      <Route path="/products/:id" element={<ProductDetailPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
     </Routes>
   );
 }

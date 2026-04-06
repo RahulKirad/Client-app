@@ -1,8 +1,20 @@
-import { Target, BookOpen, Leaf, ShieldCheck, Globe2, HandHeart } from 'lucide-react';
+import { Sparkles, Lightbulb, Rocket, Leaf, ShieldCheck, Globe2, HandHeart } from 'lucide-react';
 
 const mainContentHeaderColor = '#4A352F';
 const mainContentIconBg = '#F3EDDC';
 const mainContentBulletColor = '#4A352F';
+
+const bulletIcon = (
+  <span
+    className="flex-shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full"
+    style={{ backgroundColor: mainContentBulletColor }}
+    aria-hidden
+  />
+);
+
+const listItemClass = 'flex gap-2 text-xs sm:text-sm leading-relaxed';
+const iconBoxClass = 'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center';
+const sectionHeadingClass = 'text-sm sm:text-base font-bold';
 
 export default function About() {
   return (
@@ -17,37 +29,22 @@ export default function About() {
             ABOUT US
           </h2>
           <p
-            className="text-xl sm:text-2xl font-semibold"
+            className="text-xl sm:text-2xl font-semibold mb-4"
             style={{ color: '#1a1a1a', fontFamily: 'var(--heading-font)' }}
           >
             Premium Sustainable Tote Bags
           </p>
+          <p
+            className="text-sm sm:text-base leading-relaxed max-w-2xl"
+            style={{ color: '#2d2d2d', fontFamily: 'var(--body-font)' }}
+          >
+            We create beautiful, eco-friendly tote bags that meet the highest global standards. Every piece is ethically sourced, GOTS-certified, and designed for businesses and individuals who value quality and sustainability.
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-10 lg:gap-14 items-start min-w-0">
-          {/* Left column - Modern Elegance + image */}
+          {/* Left column - single image */}
           <div className="min-w-0">
-            {/* Modern Elegance block */}
-            <div className="mb-6">
-              <p className="font-semibold mb-3 leading-snug" style={{ color: '#1a1a1a', fontFamily: 'var(--heading-font)' }}>
-                Modern Elegance:{' '}
-                <span className="font-normal" style={{ fontFamily: 'var(--body-font)', color: '#4b4338' }}>
-                  Designs featuring clean lines, sustainable materials, and premium quality.
-                </span>
-              </p>
-              <ul className="space-y-3 pl-0 list-none" style={{ fontFamily: 'var(--body-font)', color: '#4b4338' }}>
-                <li className="flex gap-3 text-sm sm:text-base leading-relaxed">
-                  <span className="flex-shrink-0 mt-0.5 text-[var(--beige-700)]" aria-hidden>•</span>
-                  <span>We create tote bags that combine style with environmental responsibility.</span>
-                </li>
-                <li className="flex gap-3 text-sm sm:text-base leading-relaxed">
-                  <span className="flex-shrink-0 mt-0.5 text-[var(--beige-700)]" aria-hidden>•</span>
-                  <span>Crafted for businesses and individuals who value both aesthetics and sustainability.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Image under Modern Elegance */}
             <img
               src="/images/aboutus/about2.png"
               alt="Cottonunique organic cotton tote bags with GOTS certification"
@@ -55,74 +52,72 @@ export default function About() {
             />
           </div>
 
-          {/* Right column - top image + Main Content (Our Philosophy, Our Mission, Our Values) */}
-          <div className="space-y-6 lg:-mt-56 min-w-0">
-            {/* Top image */}
+          {/* Right column - image above Modern Elegance, then Philosophy, Mission */}
+          <div className="space-y-6 lg:-mt-72 min-w-0">
             <img
               src="/images/aboutus/about1.png"
               alt="Cottonunique sustainable tote bags and certifications"
-              className="w-full h-80 md:h-96 object-cover"
+              className="w-full h-80 md:h-96 object-cover -mt-8 lg:-mt-14"
             />
-
             <div>
-              {/* Our Philosophy */}
-              <div className="mb-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: mainContentIconBg }}
-                  >
-                    <BookOpen size={18} style={{ color: mainContentHeaderColor }} />
+              {/* Modern Elegance */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={iconBoxClass} style={{ backgroundColor: mainContentIconBg }}>
+                    <Sparkles size={16} style={{ color: mainContentHeaderColor }} />
                   </div>
-                  <h4
-                    className="text-base sm:text-lg font-bold"
-                    style={{ color: mainContentHeaderColor, fontFamily: 'var(--heading-font)' }}
-                  >
+                  <h4 className={sectionHeadingClass} style={{ color: mainContentHeaderColor, fontFamily: 'var(--heading-font)' }}>
+                    Modern Elegance
+                  </h4>
+                </div>
+                <p className="text-xs sm:text-sm leading-snug" style={{ fontFamily: 'var(--body-font)', color: '#2d2d2d' }}>
+                  Designs featuring clean lines, sustainable materials, and premium quality. We create tote bags that combine style with environmental responsibility, crafted for businesses and individuals who value both aesthetics and sustainability.
+                </p>
+              </div>
+
+              <div className="h-px w-full mb-4" style={{ backgroundColor: '#e5e0d8' }} />
+
+              {/* Our Philosophy */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={iconBoxClass} style={{ backgroundColor: mainContentIconBg }}>
+                    <Lightbulb size={16} style={{ color: mainContentHeaderColor }} />
+                  </div>
+                  <h4 className={sectionHeadingClass} style={{ color: mainContentHeaderColor, fontFamily: 'var(--heading-font)' }}>
                     Our Philosophy
                   </h4>
                 </div>
-                <div className="pl-12">
-                  <p
-                    className="text-xs sm:text-sm leading-relaxed"
-                    style={{ color: '#2d2d2d', fontFamily: 'var(--body-font)' }}
-                  >
-                    Creating luxurious, sustainable products that reflect our commitment to quality. Every tote bag is
-                    designed with care and attention to detail.
-                  </p>
-                </div>
+                <ul className="space-y-2 pl-10 list-none text-xs sm:text-sm" style={{ fontFamily: 'var(--body-font)', color: '#2d2d2d' }}>
+                  <li className={listItemClass}>
+                    {bulletIcon}
+                    <span>Creating luxurious, sustainable products that reflect our commitment to quality.</span>
+                  </li>
+                  <li className={listItemClass}>
+                    {bulletIcon}
+                    <span>Every tote bag is designed with care and attention to detail.</span>
+                  </li>
+                </ul>
               </div>
 
-              <div className="h-px w-full mb-6" style={{ backgroundColor: '#e5e0d8' }} />
+              <div className="h-px w-full mb-4" style={{ backgroundColor: '#e5e0d8' }} />
 
               {/* Our Mission */}
-              <div className="mb-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: mainContentIconBg }}
-                  >
-                    <Target size={18} style={{ color: mainContentHeaderColor }} />
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={iconBoxClass} style={{ backgroundColor: mainContentIconBg }}>
+                    <Rocket size={16} style={{ color: mainContentHeaderColor }} />
                   </div>
-                  <h4
-                    className="text-base sm:text-lg font-bold"
-                    style={{ color: mainContentHeaderColor, fontFamily: 'var(--heading-font)' }}
-                  >
+                  <h4 className={sectionHeadingClass} style={{ color: mainContentHeaderColor, fontFamily: 'var(--heading-font)' }}>
                     Our Mission
                   </h4>
                 </div>
-                <ul className="space-y-3 pl-12" style={{ fontFamily: 'var(--body-font)', color: '#2d2d2d' }}>
-                  <li className="flex gap-3 text-xs sm:text-sm">
-                    <span
-                      className="flex-shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: mainContentBulletColor }}
-                    />
+                <ul className="space-y-2 pl-10 list-none text-xs sm:text-sm" style={{ fontFamily: 'var(--body-font)', color: '#2d2d2d' }}>
+                  <li className={listItemClass}>
+                    {bulletIcon}
                     <span>Deliver premium, sustainable tote bags that meet the highest global standards.</span>
                   </li>
-                  <li className="flex gap-3 text-xs sm:text-sm">
-                    <span
-                      className="flex-shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: mainContentBulletColor }}
-                    />
+                  <li className={listItemClass}>
+                    {bulletIcon}
                     <span>Ethically sourced, intelligently designed, and export-ready products.</span>
                   </li>
                 </ul>

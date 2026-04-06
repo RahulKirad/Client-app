@@ -111,7 +111,7 @@ export default function Hero() {
             <div className="absolute inset-0 w-full h-full overflow-hidden" style={{backgroundColor: 'var(--beige-100)'}}>
               <img
                 src={slide.image}
-                alt={slide.title}
+                alt={`${slide.title} - ${slide.subtitle}. ${slide.description}`}
                 className="w-full h-full"
                 style={{ 
                   objectFit: 'cover',
@@ -130,7 +130,7 @@ export default function Hero() {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                 <div className="max-w-2xl space-y-10">
                   <div className="inline-flex items-center space-x-2 px-5 py-1.5 rounded-full text-xs font-medium animate-bounce-subtle soft-shadow bg-white/90 backdrop-blur-sm">
-                    <Sparkles size={14} className="animate-spin-slow" style={{color: 'var(--beige-700)'}} />
+                    <Sparkles size={14} className="animate-spin-slow" style={{color: 'var(--beige-700)'}} aria-hidden />
                     <span style={{color: 'var(--beige-700)'}}>{slide.badge}</span>
                   </div>
 
@@ -144,6 +144,22 @@ export default function Hero() {
                   <p className="text-sm sm:text-base lg:text-lg leading-relaxed font-normal text-white/90 drop-shadow-md max-w-xl" style={{fontFamily: 'var(--body-font)'}}>
                     {slide.description}
                   </p>
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    <a
+                      href="/#contact"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded font-semibold text-sm transition-all duration-200 bg-white text-[#78350F] hover:bg-[var(--beige-100)] shadow-lg"
+                      style={{ fontFamily: 'var(--heading-font)' }}
+                    >
+                      Contact Us
+                    </a>
+                    <a
+                      href="/#products"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded font-semibold text-sm transition-all duration-200 border-2 border-white text-white hover:bg-white/10"
+                      style={{ fontFamily: 'var(--heading-font)' }}
+                    >
+                      View Products
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

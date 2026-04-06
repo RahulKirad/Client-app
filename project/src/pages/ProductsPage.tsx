@@ -1,210 +1,81 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Package, ShoppingBag, Filter, Grid, List } from 'lucide-react';
-import { apiClient, Product } from '../lib/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Package, ShoppingBag, Filter, Grid, List, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { apiClient, Product, normalizeProducts } from '../lib/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// Demo products using local images
-const demoProducts: Product[] = [
-  {
-    id: 'demo-1',
-    name: 'Floral Elegance Tote Bag',
-    category: 'Classic Cotton Totes',
-    description: 'Beautiful cream canvas tote bag featuring vibrant floral designs. Perfect blend of style and sustainability for your everyday needs.',
-    material: '100% Organic Cotton',
-    print_type: 'Screen Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 12.99,
-    image_url: '/images/products/product1.jpeg',
-    gallery_images: ['/images/products/product1.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-2',
-    name: 'Bee Joy Tote Bag',
-    category: 'Classic Cotton Totes',
-    description: 'Light beige canvas tote with cheerful bee design. Spread positivity and joy with our beautifully crafted, eco-friendly tote bags.',
-    material: '100% Organic Cotton',
-    print_type: 'Digital Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 13.99,
-    image_url: '/images/products/product2.jpeg',
-    gallery_images: ['/images/products/product2.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-3',
-    name: 'Watercolor Floral Tote',
-    category: 'Classic Cotton Totes',
-    description: 'Stunning watercolor floral prints on premium canvas. Each tote is a work of art, combining functionality with beautiful aesthetics.',
-    material: '100% Organic Cotton',
-    print_type: 'Screen Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 14.99,
-    image_url: '/images/products/product3.jpeg',
-    gallery_images: ['/images/products/product3.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-4',
-    name: 'Sunflower Embroidered Tote',
-    category: 'Classic Cotton Totes',
-    description: 'Exquisite embroidered sunflower design on natural canvas. Handcrafted with attention to detail for a truly special tote bag.',
-    material: '100% Organic Cotton',
-    print_type: 'Embroidered',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 16.99,
-    image_url: '/images/products/product4.jpeg',
-    gallery_images: ['/images/products/product4.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-5',
-    name: 'Premium Canvas Tote Bag',
-    category: 'Classic Cotton Totes',
-    description: 'Elegant and versatile canvas tote bag perfect for everyday use. Durable construction with stylish design elements.',
-    material: '100% Organic Cotton',
-    print_type: 'Screen Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 15.99,
-    image_url: '/images/products/product5.jpeg',
-    gallery_images: ['/images/products/product5.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-6',
-    name: 'Designer Collection Tote',
-    category: 'Classic Cotton Totes',
-    description: 'Stylish designer tote bag with modern aesthetics. Perfect for fashion-forward individuals who value sustainability.',
-    material: '100% Organic Cotton',
-    print_type: 'Digital Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 17.99,
-    image_url: '/images/products/product6.jpeg',
-    gallery_images: ['/images/products/product6.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'demo-7',
-    name: 'Artistic Print Tote Bag',
-    category: 'Classic Cotton Totes',
-    description: 'Unique artistic print design on premium canvas. A statement piece that combines art and functionality seamlessly.',
-    material: '100% Organic Cotton',
-    print_type: 'Screen Print',
-    packaging: 'Eco-Friendly Packaging',
-    moq: '500 units',
-    price: 18.99,
-    image_url: '/images/products/product7.jpeg',
-    gallery_images: ['/images/products/product7.jpeg'],
-    specifications: {
-      size: '15" x 16" x 6"',
-      weight: '8 oz',
-      handles: 'Double reinforced handles',
-      capacity: '20L'
-    },
-    is_featured: true,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
+const PRODUCTS_PER_PAGE = 10;
 
-/** Normalize API product rows to frontend Product shape (id string, specs/gallery objects). */
-function normalizeProducts(rows: unknown[]): Product[] {
-  return rows.map((row: any) => {
-    const specs = row.specifications;
-    const gallery = row.gallery_images;
-    return {
-      id: String(row.id ?? ''),
-      name: row.name ?? '',
-      category: row.category ?? '',
-      description: row.description ?? '',
-      material: row.material ?? '',
-      print_type: row.print_type ?? '',
-      packaging: row.packaging ?? '',
-      moq: row.moq != null ? String(row.moq) : '',
-      price: typeof row.price === 'number' ? row.price : parseFloat(row.price) || 0,
-      image_url: row.image_url ?? '',
-      gallery_images: Array.isArray(gallery) ? gallery : (typeof gallery === 'string' ? (() => { try { return JSON.parse(gallery); } catch { return []; } })() : []),
-      specifications: specs && typeof specs === 'object' ? specs : (typeof specs === 'string' ? (() => { try { return JSON.parse(specs); } catch { return {}; } })() : {}),
-      is_featured: Boolean(row.is_featured),
-      is_active: row.is_active !== false && row.is_active !== 0,
-      created_at: row.created_at ?? '',
-      updated_at: row.updated_at ?? '',
-    };
+/** All searchable text for a product (name, fields, specs, price). */
+function productSearchHaystack(p: Product): string {
+  let specText = '';
+  try {
+    if (p.specifications && typeof p.specifications === 'object') {
+      specText = JSON.stringify(p.specifications);
+    }
+  } catch {
+    specText = '';
+  }
+  const parts = [
+    p.name,
+    p.description,
+    p.category,
+    p.material,
+    p.print_type,
+    p.packaging,
+    p.moq,
+    String(p.price),
+    specText,
+  ];
+  return parts
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Match if every search word appears in the haystack (substring or word prefix). */
+function productMatchesSearchQuery(p: Product, rawQuery: string): boolean {
+  const normalizedQuery = rawQuery
+    .trim()
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '');
+  if (!normalizedQuery) return true;
+
+  const haystack = productSearchHaystack(p);
+  const tokens = normalizedQuery.split(/\s+/).filter((t) => t.length > 0);
+  if (tokens.length === 0) return true;
+
+  const words = haystack.split(' ').filter(Boolean);
+
+  return tokens.every((token) => {
+    if (haystack.includes(token)) return true;
+    if (token.length >= 2) {
+      return words.some((w) => w.startsWith(token));
+    }
+    return words.some((w) => w === token);
   });
 }
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(demoProducts);
+  const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState<string>('name');
+  const [sortBy, setSortBy] = useState<string>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const categories = ['All', 'Classic Cotton Totes', 'Foldable Travel Totes', 'Branded Corporate Totes', 'Seasonal Gift Editions'];
   const sortOptions = [
+    { value: 'newest', label: 'Newest First' },
     { value: 'name', label: 'Name A-Z' },
     { value: 'name_desc', label: 'Name Z-A' },
     { value: 'price', label: 'Price Low-High' },
@@ -213,8 +84,9 @@ export default function ProductsPage() {
   ];
 
   useEffect(() => {
+    document.title = 'Products | Cottonunique - Sustainable Tote Bags';
     fetchProducts();
-    
+
     // Scroll to products section if hash is present in URL
     if (window.location.hash === '#products-list') {
       setTimeout(() => {
@@ -229,14 +101,10 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     try {
       const data = await apiClient.getProducts();
-      if (data && data.length > 0) {
-        setProducts(normalizeProducts(data));
-      } else {
-        setProducts(demoProducts);
-      }
+      setProducts(normalizeProducts(Array.isArray(data) ? data : []));
     } catch (error) {
       console.error('Error fetching products:', error);
-      setProducts(demoProducts);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -250,12 +118,26 @@ export default function ProductsPage() {
   };
 
   const filteredAndSortedProducts = React.useMemo(() => {
-    let filtered = selectedCategory === 'All'
-      ? products
-      : products.filter(p => p.category === selectedCategory);
+    const searching = searchQuery.trim().length > 0;
+    let filtered: Product[];
 
-    filtered.sort((a, b) => {
+    if (searching) {
+      filtered = products.filter((p) => productMatchesSearchQuery(p, searchQuery));
+      if (selectedCategory !== 'All') {
+        filtered = filtered.filter((p) => p.category === selectedCategory);
+      }
+    } else {
+      filtered =
+        selectedCategory === 'All'
+          ? products
+          : products.filter((p) => p.category === selectedCategory);
+    }
+
+    const sorted = [...filtered];
+    sorted.sort((a, b) => {
       switch (sortBy) {
+        case 'newest':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'name':
           return a.name.localeCompare(b.name);
         case 'name_desc':
@@ -265,15 +147,44 @@ export default function ProductsPage() {
         case 'price_desc':
           return b.price - a.price;
         case 'featured':
-          return b.is_featured ? 1 : -1;
+          return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
         default:
           return 0;
       }
     });
 
-    return filtered;
-  }, [products, selectedCategory, sortBy]); 
- return (
+    return sorted;
+  }, [products, selectedCategory, sortBy, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedProducts.length / PRODUCTS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * PRODUCTS_PER_PAGE;
+  const paginatedProducts = filteredAndSortedProducts.slice(pageStart, pageStart + PRODUCTS_PER_PAGE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, sortBy, products.length, searchQuery]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) return;
+    const id = window.setTimeout(() => {
+      document.getElementById('products-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+    return () => window.clearTimeout(id);
+  }, [searchQuery]);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return;
+    if (filteredAndSortedProducts.length === 1) {
+      navigate(`/products/${filteredAndSortedProducts[0].id}`);
+    }
+  };
+
+  return (
     <div className="min-h-screen bg-white">
       <Header />
       
@@ -308,6 +219,42 @@ export default function ProductsPage() {
         {/* Filters and Controls */}
         <section className="py-8 bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 w-full">
+              <label htmlFor="products-search" className="sr-only">
+                Search products
+              </label>
+              <div className="relative w-full">
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#5A6C7D]"
+                  size={22}
+                  aria-hidden
+                />
+                <input
+                  id="products-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder="Search products — name, material, MOQ, specs, or any word (matches whole catalog)"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-gray-200 text-base font-medium text-[#2C3E50] bg-gray-50/80 placeholder:text-[#6B7280] transition-all duration-200 focus:outline-none focus:bg-white"
+                  style={{ boxShadow: 'none' }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--beige-600)';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(232, 212, 184, 0.45)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  autoComplete="off"
+                  spellCheck="false"
+                />
+              </div>
+              <p className="mt-2 text-xs text-[#5A6C7D]">
+                Type a word to jump to results below. If only one product matches, press Enter to open it.
+              </p>
+            </div>
+
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               {/* Category Filter */}
               <div className="flex items-center space-x-4">
@@ -372,7 +319,17 @@ export default function ProductsPage() {
             </div>
 
             <div className="mt-4 text-sm text-[#5A6C7D] font-medium">
-              Showing {filteredAndSortedProducts.length} products
+              {filteredAndSortedProducts.length === 0 ? (
+                <>Showing 0 products</>
+              ) : (
+                <>
+                  Showing {pageStart + 1}–{Math.min(pageStart + PRODUCTS_PER_PAGE, filteredAndSortedProducts.length)} of{' '}
+                  {filteredAndSortedProducts.length} products
+                  {totalPages > 1 && (
+                    <span className="text-[#5A6C7D]/80"> · Page {safePage} of {totalPages}</span>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </section>      
@@ -387,18 +344,67 @@ export default function ProductsPage() {
               <div className="text-center py-20 bg-white rounded-2xl shadow-lg">
                 <Package className="mx-auto mb-4" size={64} style={{color: 'var(--beige-700)'}} />
                 <h3 className="text-xl font-bold text-[#2C3E50] mb-2">No products found</h3>
-                <p className="text-[#5A6C7D]">Try adjusting your filters to see more products.</p>
+                <p className="text-[#5A6C7D]">Try adjusting your filters or search to see more products.</p>
               </div>
             ) : (
-              <div className={
-                viewMode === 'grid'
-                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 auto-rows-fr'
-                  : 'space-y-6'
-              }>
-                {filteredAndSortedProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <>
+                <div
+                  className={
+                    viewMode === 'grid'
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 auto-rows-fr'
+                      : 'space-y-6'
+                  }
+                >
+                  {paginatedProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <nav
+                    className="mt-12 flex flex-wrap items-center justify-center gap-2"
+                    aria-label="Product list pagination"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={safePage <= 1}
+                      className="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-[#2C3E50] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    >
+                      <ChevronLeft size={18} aria-hidden />
+                      Previous
+                    </button>
+                    <div className="flex flex-wrap items-center justify-center gap-1 px-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                        <button
+                          key={pageNum}
+                          type="button"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`min-w-[2.5rem] px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                            pageNum === safePage
+                              ? 'text-white shadow-md'
+                              : 'text-[#2C3E50] bg-white border border-gray-200 hover:bg-gray-50'
+                          }`}
+                          style={pageNum === safePage ? { backgroundColor: 'var(--beige-600)' } : {}}
+                          aria-label={`Page ${pageNum}`}
+                          aria-current={pageNum === safePage ? 'page' : undefined}
+                        >
+                          {pageNum}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={safePage >= totalPages}
+                      className="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-[#2C3E50] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    >
+                      Next
+                      <ChevronRight size={18} aria-hidden />
+                    </button>
+                  </nav>
+                )}
+              </>
             )}
           </div>
         </section>
@@ -455,15 +461,11 @@ const currencies = [
 
 // Enhanced Product Card Component with Image Background Style
 function ProductCard({ product }: { product: Product }) {
-  const scrollToContact = () => {
-    const element = document.querySelector('#contact');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const navigate = useNavigate();
 
   return (
-    <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 h-[500px] flex flex-col group">
+    <Link to={`/products/${product.id}`} className="block">
+      <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 h-[500px] flex flex-col group cursor-pointer">
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
@@ -489,13 +491,6 @@ function ProductCard({ product }: { product: Product }) {
           background: 'linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.3) 60%, transparent 100%)'
         }}
       />
-
-      {/* Featured Badge */}
-      {product.is_featured && (
-        <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg border border-white/30 z-20">
-          ⭐ Featured
-        </div>
-      )}
 
       {/* Content Overlay */}
       <div className="relative z-10 flex flex-col h-full justify-end p-6">
@@ -532,7 +527,12 @@ function ProductCard({ product }: { product: Product }) {
 
         {/* Call to Action Button - Always Visible */}
         <button
-          onClick={scrollToContact}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            navigate('/#contact');
+          }}
           className="w-full btn-cta-primary"
           style={{backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#78350F'}}
           onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.transform = 'translateY(-2px)';}}
@@ -542,6 +542,7 @@ function ProductCard({ product }: { product: Product }) {
           Request Sample
         </button>
       </div>
-    </div>
+      </div>
+    </Link>
   );
 }
