@@ -17,7 +17,8 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
@@ -70,11 +71,11 @@ async function testConnection() {
 
 // Routes
 
-// Get all products
+// Get all products (newest first) – no limit so admin-added products all appear on the site
 app.get('/api/products', async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.execute(
-      'SELECT * FROM products WHERE is_active = TRUE ORDER BY is_featured DESC, created_at DESC'
+      'SELECT * FROM products WHERE is_active = TRUE ORDER BY created_at DESC'
     );
     res.json(rows);
   } catch (error) {

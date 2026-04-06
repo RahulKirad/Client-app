@@ -53,7 +53,7 @@ export default function Sustainability() {
 
   return (
     <section id="sustainability" className="py-20 paper-texture" style={{ backgroundColor: '#FFFBF5' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
             More Than Just a Bag
@@ -102,7 +102,6 @@ export default function Sustainability() {
 
         <div className="mb-20">
           <div className="flex items-center justify-center mb-12">
-            <TrendingDown className="mr-3" size={36} style={{color: '#78350F'}} />
             <h3 className="text-3xl font-black text-[#78350F] uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Our Impact</h3>
           </div>
           <div className="relative overflow-x-auto pb-8">

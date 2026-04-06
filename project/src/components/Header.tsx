@@ -55,60 +55,73 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed w-full top-0 z-50 transition-all duration-300 animate-fade-in" style={{
-      fontFamily: 'var(--body-font)', 
-      background: 'linear-gradient(to bottom, #ffffff, var(--beige-100))',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-    }}>
+    <header
+      className="fixed w-full top-0 z-50 transition-all duration-300 animate-fade-in"
+      style={{
+        fontFamily: 'var(--body-font)',
+        background: 'linear-gradient(to bottom, #ffffff, var(--beige-100))',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+      }}
+      role="banner"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          <div className="flex items-center cursor-pointer group" onClick={() => scrollToSection('#home', '/')}>
+        <div className="flex justify-between items-center h-14 sm:h-16 md:h-20">
+          <div
+            className="flex items-center min-w-0 cursor-pointer group"
+            onClick={() => scrollToSection('#home', '/')}
+            onKeyDown={(e) => e.key === 'Enter' && scrollToSection('#home', '/')}
+            role="button"
+            tabIndex={0}
+            aria-label="Cottonunique home"
+          >
             <img
               src="/images/logo/logo.png"
-              alt="Cottonunique Logo"
-              className="h-20 w-auto transform group-hover:scale-110 transition-transform duration-300"
+              alt="Cottonunique - Premium sustainable tote bags"
+              className="h-12 sm:h-14 md:h-20 w-auto max-h-20 transform group-hover:scale-110 transition-transform duration-300"
             />
           </div>
 
-          <nav className="hidden lg:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8" aria-label="Main navigation">
             {navLinks.map((link, index) => (
               <button
                 key={link.name}
                 onClick={() => scrollToSection(link.path, link.route)}
                 className="text-[var(--text-color)] hover:text-[var(--beige-700)] font-medium text-sm transition-all duration-200 relative group animate-fade-in"
-                style={{animationDelay: `${index * 0.1}s`, fontFamily: 'var(--body-font)'}}
+                style={{ animationDelay: `${index * 0.1}s`, fontFamily: 'var(--body-font)' }}
+                aria-label={`Go to ${link.name}`}
               >
                 {link.name}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all duration-300 bg-[var(--beige-600)]"></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 group-hover:w-full transition-all duration-300 bg-[var(--beige-600)]" aria-hidden />
               </button>
             ))}
             <button
               onClick={() => scrollToSection('#contact')}
               className="px-6 py-2.5 rounded transition-all duration-200 flex items-center space-x-2 font-medium text-sm"
-              style={{backgroundColor: 'var(--beige-400)', color: 'var(--text-color)', fontFamily: 'var(--body-font)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'}}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--beige-500)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--beige-400)'}
+              style={{ backgroundColor: 'var(--beige-400)', color: 'var(--text-color)', fontFamily: 'var(--body-font)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--beige-500)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--beige-400)')}
+              aria-label="Get a quote - go to contact"
             >
-              <ShoppingBag size={18} />
+              <ShoppingBag size={18} aria-hidden />
               <span>Get a Quote</span>
             </button>
           </nav>
 
           <button
+            type="button"
             className="lg:hidden p-2 rounded-lg hover:bg-[var(--beige-100)] transition-colors duration-200"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMenuOpen}
           >
-            {isMenuOpen ? <X size={24} style={{color: 'var(--text-color)'}} /> : <Menu size={24} style={{color: 'var(--text-color)'}} />}
+            {isMenuOpen ? <X size={24} style={{ color: 'var(--text-color)' }} aria-hidden /> : <Menu size={24} style={{ color: 'var(--text-color)' }} aria-hidden />}
           </button>
         </div>
       </div>
 
       {isMenuOpen && (
-        <div className="lg:hidden border-t border-[var(--beige-200)]" style={{
-          background: 'linear-gradient(to bottom, #ffffff, var(--beige-100))',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-        }}>
-          <nav className="px-4 pt-4 pb-6 space-y-3">
+        <div className="lg:hidden border-t border-[var(--beige-200)]" style={{ background: 'linear-gradient(to bottom, #ffffff, var(--beige-100))', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+          <nav className="px-4 pt-4 pb-6 space-y-3" aria-label="Mobile menu">
             {navLinks.map((link) => (
               <button
                 key={link.name}

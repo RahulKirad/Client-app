@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Mail, Building, MapPin, Clock, CheckCircle } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Inquiry {
   id: string;
@@ -15,20 +16,27 @@ interface Inquiry {
 }
 
 export default function InquiriesManager() {
+  const { token } = useAuth();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const authHeaders = () => {
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  };
 
   useEffect(() => {
-    fetchInquiries();
-  }, []);
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    if (t) fetchInquiries();
+    else setLoading(false);
+  }, [token]);
 
   const fetchInquiries = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/admin/inquiries`);
+      const response = await axios.get(`${API_BASE_URL}/admin/inquiries`, { headers: authHeaders() });
       setInquiries(response.data);
     } catch (error) {
       console.error('Error fetching inquiries:', error);
@@ -39,7 +47,7 @@ export default function InquiriesManager() {
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/admin/inquiries/${id}`, { status });
+      await axios.put(`${API_BASE_URL}/admin/inquiries/${id}`, { status }, { headers: authHeaders() });
       fetchInquiries();
       if (selectedInquiry?.id === id) {
         setSelectedInquiry({ ...selectedInquiry, status });

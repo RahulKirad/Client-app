@@ -20,10 +20,37 @@ export default function Contact() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError('');
+  };
+
+  const validateForm = (): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.name.trim()) {
+      setError('Please enter your full name.');
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setError('Please enter your email address.');
+      return false;
+    }
+    if (!emailRegex.test(formData.email.trim())) {
+      setError('Please enter a valid email address.');
+      return false;
+    }
+    if (!formData.message.trim()) {
+      setError('Please tell us what you need.');
+      return false;
+    }
+    if (formData.message.trim().length < 10) {
+      setError('Please provide more detail in your message (at least 10 characters).');
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
     setError('');
 
@@ -55,7 +82,7 @@ export default function Contact() {
       className="py-20 paper-texture"
       style={{ background: 'linear-gradient(to top, #EDE4D6, #FDF8F0)' }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>Get in Touch</h2>
           <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>

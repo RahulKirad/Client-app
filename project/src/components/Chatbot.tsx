@@ -8,7 +8,8 @@ interface Message {
   timestamp: string;
 }
 
-const DEFAULT_WELCOME = "Hello! I'm your Cottonunique assistant. I'm here to help you with questions about our premium sustainable tote bags, products, certifications, ordering, and more. How can I assist you today?";
+const DEFAULT_WELCOME =
+  "Hi! I'm the Cottonunique assistant. I can help with our sustainable tote bags, GOTS certification, ordering (samples, bulk, custom), and how to get in touch. What would you like to know?";
 
 export default function Chatbot() {
   const [enabled, setEnabled] = useState<boolean | null>(null);
@@ -131,8 +132,8 @@ export default function Chatbot() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 hover:opacity-90 flex items-center justify-center"
-          style={{ width: '64px', height: '64px', backgroundColor: '#7CB342' }}
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 text-white rounded-full p-3 sm:p-4 shadow-lg transition-all duration-300 hover:scale-110 hover:opacity-90 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16"
+          style={{ backgroundColor: '#A5D6A7' }}
           aria-label="Open chatbot"
         >
           <MessageCircle size={28} />
@@ -141,7 +142,7 @@ export default function Chatbot() {
 
       {/* Chatbot Window - pastel green & white */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[400px] max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden border-2 border-[#C8E6C9]">
+        <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-[400px] z-50 max-w-[calc(100vw-2rem)] sm:max-w-[400px] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden border-2 border-[#C8E6C9]">
           {/* Header - pastel green */}
           <div
             className="px-4 py-3 flex items-center justify-between text-white"
@@ -153,7 +154,7 @@ export default function Chatbot() {
                 alt="Cottonunique"
                 className="w-8 h-8 rounded-full object-contain bg-white flex-shrink-0"
               />
-              <h3 className="font-semibold text-lg">Cottonunique Assistant</h3>
+              <h3 className="font-semibold text-base sm:text-lg truncate min-w-0">Cottonunique Assistant</h3>
             </div>
             <button
               onClick={() => setIsOpen(false)}
@@ -234,7 +235,7 @@ export default function Chatbot() {
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              Powered by Google Gemini AI • Cottonunique specific assistant
+              Powered by Google Gemini AI • Cottonunique assistant
             </p>
           </div>
         </div>

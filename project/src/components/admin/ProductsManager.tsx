@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Image, Star, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Image, Star, Eye, ExternalLink, X } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Product {
   id: string;
@@ -13,6 +14,7 @@ interface Product {
   moq: string;
   price: number;
   image_url: string;
+  gallery_images?: string[];
   specifications: any;
   is_featured: boolean;
   is_active: boolean;
@@ -20,6 +22,7 @@ interface Product {
 }
 
 export default function ProductsManager() {
+  const { token } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -31,7 +34,7 @@ export default function ProductsManager() {
     material: '100% GOTS-certified cotton',
     print_type: 'Water-based inks',
     packaging: 'FSC-certified hangtags and labels',
-    moq: 'Flexible for pilot programs',
+    moq: '',
     price: 0,
     specifications: '{}',
     is_featured: false
@@ -61,19 +64,27 @@ export default function ProductsManager() {
     { code: 'qar', symbol: 'ر.ق', name: 'Qatari Riyal', flag: '🇶🇦', region: 'Middle East' },
     { code: 'kwd', symbol: 'د.ك', name: 'Kuwaiti Dinar', flag: '🇰🇼', region: 'Middle East' }
   ];
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [previewProductId, setPreviewProductId] = useState<string | null>(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  // Use context token or localStorage so the first request (before context hydrates) still sends auth
+  const authHeaders = () => {
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
+    if (t) fetchProducts();
+    else setLoading(false);
+  }, [token]);
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/admin/products`);
+      const response = await axios.get(`${API_BASE_URL}/admin/products`, { headers: authHeaders() });
       setProducts(response.data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -89,7 +100,12 @@ export default function ProductsManager() {
 
     let specs: Record<string, unknown> = {};
     try {
-      specs = formData.specifications ? JSON.parse(formData.specifications) : {};
+      let parsed: unknown = formData.specifications ? JSON.parse(formData.specifications) : {};
+      // Backend may return specs as a string; parse until we have an object
+      while (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+      }
+      specs = typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
     } catch {
       setSubmitError('Specifications must be valid JSON.');
       setSubmitting(false);
@@ -106,18 +122,18 @@ export default function ProductsManager() {
       }
     });
 
-    if (imageFile) {
-      submitData.append('image', imageFile);
-    }
+    imageFiles.slice(0, 3).forEach((file) => {
+      submitData.append('images', file);
+    });
 
     try {
       if (editingProduct) {
         await axios.put(`${API_BASE_URL}/admin/products/${editingProduct.id}`, submitData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' }
         });
       } else {
         await axios.post(`${API_BASE_URL}/admin/products`, submitData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' }
         });
       }
       fetchProducts();
@@ -125,7 +141,8 @@ export default function ProductsManager() {
       setShowModal(false);
     } catch (err: unknown) {
       const ax = err && typeof err === 'object' && 'response' in err ? (err as { response?: { data?: { error?: string }; status?: number } }).response : null;
-      const message = ax?.data?.error || (ax?.status === 401 ? 'Please log in again.' : 'Failed to save product. Check console for details.');
+      const data = ax && typeof ax === 'object' && 'data' in ax ? (ax as { data?: { error?: string } }).data : null;
+      const message = data?.error || (ax?.status === 401 ? 'Please log in again.' : 'Failed to save product. Check console for details.');
       setSubmitError(message);
       console.error('Error saving product:', err);
     } finally {
@@ -135,6 +152,18 @@ export default function ProductsManager() {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
+    // Normalize specifications: API may return object or JSON string
+    let specObj = product.specifications;
+    if (typeof specObj === 'string') {
+      try {
+        specObj = JSON.parse(specObj);
+      } catch {
+        specObj = {};
+      }
+    }
+    const specStr = typeof specObj === 'object' && specObj !== null
+      ? JSON.stringify(specObj)
+      : '{}';
     setFormData({
       name: product.name,
       category: product.category,
@@ -144,14 +173,14 @@ export default function ProductsManager() {
       packaging: product.packaging,
       moq: product.moq,
       price: product.price,
-      specifications: JSON.stringify(product.specifications),
+      specifications: specStr,
       is_featured: product.is_featured
     });
-    
+
     // Load pricing data if available
-    const specs = product.specifications;
-    if (specs && specs.pricing) {
-      setPricing(specs.pricing);
+    const specs = specObj as Record<string, unknown>;
+    if (specs && typeof specs.pricing === 'object' && specs.pricing !== null) {
+      setPricing(specs.pricing as typeof pricing);
     }
     
     setSubmitError(null);
@@ -161,7 +190,7 @@ export default function ProductsManager() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this product?')) {
       try {
-        await axios.delete(`${API_BASE_URL}/admin/products/${id}`);
+        await axios.delete(`${API_BASE_URL}/admin/products/${id}`, { headers: authHeaders() });
         fetchProducts();
       } catch (error) {
         console.error('Error deleting product:', error);
@@ -177,7 +206,7 @@ export default function ProductsManager() {
       material: '100% GOTS-certified cotton',
       print_type: 'Water-based inks',
       packaging: 'FSC-certified hangtags and labels',
-      moq: 'Flexible for pilot programs',
+      moq: '',
       price: 0,
       specifications: '{}',
       is_featured: false
@@ -193,7 +222,7 @@ export default function ProductsManager() {
       kwd: { amount: 0, enabled: false }
     });
     setSelectedCurrency('inr');
-    setImageFile(null);
+    setImageFiles([]);
     setEditingProduct(null);
   };
 
@@ -232,60 +261,75 @@ export default function ProductsManager() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
           <div key={product.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="relative h-48 bg-slate-100">
-              {product.image_url ? (
-                <img
-                  src={`http://localhost:3001${product.image_url}`}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <Image className="text-slate-400" size={48} />
-                </div>
-              )}
-              {product.is_featured && (
-                <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
-                  <Star size={12} className="mr-1" />
-                  Featured
-                </div>
-              )}
-            </div>
-            
-            <div className="p-4">
-              <h3 className="font-semibold text-slate-900 mb-1">{product.name}</h3>
-              <p className="text-sm text-slate-600 mb-2">{product.category}</p>
-              <p className="text-xs text-slate-500 mb-3 line-clamp-2">{product.description}</p>
-              
-              {/* Display multi-currency prices */}
-              <div className="mb-3">
-                {product.specifications?.pricing ? (
-                  <div className="flex flex-wrap gap-1">
-                    {Object.entries(product.specifications.pricing).map(([code, data]: [string, any]) => {
-                      const curr = currencies.find(c => c.code === code);
-                      return data.enabled && data.amount > 0 && curr ? (
-                        <span key={code} className="inline-flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold">
-                          <span>{curr.symbol}{data.amount}</span>
-                        </span>
-                      ) : null;
-                    })}
-                  </div>
+            <button
+              type="button"
+              onClick={() => setPreviewProductId(product.id)}
+              className="block w-full text-left hover:opacity-95 transition-opacity cursor-pointer"
+              title="Preview as customer"
+            >
+              <div className="relative h-48 bg-slate-100">
+                {product.image_url ? (
+                  <img
+                    src={product.image_url.startsWith('http') || product.image_url.startsWith('/images') ? product.image_url : `http://localhost:3001${product.image_url}`}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <p className="text-lg font-bold text-emerald-600">${product.price}</p>
+                  <div className="flex items-center justify-center h-full">
+                    <Image className="text-slate-400" size={48} />
+                  </div>
+                )}
+                {product.is_featured && (
+                  <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                    <Star size={12} className="mr-1" />
+                    Featured
+                  </div>
                 )}
               </div>
-              
-              <div className="flex items-center justify-between">
+              <div className="p-4">
+                <h3 className="font-semibold text-slate-900 mb-1">{product.name}</h3>
+                <p className="text-sm text-slate-600 mb-2">{product.category}</p>
+                <p className="text-xs text-slate-500 mb-3 line-clamp-2">{product.description}</p>
+                {/* Display multi-currency prices */}
+                <div className="mb-3">
+                  {product.specifications?.pricing ? (
+                    <div className="flex flex-wrap gap-1">
+                      {Object.entries(product.specifications.pricing).map(([code, data]: [string, any]) => {
+                        const curr = currencies.find(c => c.code === code);
+                        return data.enabled && data.amount > 0 && curr ? (
+                          <span key={code} className="inline-flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold">
+                            <span>{curr.symbol}{data.amount}</span>
+                          </span>
+                        ) : null;
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-lg font-bold text-emerald-600">${product.price}</p>
+                  )}
+                </div>
+              </div>
+            </button>
+            <div className="px-4 pb-4 flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewProductId(product.id)}
+                    className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                    title="Preview as customer"
+                  >
+                    <ExternalLink size={16} />
+                  </button>
                   <button
                     onClick={() => handleEdit(product)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit product"
                   >
                     <Edit size={16} />
                   </button>
                   <button
                     onClick={() => handleDelete(product.id)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete product"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -295,10 +339,37 @@ export default function ProductsManager() {
                   {product.is_active ? 'Active' : 'Inactive'}
                 </div>
               </div>
-            </div>
           </div>
         ))}
       </div>
+
+      {/* Preview modal (iframe) */}
+      {previewProductId && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 shrink-0">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Preview: {products.find((p) => p.id === previewProductId)?.name ?? 'Product'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setPreviewProductId(null)}
+                className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                aria-label="Close preview"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 p-4">
+              <iframe
+                title="Product preview"
+                src={`${window.location.origin}/products/${previewProductId}`}
+                className="w-full h-full min-h-[70vh] rounded-lg border border-slate-200 bg-white"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {showModal && (
@@ -521,18 +592,77 @@ export default function ProductsManager() {
                   value={formData.moq}
                   onChange={(e) => setFormData({ ...formData, moq: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder="e.g., 100 units, Flexible for pilot programs"
+                  placeholder="e.g., 100 units"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Product Image</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Product photos</label>
+                <p className="text-xs text-slate-500 mb-2">
+                  Add up to 3 photos. You can select multiple files at once or choose again to replace.
+                </p>
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    setImageFiles(files.slice(0, 3));
+                    e.target.value = '';
+                  }}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
                 />
+                {/* Current product images when editing */}
+                {editingProduct && (editingProduct.image_url || (Array.isArray(editingProduct.gallery_images) && editingProduct.gallery_images.length > 0)) && imageFiles.length === 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs text-slate-500 mb-1">Current photos:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {(Array.isArray(editingProduct.gallery_images) && editingProduct.gallery_images.length > 0
+                        ? editingProduct.gallery_images
+                        : editingProduct.image_url ? [editingProduct.image_url] : []
+                      ).map((url: string, i: number) => (
+                        <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+                          <img
+                            src={url.startsWith('http') || url.startsWith('/images') ? url : `http://localhost:3001${url}`}
+                            alt={`Current ${i + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs text-center py-0.5">
+                            {i + 1}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* New upload previews */}
+                {imageFiles.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs text-slate-500 mb-1">New photos ({imageFiles.length}/3):</p>
+                    <div className="flex flex-wrap gap-2">
+                      {imageFiles.slice(0, 3).map((file, i) => (
+                        <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 group">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${i + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs text-center py-0.5">
+                            Photo {i + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setImageFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-opacity"
+                            aria-label="Remove photo"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center">

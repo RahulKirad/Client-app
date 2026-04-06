@@ -51,7 +51,7 @@ export default function Export() {
 
   return (
     <section id="export" className="py-20 paper-texture" style={{ backgroundColor: '#FFFBF5' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
             Export & Compliance
@@ -70,9 +70,9 @@ export default function Export() {
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-            <div className="absolute bottom-8 left-8 right-8 text-white">
-              <h3 className="text-3xl md:text-4xl font-black mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Global Reach, Local Compliance</h3>
-              <p className="text-lg font-medium" style={{fontFamily: 'var(--heading-font)'}}>Seamless global delivery with complete regulatory compliance</p>
+            <div className="absolute bottom-4 left-4 right-4 sm:bottom-8 sm:left-8 sm:right-8 text-white">
+              <h3 className="text-xl sm:text-3xl md:text-4xl font-black mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Global Reach, Local Compliance</h3>
+              <p className="text-sm sm:text-lg font-medium" style={{fontFamily: 'var(--heading-font)'}}>Seamless global delivery with complete regulatory compliance</p>
             </div>
           </div>
         </div>

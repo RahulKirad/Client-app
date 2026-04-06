@@ -7,7 +7,7 @@ import Chatbot from './components/Chatbot';
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/*" element={<HomePage />} />
           <Route path="/admin/*" element={<AdminRoutes />} />
