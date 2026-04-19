@@ -44,8 +44,9 @@ const dbConfig: any = {
   queueLimit: 0
 };
 
-// Force no password for root user
-console.log('🔧 Forcing no password for MySQL connection');
+if (process.env.DB_PASSWORD !== undefined && process.env.DB_PASSWORD.trim() !== '') {
+  dbConfig.password = process.env.DB_PASSWORD;
+}
 
 console.log('🔧 Database config:', {
   host: dbConfig.host,
@@ -295,6 +296,43 @@ app.use('/api/chatbot', chatbotRoutes(pool));
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+/** Confirms which DB the app is connected to (env + live MySQL). No secrets. */
+app.get('/api/health/db', async (req: Request, res: Response) => {
+  const configured = {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3306', 10),
+    database: process.env.DB_NAME || 'cottoniq_db',
+    user: process.env.DB_USER || 'root',
+  };
+  try {
+    const [rows] = await pool.execute(
+      'SELECT DATABASE() AS currentDb, @@hostname AS mysqlHostname, @@version_comment AS mysqlVersion'
+    );
+    const row = Array.isArray(rows) && rows.length > 0 ? (rows as Record<string, unknown>[])[0] : {};
+    res.json({
+      ok: true,
+      configured,
+      live: {
+        currentDatabase: row.currentDb,
+        mysqlServerHostname: row.mysqlHostname,
+        mysqlVersion: row.mysqlVersion,
+      },
+      hint:
+        configured.database === 'u810591308_cottoniq_db' || String(row.currentDb || '').includes('u810591308')
+          ? 'Using hosted-style database name (matches production DB name).'
+          : 'Using local-style database name. Hosted production DB is typically named u810591308_cottoniq_db.',
+    });
+  } catch (error: unknown) {
+    const err = error as { code?: string; message?: string };
+    res.status(503).json({
+      ok: false,
+      configured,
+      error: err.message || 'Database unreachable',
+      code: err.code,
+    });
+  }
 });
 
 // Start server
