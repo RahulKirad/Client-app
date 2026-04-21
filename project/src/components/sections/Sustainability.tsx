@@ -215,17 +215,7 @@ export default function Sustainability() {
               </div>
             </div>
 
-            {/* Button */}
-            <div className="mt-12 text-center">
-              <button className="flex items-center justify-center space-x-2 px-8 py-3 rounded-lg transition-all duration-300 font-medium soft-shadow mx-auto beige-border"
-                style={{backgroundColor: 'var(--beige-300)', color: 'var(--text-color)', borderColor: 'var(--beige-500)'}}
-                onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-400)'; e.currentTarget.style.borderColor = 'var(--beige-600)'}}
-                onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-300)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
-              >
-                <Download size={20} />
-                <span>{String(sectionContent.report_cta || sustainabilityFallback.report_cta)}</span>
-              </button>
-            </div>
+            {/* Button removed (per request) */}
           </div>
         </div>
       </div>

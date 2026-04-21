@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 
 /** Recipient address for all inquiry emails (Cottonunique). */
 export const INQUIRY_RECIPIENT_EMAIL = 'cottonunique.co@gmail.com';
+export const INQUIRY_RECIPIENT_EMAIL_SECONDARY = 'cottoniq.co@gmail.com';
 
 /** Inquiry payload as received from the contact form. */
 export interface InquiryPayload {
@@ -39,10 +40,10 @@ function getTransporter() {
  * @returns true if email was sent successfully, false otherwise
  */
 export async function sendInquiryEmail(payload: InquiryPayload): Promise<boolean> {
-  const recipient = process.env.INQUIRY_RECIPIENT_EMAIL || INQUIRY_RECIPIENT_EMAIL;
+  const recipients = buildInquiryRecipients(process.env.INQUIRY_RECIPIENT_EMAIL);
   try {
     const transporter = getTransporter();
-    const from = process.env.EMAIL_USER || recipient;
+    const from = process.env.EMAIL_USER || recipients[0] || INQUIRY_RECIPIENT_EMAIL;
     const subject = `[Cottonunique] New inquiry from ${payload.name}`;
     const text = [
       '═══════════════════════════════════════════════════════',
@@ -187,18 +188,33 @@ export async function sendInquiryEmail(payload: InquiryPayload): Promise<boolean
     `;
     await transporter.sendMail({
       from: `Cottonunique Contact <${from}>`,
-      to: recipient,
+      to: recipients.join(', '),
       subject,
       text,
       html,
       replyTo: payload.email,
     });
-    console.log(`Inquiry email sent to ${recipient} for ${payload.email}`);
+    console.log(`Inquiry email sent to ${recipients.join(', ')} for ${payload.email}`);
     return true;
   } catch (err) {
     console.error('Failed to send inquiry email:', err);
     return false;
   }
+}
+
+function buildInquiryRecipients(envValue?: string): string[] {
+  const raw = (envValue || '').trim();
+  const base = raw
+    ? raw.split(',').map((s) => s.trim()).filter(Boolean)
+    : [INQUIRY_RECIPIENT_EMAIL, INQUIRY_RECIPIENT_EMAIL_SECONDARY];
+  // De-dupe while preserving order
+  const seen = new Set<string>();
+  return base.filter((email) => {
+    const key = email.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function escapeHtml(s: string): string {
