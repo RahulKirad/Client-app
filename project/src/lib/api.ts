@@ -1,6 +1,7 @@
 // API client for MySQL backend
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = 'https://app.cottonunique.com/api';
 
 export interface Product {
   id: string;
@@ -44,7 +45,7 @@ export interface ContentSection {
 
 /** Normalize API product rows (DB shape) to frontend Product shape. */
 export function normalizeProducts(rows: unknown[]): Product[] {
-  return rows.map((row: Record<string, unknown>) => {
+  return (rows as Record<string, unknown>[]).map((row) => {
     const specs = row.specifications;
     const gallery = row.gallery_images;
     return {

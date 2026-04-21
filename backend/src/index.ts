@@ -1,6 +1,6 @@
+import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
@@ -8,15 +8,17 @@ import adminRoutes from './routes/admin';
 import chatbotRoutes from './routes/chatbot';
 import { sendInquiryEmail } from './services/email';
 
-// Load environment variables
-dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust reverse proxy for rate limiter (Hostinger proxy/Cloudflare)
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL
+    : ['https://cottonunique.com', 'https://app.cottonunique.com', 'http://localhost:5173'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -105,11 +107,11 @@ app.get('/api/products/:id', async (req: Request, res: Response) => {
       'SELECT * FROM products WHERE id = ? AND is_active = TRUE',
       [req.params.id]
     );
-    
+
     if (Array.isArray(rows) && rows.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
-    
+
     res.json(rows[0]);
   } catch (error) {
     console.error('Error fetching product:', error);
@@ -154,11 +156,11 @@ app.get('/api/content/:sectionKey', async (req: Request, res: Response) => {
       'SELECT * FROM content_sections WHERE section_key = ? AND is_active = TRUE',
       [req.params.sectionKey]
     );
-    
+
     if (Array.isArray(rows) && rows.length === 0) {
       return res.status(404).json({ error: 'Content section not found' });
     }
-    
+
     res.json(rows[0]);
   } catch (error) {
     console.error('Error fetching content:', error);
