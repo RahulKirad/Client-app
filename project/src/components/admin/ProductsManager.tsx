@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Image, Star, Eye, ExternalLink, X } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { resolveMediaUrl } from '../../lib/api';
 
 interface Product {
   id: string;
@@ -233,6 +234,10 @@ export default function ProductsManager() {
     'Seasonal Gift Editions'
   ];
 
+  const fieldLabelClass = 'block text-sm font-semibold text-slate-700 mb-1.5';
+  const fieldInputClass =
+    'w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors';
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -270,7 +275,7 @@ export default function ProductsManager() {
               <div className="relative h-48 bg-slate-100">
                 {product.image_url ? (
                   <img
-                    src={product.image_url.startsWith('http') || product.image_url.startsWith('/images') ? product.image_url : `http://localhost:3001${product.image_url}`}
+                    src={resolveMediaUrl(product.image_url)}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
@@ -374,61 +379,68 @@ export default function ProductsManager() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto border border-slate-200">
+            <div className="p-6 md:p-7 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
               <h2 className="text-xl font-semibold text-slate-900">
                 {editingProduct ? 'Edit Product' : 'Add New Product'}
               </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Fill in product details, pricing, and images. Fields are aligned for fast entry.
+              </p>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 md:p-7 space-y-6 bg-slate-50/40">
               {submitError && (
                 <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm" role="alert">
                   {submitError}
                 </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <section className="rounded-xl border border-slate-200 bg-white p-4 md:p-5 space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Basic Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={fieldLabelClass}>Name</label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className={fieldInputClass}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className={fieldLabelClass}>Category</label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className={fieldInputClass}
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  <label className={fieldLabelClass}>Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={3}
+                    className={fieldInputClass}
                     required
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  required
-                />
-              </div>
+              </section>
 
               {/* Multi-Currency Pricing Section */}
-              <div className="border-2 border-emerald-100 rounded-lg p-4 bg-emerald-50/30">
-                <label className="block text-sm font-bold text-slate-900 mb-3">
+              <section className="rounded-xl border border-emerald-200 p-4 md:p-5 bg-emerald-50/30">
+                <label className="block text-sm font-bold text-slate-900 mb-4">
                   💰 Multi-Currency Pricing (Global Markets)
                 </label>
                 
@@ -443,9 +455,9 @@ export default function ProductsManager() {
                           key={currency.code}
                           type="button"
                           onClick={() => setSelectedCurrency(currency.code as any)}
-                          className={`flex items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-all ${
+                          className={`inline-flex min-w-[116px] justify-center items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-all ${
                             selectedCurrency === currency.code
-                              ? 'bg-emerald-600 text-white shadow-lg scale-105'
+                              ? 'bg-emerald-600 text-white shadow-md'
                               : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
                           }`}
                         >
@@ -466,9 +478,9 @@ export default function ProductsManager() {
                           key={currency.code}
                           type="button"
                           onClick={() => setSelectedCurrency(currency.code as any)}
-                          className={`flex items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-all ${
+                          className={`inline-flex min-w-[116px] justify-center items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-all ${
                             selectedCurrency === currency.code
-                              ? 'bg-emerald-600 text-white shadow-lg scale-105'
+                              ? 'bg-emerald-600 text-white shadow-md'
                               : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
                           }`}
                         >
@@ -489,9 +501,9 @@ export default function ProductsManager() {
                           key={currency.code}
                           type="button"
                           onClick={() => setSelectedCurrency(currency.code as any)}
-                          className={`flex items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-all ${
+                          className={`inline-flex min-w-[116px] justify-center items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-all ${
                             selectedCurrency === currency.code
-                              ? 'bg-emerald-600 text-white shadow-lg scale-105'
+                              ? 'bg-emerald-600 text-white shadow-md'
                               : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
                           }`}
                         >
@@ -512,9 +524,9 @@ export default function ProductsManager() {
                           key={currency.code}
                           type="button"
                           onClick={() => setSelectedCurrency(currency.code as any)}
-                          className={`flex items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-all ${
+                          className={`inline-flex min-w-[116px] justify-center items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-all ${
                             selectedCurrency === currency.code
-                              ? 'bg-emerald-600 text-white shadow-lg scale-105'
+                              ? 'bg-emerald-600 text-white shadow-md'
                               : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
                           }`}
                         >
@@ -548,8 +560,8 @@ export default function ProductsManager() {
                       </div>
                       
                       {pricing[currency.code as keyof typeof pricing].enabled && (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-2xl">{currency.symbol}</span>
+                        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
+                          <span className="text-2xl text-slate-700">{currency.symbol}</span>
                           <input
                             type="number"
                             step="0.01"
@@ -559,7 +571,7 @@ export default function ProductsManager() {
                               [currency.code]: { ...pricing[currency.code as keyof typeof pricing], amount: parseFloat(e.target.value) || 0 }
                             })}
                             placeholder={`Enter price in ${currency.name}`}
-                            className="flex-1 px-4 py-3 border-2 border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg font-semibold"
+                            className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg font-semibold"
                           />
                           <span className="text-sm text-slate-600 font-medium">{currency.code.toUpperCase()}</span>
                         </div>
@@ -583,21 +595,38 @@ export default function ProductsManager() {
                     </div>
                   )
                 ))}
-              </div>
+              </section>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">MOQ (Minimum Order Quantity)</label>
-                <input
-                  type="text"
-                  value={formData.moq}
-                  onChange={(e) => setFormData({ ...formData, moq: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder="e.g., 100 units"
-                />
-              </div>
+              <section className="rounded-xl border border-slate-200 bg-white p-4 md:p-5 space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Inventory & Media</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  <div>
+                    <label className={fieldLabelClass}>MOQ (Minimum Order Quantity)</label>
+                    <input
+                      type="text"
+                      value={formData.moq}
+                      onChange={(e) => setFormData({ ...formData, moq: e.target.value })}
+                      className={fieldInputClass}
+                      placeholder="e.g., 100 units"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Product photos</label>
+                  <div className="flex items-center pt-7">
+                    <input
+                      type="checkbox"
+                      id="is_featured"
+                      checked={formData.is_featured}
+                      onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                      className="mr-2"
+                    />
+                    <label htmlFor="is_featured" className="text-sm font-medium text-slate-700">
+                      Featured Product
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={fieldLabelClass}>Product Photos</label>
                 <p className="text-xs text-slate-500 mb-2">
                   Add up to 3 photos. You can select multiple files at once or choose again to replace.
                 </p>
@@ -610,7 +639,7 @@ export default function ProductsManager() {
                     setImageFiles(files.slice(0, 3));
                     e.target.value = '';
                   }}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                  className={`${fieldInputClass} file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`}
                 />
                 {/* Current product images when editing */}
                 {editingProduct && (editingProduct.image_url || (Array.isArray(editingProduct.gallery_images) && editingProduct.gallery_images.length > 0)) && imageFiles.length === 0 && (
@@ -623,7 +652,7 @@ export default function ProductsManager() {
                       ).map((url: string, i: number) => (
                         <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
                           <img
-                            src={url.startsWith('http') || url.startsWith('/images') ? url : `http://localhost:3001${url}`}
+                            src={resolveMediaUrl(url)}
                             alt={`Current ${i + 1}`}
                             className="w-full h-full object-cover"
                           />
@@ -663,22 +692,10 @@ export default function ProductsManager() {
                     </div>
                   </div>
                 )}
-              </div>
+                </div>
+              </section>
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="is_featured"
-                  checked={formData.is_featured}
-                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                  className="mr-2"
-                />
-                <label htmlFor="is_featured" className="text-sm font-medium text-slate-700">
-                  Featured Product
-                </label>
-              </div>
-
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-200">
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-200 bg-white sticky bottom-0 pb-1">
                 <button
                   type="button"
                   onClick={() => {

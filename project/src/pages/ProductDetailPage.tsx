@@ -1,17 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Package, ChevronLeft, ChevronRight } from 'lucide-react';
-import { apiClient, Product } from '../lib/api';
+import { apiClient, Product, resolveMediaUrl } from '../lib/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-
-const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3001';
-
-function resolveImageUrl(url: string): string {
-  if (!url) return '/images/placeholder-product.jpg';
-  if (url.startsWith('http') || url.startsWith('/images')) return url;
-  return `${API_BASE}${url}`;
-}
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -61,7 +53,7 @@ export default function ProductDetailPage() {
     return gallery.length > 0 ? gallery : ['/images/placeholder-product.jpg'];
   }, [product]);
 
-  const mainImageUrl = resolveImageUrl(imageList[selectedImageIndex] || imageList[0] || '');
+  const mainImageUrl = resolveMediaUrl(imageList[selectedImageIndex] || imageList[0] || '');
 
   const scrollToContact = () => {
     navigate('/#contact');
@@ -135,7 +127,7 @@ export default function ProductDetailPage() {
                       }`}
                     >
                       <img
-                        src={resolveImageUrl(url)}
+                        src={resolveMediaUrl(url)}
                         alt={`${product.name} view ${i + 1}`}
                         className="w-full h-full object-cover"
                       />

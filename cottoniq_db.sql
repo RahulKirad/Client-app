@@ -28,7 +28,7 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `admin_users` (
-  `id` varchar(36) NOT NULL DEFAULT uuid(),
+  `id` varchar(36) NOT NULL DEFAULT (uuid()),
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -48,7 +48,7 @@ INSERT INTO `admin_users` (`id`, `username`, `password`, `created_at`) VALUES
 --
 
 CREATE TABLE `content_sections` (
-  `id` varchar(36) NOT NULL DEFAULT uuid(),
+  `id` varchar(36) NOT NULL DEFAULT (uuid()),
   `section_key` varchar(100) NOT NULL,
   `title` varchar(255) NOT NULL,
   `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`content`)),
@@ -74,7 +74,7 @@ INSERT INTO `content_sections` (`id`, `section_key`, `title`, `content`, `is_act
 --
 
 CREATE TABLE `inquiries` (
-  `id` varchar(36) NOT NULL DEFAULT uuid(),
+  `id` varchar(36) NOT NULL DEFAULT (uuid()),
   `name` varchar(255) NOT NULL,
   `company` varchar(255) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE `inquiries` (
 --
 
 CREATE TABLE `products` (
-  `id` varchar(36) NOT NULL DEFAULT uuid(),
+  `id` varchar(36) NOT NULL DEFAULT (uuid()),
   `name` varchar(255) NOT NULL,
   `category` varchar(100) NOT NULL,
   `description` text NOT NULL,

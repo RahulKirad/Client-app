@@ -1,6 +1,16 @@
 import { CheckCircle, ShoppingBag, Package, Leaf } from 'lucide-react';
+import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+
+const ecototeFallback = {
+  heading: 'ECOTOTE',
+  subheading: 'Our Competitive Edge',
+  description:
+    "We provide lower than industry standard MOQ's to help test markets and refine products at competitive prices.",
+  cta: 'Request Quote for EcoTote DuoPack',
+};
 
 export default function EcoToteDuoPack() {
+  const sectionContent = useManagedSectionContent('ecotote_duopack', ecototeFallback);
   return (
     <section id="ecotote-duopack" className="pt-8 pb-20 bg-white relative overflow-hidden">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -26,16 +36,16 @@ export default function EcoToteDuoPack() {
           <div className="space-y-6 md:space-y-8 order-2 md:order-2">
             {/* Large Heading */}
             <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-tight" style={{color: '#9ca3af', fontFamily: 'var(--heading-font)'}}>
-              ECOTOTE
+                {String(sectionContent.heading || ecototeFallback.heading)}
             </h2>
             
             {/* Our Competitive Edge Section */}
             <div className="space-y-3 md:space-y-4">
               <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{color: '#1a1a1a', fontFamily: 'var(--heading-font)'}}>
-                Our Competitive Edge
+                {String(sectionContent.subheading || ecototeFallback.subheading)}
               </h3>
               <p className="body-text text-sm sm:text-base md:text-lg leading-relaxed" style={{color: '#1a1a1a', fontFamily: 'var(--body-font)'}}>
-                We provide lower than industry standard MOQ's to help test markets and refine products at competitive prices.
+                {String(sectionContent.description || ecototeFallback.description)}
               </p>
             </div>
 
@@ -170,7 +180,7 @@ export default function EcoToteDuoPack() {
             onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-700)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'}}
           >
             <ShoppingBag size={18} className="sm:w-5 sm:h-5" />
-            <span>Request Quote for EcoTote DuoPack</span>
+            <span>{String(sectionContent.cta || ecototeFallback.cta)}</span>
           </button>
         </div>
       </div>

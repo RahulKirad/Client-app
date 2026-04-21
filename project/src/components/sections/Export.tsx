@@ -1,6 +1,15 @@
 import { Globe, FileText, Languages, Shield, Download, CheckCircle, Award } from 'lucide-react';
+import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+
+const exportFallback = {
+  heading: 'Export & Compliance',
+  subheading: 'Seamless global delivery with complete regulatory compliance',
+  cta_primary: 'Download Export Pack',
+  cta_secondary: 'Talk to Our Compliance Team',
+};
 
 export default function Export() {
+  const sectionContent = useManagedSectionContent('export', exportFallback);
   const regions = [
     { name: 'European Union', code: 'EU', flag: '🇪🇺' },
     { name: 'United States', code: 'US', flag: '🇺🇸' },
@@ -54,10 +63,10 @@ export default function Export() {
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
-            Export & Compliance
+            {String(sectionContent.heading || exportFallback.heading)}
           </h2>
           <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>
-            Seamless global delivery with complete regulatory compliance
+            {String(sectionContent.subheading || exportFallback.subheading)}
           </p>
         </div>
 
@@ -149,7 +158,7 @@ export default function Export() {
                   onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-100)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
                 >
                   <Download size={20} />
-                  <span>Download Export Pack</span>
+                  <span>{String(sectionContent.cta_primary || exportFallback.cta_primary)}</span>
                 </button>
                 <button
                   onClick={scrollToContact}
@@ -157,7 +166,7 @@ export default function Export() {
                   style={{backgroundColor: 'var(--beige-700)', color: 'white'}}
                   aria-label="Talk to Our Compliance Team"
                 >
-                  <span>Talk to Our Compliance Team</span>
+                  <span>{String(sectionContent.cta_secondary || exportFallback.cta_secondary)}</span>
                 </button>
               </div>
             </div>

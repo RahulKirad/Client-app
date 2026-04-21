@@ -1,6 +1,14 @@
 import { Briefcase, Users, Building2, Heart, Calendar, FileCheck } from 'lucide-react';
+import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+
+const corporateFallback = {
+  heading: 'Smart Branding for Global Teams',
+  subheading: 'Transform your corporate gifting with sustainable, custom-branded solutions',
+  cta: 'Book a Consultation',
+};
 
 export default function Corporate() {
+  const corporateContent = useManagedSectionContent('corporate', corporateFallback);
   const services = [
     {
       icon: Briefcase,
@@ -63,10 +71,10 @@ export default function Corporate() {
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
-            Smart Branding for Global Teams
+            {String(corporateContent.heading || corporateFallback.heading)}
           </h2>
           <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>
-            Transform your corporate gifting with sustainable, custom-branded solutions
+            {String(corporateContent.subheading || corporateFallback.subheading)}
           </p>
         </div>
 
@@ -144,14 +152,7 @@ export default function Corporate() {
                 style={{backgroundColor: 'var(--beige-700)', color: 'white'}}
                 aria-label="Book a Consultation"
               >
-                Book a Consultation
-              </button>
-              <button 
-                className="btn-cta-secondary"
-                style={{backgroundColor: 'var(--beige-200)', color: '#78350F', borderColor: 'var(--beige-500)'}}
-                aria-label="View Case Studies"
-              >
-                View Case Studies
+                {String(corporateContent.cta || corporateFallback.cta)}
               </button>
             </div>
           </div>

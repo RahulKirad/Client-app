@@ -1,6 +1,14 @@
 import { Leaf, Recycle, Droplets, TreePine, TrendingDown, Users, Download, Package, Factory, CheckCircle } from 'lucide-react';
+import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+
+const sustainabilityFallback = {
+  heading: 'More Than Just a Bag',
+  subheading: 'Every Cottonunique product tells a story of sustainable practices and positive impact',
+  report_cta: 'View Our Sustainability Report',
+};
 
 export default function Sustainability() {
+  const sectionContent = useManagedSectionContent('sustainability', sustainabilityFallback);
   const materials = [
     {
       icon: Leaf,
@@ -56,10 +64,10 @@ export default function Sustainability() {
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
-            More Than Just a Bag
+            {String(sectionContent.heading || sustainabilityFallback.heading)}
           </h2>
           <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>
-            Every Cottonunique product tells a story of sustainable practices and positive impact
+            {String(sectionContent.subheading || sustainabilityFallback.subheading)}
           </p>
         </div>
 
@@ -215,7 +223,7 @@ export default function Sustainability() {
                 onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-300)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
               >
                 <Download size={20} />
-                <span>View Our Sustainability Report</span>
+                <span>{String(sectionContent.report_cta || sustainabilityFallback.report_cta)}</span>
               </button>
             </div>
           </div>
