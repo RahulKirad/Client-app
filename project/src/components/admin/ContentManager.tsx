@@ -188,6 +188,54 @@ export default function ContentManager() {
     );
   };
 
+  const renderWhatsAppContainer = (
+    content: Record<string, unknown>,
+    onChange: (newContent: Record<string, unknown>) => void
+  ) => {
+    const whatsappNumber = String(content?.whatsapp_number ?? '').trim();
+    const whatsappMessage = String(content?.whatsapp_message ?? '').trim();
+
+    return (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <h3 className="text-sm font-semibold text-slate-900">WhatsApp button</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">WhatsApp number</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Example: 9198XXXXXXXX"
+              value={whatsappNumber}
+              onChange={(e) => onChange({ ...content, whatsapp_number: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+            />
+            <p className="text-xs text-slate-600 mt-1">
+              Use digits with country code (no spaces). Leaving it blank hides the WhatsApp icon on the website.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Default message (optional)</label>
+            <input
+              type="text"
+              placeholder="Hi Cottonunique! I’d like to know more about your tote bags."
+              value={whatsappMessage}
+              onChange={(e) => onChange({ ...content, whatsapp_message: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+            />
+            <p className="text-xs text-slate-600 mt-1">
+              This message will be pre-filled when a visitor opens WhatsApp from the icon.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderContentPreview = (content: any) => {
     if (typeof content === 'string') {
       return <p className="text-slate-700">{content}</p>;
@@ -354,8 +402,23 @@ export default function ContentManager() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Content
                     </label>
-                    {renderContentEditor(editData.content, (newContent) => 
-                      setEditData({ ...editData, content: newContent })
+                    {section.section_key === 'contact' &&
+                    editData?.content &&
+                    typeof editData.content === 'object' &&
+                    !Array.isArray(editData.content) ? (
+                      <div className="space-y-4">
+                        {renderWhatsAppContainer(
+                          editData.content as Record<string, unknown>,
+                          (next) => setEditData({ ...editData, content: next })
+                        )}
+                        {renderContentEditor(editData.content, (newContent) =>
+                          setEditData({ ...editData, content: newContent })
+                        )}
+                      </div>
+                    ) : (
+                      renderContentEditor(editData.content, (newContent) =>
+                        setEditData({ ...editData, content: newContent })
+                      )
                     )}
                   </div>
 

@@ -173,17 +173,13 @@ export default function ProductDetailPage() {
                 {product.name}
               </h1>
 
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center gap-1.5 text-amber-600">
-                  <span className="font-bold">4.5</span>
-                  <span>★★★★★</span>
-                </div>
-                {product.moq && (
+              {product.moq && (
+                <div className="flex items-center gap-3 mb-6">
                   <span className="px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700">
                     MOQ: {product.moq}
                   </span>
-                )}
-              </div>
+                </div>
+              )}
 
               {product.price > 0 && (
                 <p className="text-2xl font-bold text-slate-900 mb-6">

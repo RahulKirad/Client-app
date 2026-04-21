@@ -6,9 +6,14 @@ import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
 const contactInfoFallback = {
   heading: 'Get in Touch',
   subheading: "Ready to start your sustainable journey? Let's create something amazing together.",
-  email_primary: 'info@cottonunique.com',
-  email_secondary: 'sales@cottonunique.com',
-  phone: '+91 (xxx) xxx-xxxx',
+  email_primary: 'abhishek.deolalikar@gmail.com',
+  email_secondary: 'cottoniq.co@gmail.com',
+  phone: '+91 7020631149',
+  whatsapp_number: '+91 7020631149',
+  whatsapp_message: "Hi Cottonunique! I’d like to know more about your tote bags.",
+  visit_heading: 'Visit Us',
+  visit_line_1: 'Sr no 131, STG, Alandi Road',
+  visit_line_2: 'Pune - 412105',
 };
 
 export default function Contact() {
@@ -140,9 +145,15 @@ export default function Contact() {
                     <MapPin size={24} style={{color: '#78350F'}} />
                   </div>
                   <div>
-                    <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Visit Us</p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>Export-ready facility</p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>India</p>
+                    <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>
+                      {String(contactInfo.visit_heading || contactInfoFallback.visit_heading)}
+                    </p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
+                      {String(contactInfo.visit_line_1 || contactInfoFallback.visit_line_1)}
+                    </p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
+                      {String(contactInfo.visit_line_2 || contactInfoFallback.visit_line_2)}
+                    </p>
                   </div>
                 </div>
               </div>

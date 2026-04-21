@@ -11,6 +11,39 @@ import { sendInquiryEmail } from './services/email';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const CANONICAL_IN_PHONE_DISPLAY = '+91 7020631149';
+
+function parseJsonMaybe(value: unknown): unknown {
+  let parsed: unknown = value;
+  while (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      break;
+    }
+  }
+  return parsed;
+}
+
+function applyCanonicalContactPhones(content: unknown): unknown {
+  let raw: unknown = content;
+  if (Buffer.isBuffer(raw)) {
+    raw = raw.toString('utf8');
+  }
+  const originalString = typeof raw === 'string' ? raw : null;
+  const parsed = parseJsonMaybe(raw);
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return content;
+  const obj = parsed as Record<string, unknown>;
+  const next = { ...obj };
+  // Product requirement: public site should always use this number for phone + WhatsApp CTA.
+  next.phone = CANONICAL_IN_PHONE_DISPLAY;
+  next.whatsapp_number = CANONICAL_IN_PHONE_DISPLAY;
+  // DB commonly stores JSON as TEXT; keep the same wire shape the frontend expects.
+  if (originalString != null) return JSON.stringify(next);
+  // If MySQL driver already parsed JSON into an object, return an object (Express will JSON.stringify it).
+  return next;
+}
+
 // Trust reverse proxy for rate limiter (Hostinger proxy/Cloudflare)
 app.set('trust proxy', 1);
 
@@ -28,7 +61,13 @@ app.use(express.json());
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  skip: (req) => req.method === 'GET' && req.path === '/chatbot/settings'
+  skip: (req) => {
+    if (req.method !== 'GET') return false;
+    // Public content reads are cached client-side but can burst on page load (many sections).
+    if (req.path.startsWith('/content/')) return true;
+    if (req.path === '/chatbot/settings') return true;
+    return false;
+  }
 });
 app.use('/api', limiter);
 
@@ -161,7 +200,14 @@ app.get('/api/content/:sectionKey', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Content section not found' });
     }
 
-    res.json(rows[0]);
+    const row = (rows as any[])[0] as Record<string, any>;
+    if (req.params.sectionKey === 'contact') {
+      const mergedContent = applyCanonicalContactPhones(row?.content);
+      res.json({ ...row, content: mergedContent });
+      return;
+    }
+
+    res.json(row);
   } catch (error) {
     console.error('Error fetching content:', error);
     res.status(500).json({ error: 'Failed to fetch content' });

@@ -21,6 +21,12 @@ function MainPage() {
       <main>
         <Hero />
         <About />
+        {/* Section divider to prevent visual merging */}
+        <div className="bg-white py-4 sm:py-6">
+          <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="h-px w-full bg-[var(--beige-300)] opacity-70" />
+          </div>
+        </div>
         <EcoToteDuoPack />
         <Products />
         <Corporate />

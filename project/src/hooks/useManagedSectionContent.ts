@@ -26,23 +26,31 @@ export function useManagedSectionContent<T extends Record<string, unknown>>(
   useEffect(() => {
     let cancelled = false;
 
-    apiClient
-      .getContentSection(sectionKey)
-      .then((section) => {
-        if (cancelled) return;
-        const parsed = parseContent(section?.content);
-        if (!parsed) {
-          setContent(fallback);
-          return;
-        }
-        setContent({ ...fallback, ...(parsed as Partial<T>) });
-      })
-      .catch(() => {
-        if (!cancelled) setContent(fallback);
-      });
+    const fetchSection = () => {
+      apiClient
+        .getContentSection(sectionKey)
+        .then((section) => {
+          if (cancelled) return;
+          const parsed = parseContent(section?.content);
+          if (!parsed) {
+            setContent(fallback);
+            return;
+          }
+          setContent({ ...fallback, ...(parsed as Partial<T>) });
+        })
+        .catch(() => {
+          if (!cancelled) setContent(fallback);
+        });
+    };
+
+    fetchSection();
+
+    const onFocus = () => fetchSection();
+    window.addEventListener('focus', onFocus);
 
     return () => {
       cancelled = true;
+      window.removeEventListener('focus', onFocus);
     };
   }, [sectionKey, fallback]);
 

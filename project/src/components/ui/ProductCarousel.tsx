@@ -162,25 +162,6 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
                       </p>
                     </div>
 
-                    {/* Info Pills - Always Visible but more prominent on hover */}
-                    <div className="flex items-center gap-3 mb-5 opacity-70 group-hover:opacity-100 transition-opacity duration-500">
-                      {/* Rating Pill */}
-                      <div className="bg-gray-800/60 backdrop-blur-sm group-hover:bg-gray-800/80 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-1.5 transition-all duration-500">
-                        <span className="font-bold">4.5</span>
-                        <div className="flex">
-                          {[...Array(4)].map((_, i) => (
-                            <span key={i} className="text-yellow-400">★</span>
-                          ))}
-                          <span className="text-yellow-400/50">★</span>
-                        </div>
-                      </div>
-
-                      {/* MOQ Pill */}
-                      <div className="bg-gray-800/60 backdrop-blur-sm group-hover:bg-gray-800/80 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-500">
-                        {product.moq}
-                      </div>
-                    </div>
-
                     {/* Call to Action Button - Always Visible */}
                     <button
                       type="button"
@@ -189,7 +170,7 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
                         e.stopPropagation();
                         onRequestSample();
                       }}
-                      className="w-full btn-cta-primary"
+                      className="w-full btn-cta-primary mt-5"
                       style={{backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#78350F'}}
                       onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.transform = 'translateY(-2px)';}}
                       onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'; e.currentTarget.style.transform = 'translateY(0)';}}

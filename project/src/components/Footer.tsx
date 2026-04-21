@@ -1,8 +1,20 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { useManagedSectionContent } from '../hooks/useManagedSectionContent';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const contactFallback = {
+    email_primary: 'abhishek.deolalikar@gmail.com',
+    phone: '+91 7020631149',
+    visit_line_1: 'Sr no 131, STG, Alandi Road',
+    visit_line_2: 'Pune - 412105',
+  };
+  const contactInfo = useManagedSectionContent('contact', contactFallback);
+  const address = [contactInfo.visit_line_1, contactInfo.visit_line_2]
+    .map((v) => String(v || '').trim())
+    .filter(Boolean)
+    .join(', ');
 
   return (
     <footer
@@ -77,15 +89,21 @@ export default function Footer() {
             <ul className="space-y-3 text-white/90">
               <li className="flex items-start space-x-2 group transform transition-all duration-300 hover:translate-x-2">
                 <Mail size={18} className="mt-1 flex-shrink-0 text-[#FBBF24] transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
-                <span className="text-sm font-medium break-all" style={{fontFamily: 'var(--heading-font)'}}>info@cottonunique.com</span>
+                <span className="text-sm font-medium break-all" style={{fontFamily: 'var(--heading-font)'}}>
+                  {String(contactInfo.email_primary || contactFallback.email_primary)}
+                </span>
               </li>
               <li className="flex items-start space-x-2 group transform transition-all duration-300 hover:translate-x-2">
                 <Phone size={18} className="mt-1 flex-shrink-0 text-[#FBBF24] transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
-                <span className="text-sm font-medium" style={{fontFamily: 'var(--heading-font)'}}>+91 (xxx) xxx-xxxx</span>
+                <span className="text-sm font-medium" style={{fontFamily: 'var(--heading-font)'}}>
+                  {String(contactInfo.phone || contactFallback.phone)}
+                </span>
               </li>
               <li className="flex items-start space-x-2 group transform transition-all duration-300 hover:translate-x-2">
                 <MapPin size={18} className="mt-1 flex-shrink-0 text-[#FBBF24] transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
-                <span className="text-sm font-medium" style={{fontFamily: 'var(--heading-font)'}}>Export-ready facility, India</span>
+                <span className="text-sm font-medium" style={{fontFamily: 'var(--heading-font)'}}>
+                  {address || `${contactFallback.visit_line_1}, ${contactFallback.visit_line_2}`}
+                </span>
               </li>
             </ul>
             <div className="flex space-x-4 mt-6">

@@ -131,7 +131,13 @@ class ApiClient {
 
   // Content
   async getContentSection(sectionKey: string): Promise<ContentSection> {
-    return this.request<ContentSection>(`/content/${sectionKey}`);
+    const url = `${API_BASE_URL}/content/${encodeURIComponent(sectionKey)}?t=${Date.now()}`;
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return await res.json();
   }
 
   // Health check
