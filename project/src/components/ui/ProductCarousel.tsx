@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
-import { Product } from '../../lib/api';
+import { Product, resolveMediaUrl } from '../../lib/api';
 
 interface ProductCarouselProps {
   products: Product[];
@@ -129,11 +129,7 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
                   {/* Background Image */}
                   <div className="absolute inset-0">
                     <img
-                      src={product.image_url 
-                        ? (product.image_url.startsWith('http') || product.image_url.startsWith('/images') 
-                            ? product.image_url 
-                            : `http://localhost:3001${product.image_url}`)
-                        : '/images/placeholder-product.jpg'}
+                      src={resolveMediaUrl(product.image_url)}
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />

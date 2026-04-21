@@ -1,4 +1,5 @@
 import { Sparkles, Lightbulb, Rocket, Leaf, ShieldCheck, Globe2, HandHeart } from 'lucide-react';
+import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
 
 const mainContentHeaderColor = '#4A352F';
 const mainContentIconBg = '#F3EDDC';
@@ -16,7 +17,28 @@ const listItemClass = 'flex gap-2 text-xs sm:text-sm leading-relaxed';
 const iconBoxClass = 'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center';
 const sectionHeadingClass = 'text-sm sm:text-base font-bold';
 
+const aboutFallback = {
+  heading: 'ABOUT US',
+  subheading: 'Premium Sustainable Tote Bags',
+  description:
+    'We create beautiful, eco-friendly tote bags that meet the highest global standards. Every piece is ethically sourced, GOTS-certified, and designed for businesses and individuals who value quality and sustainability.',
+};
+
+const missionFallback = {
+  content:
+    'Deliver premium, sustainable tote bags that meet the highest global standards.',
+};
+
+const storyFallback = {
+  content:
+    'Born from a passion for sustainability and global commerce, Cottonunique blends natural materials with modern branding to serve clients across continents.',
+};
+
 export default function About() {
+  const aboutContent = useManagedSectionContent('about', aboutFallback);
+  const missionContent = useManagedSectionContent('about_mission', missionFallback);
+  const storyContent = useManagedSectionContent('about_story', storyFallback);
+
   return (
     <section id="about" className="pt-32 pb-20 bg-white">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,19 +48,19 @@ export default function About() {
             className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight mb-3"
             style={{ color: '#1a1a1a', fontFamily: 'var(--heading-font)' }}
           >
-            ABOUT US
+            {String(aboutContent.heading || aboutFallback.heading)}
           </h2>
           <p
             className="text-xl sm:text-2xl font-semibold mb-4"
             style={{ color: '#1a1a1a', fontFamily: 'var(--heading-font)' }}
           >
-            Premium Sustainable Tote Bags
+            {String(aboutContent.subheading || aboutFallback.subheading)}
           </p>
           <p
             className="text-sm sm:text-base leading-relaxed max-w-2xl"
             style={{ color: '#2d2d2d', fontFamily: 'var(--body-font)' }}
           >
-            We create beautiful, eco-friendly tote bags that meet the highest global standards. Every piece is ethically sourced, GOTS-certified, and designed for businesses and individuals who value quality and sustainability.
+            {String(aboutContent.description || aboutFallback.description)}
           </p>
         </div>
 
@@ -57,7 +79,7 @@ export default function About() {
             <img
               src="/images/aboutus/about1.png"
               alt="Cottonunique sustainable tote bags and certifications"
-              className="w-full h-80 md:h-96 object-cover -mt-8 lg:-mt-14"
+              className="w-full h-80 md:h-96 object-cover object-center scale-95 -mt-8 lg:-mt-14"
             />
             <div>
               {/* Modern Elegance */}
@@ -71,7 +93,7 @@ export default function About() {
                   </h4>
                 </div>
                 <p className="text-xs sm:text-sm leading-snug" style={{ fontFamily: 'var(--body-font)', color: '#2d2d2d' }}>
-                  Designs featuring clean lines, sustainable materials, and premium quality. We create tote bags that combine style with environmental responsibility, crafted for businesses and individuals who value both aesthetics and sustainability.
+                  {String(storyContent.content || storyFallback.content)}
                 </p>
               </div>
 
@@ -90,7 +112,7 @@ export default function About() {
                 <ul className="space-y-2 pl-10 list-none text-xs sm:text-sm" style={{ fontFamily: 'var(--body-font)', color: '#2d2d2d' }}>
                   <li className={listItemClass}>
                     {bulletIcon}
-                    <span>Creating luxurious, sustainable products that reflect our commitment to quality.</span>
+                    <span>{String(storyContent.content || storyFallback.content)}</span>
                   </li>
                   <li className={listItemClass}>
                     {bulletIcon}
@@ -114,7 +136,7 @@ export default function About() {
                 <ul className="space-y-2 pl-10 list-none text-xs sm:text-sm" style={{ fontFamily: 'var(--body-font)', color: '#2d2d2d' }}>
                   <li className={listItemClass}>
                     {bulletIcon}
-                    <span>Deliver premium, sustainable tote bags that meet the highest global standards.</span>
+                    <span>{String(missionContent.content || missionFallback.content)}</span>
                   </li>
                   <li className={listItemClass}>
                     {bulletIcon}

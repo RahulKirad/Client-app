@@ -12,6 +12,19 @@ interface ContentSection {
   updated_at: string;
 }
 
+function normalizeSectionContent(raw: unknown): unknown {
+  let parsed: unknown = raw;
+  // Backend/DB can return content as stringified JSON (sometimes double-stringified).
+  while (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      break;
+    }
+  }
+  return parsed;
+}
+
 export default function ContentManager() {
   const { token } = useAuth();
   const [sections, setSections] = useState<ContentSection[]>([]);
@@ -35,7 +48,11 @@ export default function ContentManager() {
   const fetchContent = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/admin/content`, { headers: authHeaders() });
-      setSections(response.data);
+      const normalized = (response.data as ContentSection[]).map((section) => ({
+        ...section,
+        content: normalizeSectionContent(section.content),
+      }));
+      setSections(normalized);
     } catch (error) {
       console.error('Error fetching content:', error);
     } finally {
@@ -47,7 +64,7 @@ export default function ContentManager() {
     setEditingSection(section.id);
     setEditData({
       title: section.title,
-      content: section.content,
+      content: normalizeSectionContent(section.content),
       is_active: section.is_active
     });
   };

@@ -1,8 +1,18 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
 import { apiClient } from '../../lib/api';
+import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+
+const contactInfoFallback = {
+  heading: 'Get in Touch',
+  subheading: "Ready to start your sustainable journey? Let's create something amazing together.",
+  email_primary: 'info@cottonunique.com',
+  email_secondary: 'sales@cottonunique.com',
+  phone: '+91 (xxx) xxx-xxxx',
+};
 
 export default function Contact() {
+  const contactInfo = useManagedSectionContent('contact', contactInfoFallback);
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -84,9 +94,11 @@ export default function Contact() {
     >
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>Get in Touch</h2>
+          <h2 className="heading-h2 mb-4 uppercase tracking-tight" style={{color: 'var(--heading-color)'}}>
+            {String(contactInfo.heading || contactInfoFallback.heading)}
+          </h2>
           <p className="body-text-lg max-w-3xl mx-auto" style={{color: 'var(--heading-color)'}}>
-            Ready to start your sustainable journey? Let's create something amazing together.
+            {String(contactInfo.subheading || contactInfoFallback.subheading)}
           </p>
         </div>
 
@@ -101,8 +113,12 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Email Us</p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>info@cottonunique.com</p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>sales@cottonunique.com</p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
+                      {String(contactInfo.email_primary || contactInfoFallback.email_primary)}
+                    </p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
+                      {String(contactInfo.email_secondary || contactInfoFallback.email_secondary)}
+                    </p>
                   </div>
                 </div>
 
@@ -112,7 +128,9 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Call Us</p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>+91 (xxx) xxx-xxxx</p>
+                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
+                      {String(contactInfo.phone || contactInfoFallback.phone)}
+                    </p>
                     <p className="text-sm font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>Mon-Fri, 9am-6pm IST</p>
                   </div>
                 </div>

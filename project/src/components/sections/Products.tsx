@@ -3,8 +3,17 @@ import { ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient, Product, normalizeProducts } from '../../lib/api';
 import ProductCarousel from '../ui/ProductCarousel';
+import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+
+const productsHomeFallback = {
+  heading: 'Eco Totes for Every Market',
+  subheading: 'Premium sustainable bags designed for global commerce',
+  cta_primary: 'View All Products',
+  cta_secondary: 'Request Samples',
+};
 
 export default function Products() {
+  const sectionContent = useManagedSectionContent('products_home', productsHomeFallback);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,10 +45,10 @@ export default function Products() {
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="heading-h2 text-4xl sm:text-5xl lg:text-6xl mb-4 text-center" style={{color: 'var(--heading-color)'}}>
-            Eco Totes for Every Market
+            {String(sectionContent.heading || productsHomeFallback.heading)}
           </h2>
           <p className="body-text-lg text-lg sm:text-xl max-w-3xl mx-auto text-center" style={{color: 'var(--text-primary)'}}>
-            Premium sustainable bags designed for global commerce
+            {String(sectionContent.subheading || productsHomeFallback.subheading)}
           </p>
         </div>
 
@@ -69,7 +78,7 @@ export default function Products() {
             onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-400)'; e.currentTarget.style.borderColor = 'var(--beige-700)'}}
             onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-300)'; e.currentTarget.style.borderColor = 'var(--beige-600)'}}
           >
-            <span>View All Products</span>
+            <span>{String(sectionContent.cta_primary || productsHomeFallback.cta_primary)}</span>
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </Link>
           <button
@@ -81,7 +90,7 @@ export default function Products() {
             onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-700)'; e.currentTarget.style.borderColor = 'var(--beige-800)'}}
           >
             <ShoppingBag size={20} />
-            <span>Request Samples</span>
+            <span>{String(sectionContent.cta_secondary || productsHomeFallback.cta_secondary)}</span>
           </button>
         </div>
       </div>

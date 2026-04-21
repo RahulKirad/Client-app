@@ -1,7 +1,8 @@
 // API client for MySQL backend
 
-// const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-const API_BASE_URL = 'https://app.cottonunique.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+// const API_BASE_URL = 'https://app.cottonunique.com/api';
 
 export interface Product {
   id: string;
@@ -41,6 +42,15 @@ export interface ContentSection {
   content: Record<string, any>;
   is_active: boolean;
   updated_at: string;
+}
+
+/** Resolve image/media paths returned by API across local and hosted environments. */
+export function resolveMediaUrl(url?: string | null): string {
+  if (!url) return '/images/placeholder-product.jpg';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/images')) {
+    return url;
+  }
+  return `${API_ORIGIN}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
 /** Normalize API product rows (DB shape) to frontend Product shape. */

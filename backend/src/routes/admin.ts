@@ -8,6 +8,8 @@ import { authenticateToken, AuthRequest } from '../middleware/auth';
 import mysql from 'mysql2/promise';
 
 const router = express.Router();
+const DEFAULT_ADMIN_USERNAME = process.env.DEFAULT_ADMIN_USERNAME || 'abhishek.deolalikar@gmail.com';
+const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || 'admin@Cottonunique2026';
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, '../../uploads');
@@ -61,6 +63,181 @@ if (process.env.DB_PASSWORD !== undefined && process.env.DB_PASSWORD.trim() !== 
 
 const pool = mysql.createPool(dbConfig);
 
+type SeedContentSection = {
+  section_key: string;
+  title: string;
+  content: Record<string, unknown>;
+  is_active: boolean;
+};
+
+const DEFAULT_CONTENT_SECTIONS: SeedContentSection[] = [
+  {
+    section_key: 'hero',
+    title: 'Homepage Hero',
+    content: {
+      headline: 'Where intelligent design meets ethical craftsmanship',
+      subheadline: 'Smart. Sustainable. Global.',
+      cta_primary: 'Explore Our Totes',
+      cta_secondary: 'Corporate Solutions',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'highlights',
+    title: 'Key Highlights',
+    content: {
+      items: [
+        'GOTS-certified cotton',
+        'FSC-compliant packaging',
+        'Export-ready documentation',
+        'Custom branding for corporate gifting',
+      ],
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'about_mission',
+    title: 'Our Mission',
+    content: {
+      content:
+        'To deliver premium, sustainable tote bags that meet the highest global standards—ethically sourced, intelligently designed, and export-ready.',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'about',
+    title: 'About Us Section',
+    content: {
+      heading: 'ABOUT US',
+      subheading: 'Premium Sustainable Tote Bags',
+      description:
+        'We create beautiful, eco-friendly tote bags that meet the highest global standards. Every piece is ethically sourced, GOTS-certified, and designed for businesses and individuals who value quality and sustainability.',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'about_story',
+    title: 'Our Story',
+    content: {
+      content:
+        'Born from a passion for sustainability and global commerce, Cottonunique blends natural materials with modern branding to serve clients across continents.',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'certifications',
+    title: 'Certifications',
+    content: {
+      items: ['GOTS', 'FSC', 'MSME & export compliance'],
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'ecotote_duopack',
+    title: 'EcoTote DuoPack Section',
+    content: {
+      heading: 'ECOTOTE',
+      subheading: 'Our Competitive Edge',
+      description:
+        "We provide lower than industry standard MOQ's to help test markets and refine products at competitive prices.",
+      cta: 'Request Quote for EcoTote DuoPack',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'products_home',
+    title: 'Homepage Products Section',
+    content: {
+      heading: 'Eco Totes for Every Market',
+      subheading: 'Premium sustainable bags designed for global commerce',
+      cta_primary: 'View All Products',
+      cta_secondary: 'Request Samples',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'corporate',
+    title: 'Corporate Solutions Section',
+    content: {
+      heading: 'Smart Branding for Global Teams',
+      subheading: 'Transform your corporate gifting with sustainable, custom-branded solutions',
+      cta: 'Book a Consultation',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'sustainability',
+    title: 'Sustainability Section',
+    content: {
+      heading: 'More Than Just a Bag',
+      subheading: 'Every Cottonunique product tells a story of sustainable practices and positive impact',
+      report_cta: 'View Our Sustainability Report',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'export',
+    title: 'Export & Compliance Section',
+    content: {
+      heading: 'Export & Compliance',
+      subheading: 'Seamless global delivery with complete regulatory compliance',
+      cta_primary: 'Download Export Pack',
+      cta_secondary: 'Talk to Our Compliance Team',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'trust_strip',
+    title: 'Trust Strip',
+    content: {
+      headline: 'Certified sustainable · Trusted by businesses worldwide',
+      items: ['GOTS Certified', 'FSC Compliant', 'MSME Registered', 'Export Ready'],
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'contact',
+    title: 'Contact Section',
+    content: {
+      heading: 'Get in Touch',
+      subheading: "Ready to start your sustainable journey? Let's create something amazing together.",
+      email_primary: 'info@cottonunique.com',
+      email_secondary: 'sales@cottonunique.com',
+      phone: '+91 (xxx) xxx-xxxx',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'get_in_touch',
+    title: 'Get in Touch Section',
+    content: {
+      heading: 'Get in Touch',
+      subheading: "Ready to start your sustainable journey? Let's create something amazing together.",
+      cta: 'Send Inquiry',
+    },
+    is_active: true,
+  },
+];
+
+async function ensureDefaultContentSections() {
+  for (const section of DEFAULT_CONTENT_SECTIONS) {
+    await pool.execute(
+      `INSERT INTO content_sections (id, section_key, title, content, is_active)
+       SELECT UUID(), ?, ?, ?, ?
+       WHERE NOT EXISTS (
+         SELECT 1 FROM content_sections WHERE section_key = ?
+       )`,
+      [
+        section.section_key,
+        section.title,
+        JSON.stringify(section.content),
+        section.is_active ? 1 : 0,
+        section.section_key,
+      ]
+    );
+  }
+}
+
 // Admin login
 router.post('/login', async (req, res) => {
   try {
@@ -70,7 +247,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
-    // Check if admin user exists (create default if not)
+    // Check if admin user exists (create configured default admin if not found)
     const [rows] = await pool.execute(
       'SELECT * FROM admin_users WHERE username = ?',
       [username]
@@ -78,15 +255,15 @@ router.post('/login', async (req, res) => {
 
     let user: any;
     if (Array.isArray(rows) && rows.length === 0) {
-      // Create default admin user if none exists
-      if (username === 'admin') {
-        const hashedPassword = await bcrypt.hash(password, 10);
+      // Bootstrap only the configured default admin credentials.
+      if (username === DEFAULT_ADMIN_USERNAME && password === DEFAULT_ADMIN_PASSWORD) {
+        const hashedPassword = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, 10);
         await pool.execute(
           'INSERT INTO admin_users (username, password) VALUES (?, ?)',
-          [username, hashedPassword]
+          [DEFAULT_ADMIN_USERNAME, hashedPassword]
         );
-        const [newRows] = await pool.execute('SELECT id, username FROM admin_users WHERE username = ?', [username]);
-        user = Array.isArray(newRows) && newRows.length > 0 ? (newRows as any[])[0] : { id: 1, username };
+        const [newRows] = await pool.execute('SELECT id, username FROM admin_users WHERE username = ?', [DEFAULT_ADMIN_USERNAME]);
+        user = Array.isArray(newRows) && newRows.length > 0 ? (newRows as any[])[0] : { id: 1, username: DEFAULT_ADMIN_USERNAME };
       } else {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
@@ -319,6 +496,7 @@ router.put('/inquiries/:id', authenticateToken, async (req: AuthRequest, res) =>
 // Get content sections
 router.get('/content', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    await ensureDefaultContentSections();
     const [rows] = await pool.execute(
       'SELECT * FROM content_sections ORDER BY section_key'
     );

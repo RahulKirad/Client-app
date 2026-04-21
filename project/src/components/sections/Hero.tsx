@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+
+const heroContentFallback = {
+  headline: 'Where intelligent design meets ethical craftsmanship',
+  subheadline: 'Smart. Sustainable. Global.',
+  cta_primary: 'Contact Us',
+  cta_secondary: 'View Products',
+};
 
 export default function Hero() {
+  const heroContent = useManagedSectionContent('hero', heroContentFallback);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -150,14 +159,14 @@ export default function Hero() {
                       className="inline-flex items-center gap-2 px-6 py-3 rounded font-semibold text-sm transition-all duration-200 bg-white text-[#78350F] hover:bg-[var(--beige-100)] shadow-lg"
                       style={{ fontFamily: 'var(--heading-font)' }}
                     >
-                      Contact Us
+                      {String(heroContent.cta_primary || heroContentFallback.cta_primary)}
                     </a>
                     <a
                       href="/#products"
                       className="inline-flex items-center gap-2 px-6 py-3 rounded font-semibold text-sm transition-all duration-200 border-2 border-white text-white hover:bg-white/10"
                       style={{ fontFamily: 'var(--heading-font)' }}
                     >
-                      View Products
+                      {String(heroContent.cta_secondary || heroContentFallback.cta_secondary)}
                     </a>
                   </div>
                 </div>

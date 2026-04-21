@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, ShoppingBag, Filter, Grid, List, ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { apiClient, Product, normalizeProducts } from '../lib/api';
+import { apiClient, Product, normalizeProducts, resolveMediaUrl } from '../lib/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -110,13 +110,6 @@ export default function ProductsPage() {
     }
   };
 
-  const scrollToContact = () => {
-    const element = document.querySelector('#contact');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const filteredAndSortedProducts = React.useMemo(() => {
     const searching = searchQuery.trim().length > 0;
     let filtered: Product[];
@@ -188,37 +181,34 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-white">
       <Header />
       
-      <main className="pt-20">
-        {/* Hero Section */}
-        <section className="bg-gray-50 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center mb-6">
-              <Link
-                to="/"
-                className="flex items-center transition-colors mr-4 font-semibold text-sm bg-white px-4 py-2 rounded-full border-2 shadow-md hover:shadow-lg"
-                style={{color: 'var(--beige-700)', borderColor: 'var(--beige-600)', borderColorHover: 'var(--beige-700)'}}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--beige-800)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--beige-700)'}
-              >
-                <ArrowLeft size={20} className="mr-2" />
-                Back to Home
-              </Link>
-            </div>
-            
-            <div className="text-center">
-              <h1 className="text-4xl sm:text-5xl font-bold text-[#2C3E50] mb-4" style={{fontFamily: 'var(--heading-font)'}}>
-                Our Complete Product Range
-              </h1>
-              <p className="text-xl text-[#5A6C7D] max-w-3xl mx-auto">
-                Discover our full collection of premium sustainable tote bags designed for global commerce
-              </p>
+      <main className="pt-20 bg-slate-50">
+        {/* Top Bar */}
+        <section className="bg-white border-b border-gray-200 py-5">
+          <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+            <Link
+              to="/"
+              className="inline-flex items-center transition-colors font-semibold text-sm bg-white px-4 py-2 rounded-full border-2 shadow-sm hover:shadow-md"
+              style={{color: 'var(--beige-700)', borderColor: 'var(--beige-600)'}}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--beige-800)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--beige-700)'}
+            >
+              <ArrowLeft size={18} className="mr-2" />
+              Back to Home
+            </Link>
+
+            <h1 className="text-xl sm:text-2xl font-bold text-[#2C3E50] tracking-tight" style={{fontFamily: 'var(--heading-font)'}}>
+              Products
+            </h1>
+
+            <div className="hidden sm:block text-sm text-[#5A6C7D] font-medium">
+              Catalog Management View
             </div>
           </div>
         </section>
 
         {/* Filters and Controls */}
-        <section className="py-8 bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-6 bg-white border-b border-gray-200">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="mb-6 w-full">
               <label htmlFor="products-search" className="sr-only">
                 Search products
@@ -335,7 +325,7 @@ export default function ProductsPage() {
         </section>      
   {/* Products Section */}
         <section id="products-list" className="py-12 bg-gray-50 scroll-mt-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="animate-spin rounded-full h-16 w-16 border-4 border-t-transparent" style={{borderColor: 'var(--beige-600)'}}></div>
@@ -351,7 +341,7 @@ export default function ProductsPage() {
                 <div
                   className={
                     viewMode === 'grid'
-                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 auto-rows-fr'
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 auto-rows-fr'
                       : 'space-y-6'
                   }
                 >
@@ -435,30 +425,6 @@ export default function ProductsPage() {
   );
 }
 
-// Helper function to format specification values
-
-function formatSpecificationValue(value: string): string {
-  // Add spaces before units and format common patterns
-  return value
-    .replace(/(\d+)([a-zA-Z])/g, '$1 $2') // Add space between numbers and letters
-    .replace(/inches/g, '"') // Replace inches with quote symbol
-    .replace(/(\d+)\s*x\s*(\d+)/g, '$1" × $2') // Format dimensions
-    .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
-    .trim();
-}
-
-// Currency data for display
-const currencies = [
-  { code: 'inr', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
-  { code: 'usd', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
-  { code: 'eur', symbol: '€', name: 'Euro', flag: '🇪🇺' },
-  { code: 'gbp', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
-  { code: 'aed', symbol: 'د.إ', name: 'UAE Dirham', flag: '🇦🇪' },
-  { code: 'sar', symbol: '﷼', name: 'Saudi Riyal', flag: '🇸🇦' },
-  { code: 'qar', symbol: 'ر.ق', name: 'Qatari Riyal', flag: '🇶🇦' },
-  { code: 'kwd', symbol: 'د.ك', name: 'Kuwaiti Dinar', flag: '🇰🇼' }
-];
-
 // Enhanced Product Card Component with Image Background Style
 function ProductCard({ product }: { product: Product }) {
   const navigate = useNavigate();
@@ -469,11 +435,7 @@ function ProductCard({ product }: { product: Product }) {
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
-          src={product.image_url 
-            ? (product.image_url.startsWith('http') || product.image_url.startsWith('/images') 
-                ? product.image_url 
-                : `http://localhost:3001${product.image_url}`)
-            : '/images/placeholder-product.jpg'}
+          src={resolveMediaUrl(product.image_url)}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
