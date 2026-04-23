@@ -87,6 +87,16 @@ CREATE TABLE IF NOT EXISTS chatbot_settings (
 INSERT IGNORE INTO chatbot_settings (id, is_enabled, welcome_message) VALUES
 (1, 1, NULL);
 
+-- SMTP credentials for contact-form email (admin UI); optional, server can also use .env
+CREATE TABLE IF NOT EXISTS smtp_settings (
+    id INT PRIMARY KEY DEFAULT 1,
+    email_user VARCHAR(255) NOT NULL DEFAULT '',
+    app_password_ciphertext TEXT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT IGNORE INTO smtp_settings (id, email_user) VALUES (1, '');
+
 -- Insert default content sections (only if table is empty)
 INSERT IGNORE INTO content_sections (section_key, title, content) VALUES
 ('hero', 'Homepage Hero', '{"headline": "Where intelligent design meets ethical craftsmanship", "subheadline": "Smart. Sustainable. Global.", "cta_primary": "Explore Our Totes", "cta_secondary": "Corporate Solutions"}'),

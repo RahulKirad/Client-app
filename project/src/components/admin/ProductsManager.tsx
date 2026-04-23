@@ -2,7 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Image, Star, Eye, ExternalLink, X } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
-import { resolveMediaUrl } from '../../lib/api';
+import { normalizeProducts, resolveMediaUrl } from '../../lib/api';
+
+const PRICING_CURRENCY_ORDER = ['inr', 'usd', 'eur', 'gbp', 'aed', 'sar', 'qar', 'kwd'] as const;
+
+function legacyPriceFromMultiCurrency(
+  p: Record<string, { amount: number; enabled: boolean }>
+): number {
+  for (const code of PRICING_CURRENCY_ORDER) {
+    const cell = p[code];
+    if (cell?.enabled && cell.amount > 0) return cell.amount;
+  }
+  return 0;
+}
 
 interface Product {
   id: string;
@@ -86,7 +98,7 @@ export default function ProductsManager() {
   const fetchProducts = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/admin/products`, { headers: authHeaders() });
-      setProducts(response.data);
+      setProducts(normalizeProducts(response.data));
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -114,8 +126,11 @@ export default function ProductsManager() {
     }
     specs.pricing = pricing;
 
+    const priceForDb = legacyPriceFromMultiCurrency(pricing as Record<string, { amount: number; enabled: boolean }>) || formData.price;
+
     const submitData = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
+    const formPayload = { ...formData, price: priceForDb };
+    Object.entries(formPayload).forEach(([key, value]) => {
       if (key === 'specifications') {
         submitData.append(key, JSON.stringify(specs));
       } else {
@@ -178,12 +193,23 @@ export default function ProductsManager() {
       is_featured: product.is_featured
     });
 
-    // Load pricing data if available
+    // Load pricing data if available; otherwise clear so a previous product's row state cannot leak
     const specs = specObj as Record<string, unknown>;
     if (specs && typeof specs.pricing === 'object' && specs.pricing !== null) {
       setPricing(specs.pricing as typeof pricing);
+    } else {
+      setPricing({
+        inr: { amount: 0, enabled: true },
+        usd: { amount: 0, enabled: false },
+        eur: { amount: 0, enabled: false },
+        gbp: { amount: 0, enabled: false },
+        aed: { amount: 0, enabled: false },
+        sar: { amount: 0, enabled: false },
+        qar: { amount: 0, enabled: false },
+        kwd: { amount: 0, enabled: false }
+      });
     }
-    
+
     setSubmitError(null);
     setShowModal(true);
   };
@@ -225,6 +251,13 @@ export default function ProductsManager() {
     setSelectedCurrency('inr');
     setImageFiles([]);
     setEditingProduct(null);
+  };
+
+  const removeActiveCurrency = (code: keyof typeof pricing) => {
+    setPricing((prev) => ({
+      ...prev,
+      [code]: { amount: 0, enabled: false }
+    }));
   };
 
   const categories = [
@@ -295,21 +328,28 @@ export default function ProductsManager() {
                 <h3 className="font-semibold text-slate-900 mb-1">{product.name}</h3>
                 <p className="text-sm text-slate-600 mb-2">{product.category}</p>
                 <p className="text-xs text-slate-500 mb-3 line-clamp-2">{product.description}</p>
-                {/* Display multi-currency prices */}
+                {/* Display multi-currency prices (parsed specs) or legacy price column */}
                 <div className="mb-3">
                   {product.specifications?.pricing ? (
                     <div className="flex flex-wrap gap-1">
                       {Object.entries(product.specifications.pricing).map(([code, data]: [string, any]) => {
                         const curr = currencies.find(c => c.code === code);
-                        return data.enabled && data.amount > 0 && curr ? (
+                        const amt = typeof data?.amount === 'number' ? data.amount : parseFloat(String(data?.amount)) || 0;
+                        return data?.enabled && amt > 0 && curr ? (
                           <span key={code} className="inline-flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold">
-                            <span>{curr.symbol}{data.amount}</span>
+                            <span>{curr.symbol}{amt.toFixed(2)}</span>
                           </span>
                         ) : null;
                       })}
                     </div>
-                  ) : (
-                    <p className="text-lg font-bold text-emerald-600">${product.price}</p>
+                  ) : null}
+                  {(!product.specifications?.pricing ||
+                    !Object.values(product.specifications.pricing as Record<string, { amount?: number; enabled?: boolean }>).some(
+                      (d) => d?.enabled && (typeof d?.amount === 'number' ? d.amount : parseFloat(String(d?.amount)) || 0) > 0
+                    )) && (
+                    <p className="text-lg font-bold text-emerald-600">
+                      ${Number(product.price).toFixed(2)}
+                    </p>
                   )}
                 </div>
               </div>
@@ -580,13 +620,28 @@ export default function ProductsManager() {
                       {/* Display all enabled prices */}
                       <div className="mt-3 p-3 bg-white rounded-lg border border-slate-200">
                         <p className="text-xs font-semibold text-slate-600 mb-2">Active Prices:</p>
+                        <p className="text-xs text-slate-500 mb-2">Use × to remove a currency; turn it on again with the regional tabs if needed.</p>
                         <div className="flex flex-wrap gap-2">
                           {Object.entries(pricing).map(([code, data]) => {
                             const curr = currencies.find(c => c.code === code);
                             return data.enabled && data.amount > 0 && curr ? (
-                              <span key={code} className="inline-flex items-center space-x-1 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium">
-                                <span>{curr.flag}</span>
-                                <span>{curr.symbol}{data.amount.toFixed(2)}</span>
+                              <span
+                                key={code}
+                                className="group inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium"
+                              >
+                                <span className="flex items-center gap-1">
+                                  <span>{curr.flag}</span>
+                                  <span>{curr.symbol}{data.amount.toFixed(2)}</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeActiveCurrency(code as keyof typeof pricing)}
+                                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-emerald-700/80 hover:bg-emerald-200/80 hover:text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                  title={`Remove ${curr.name} price`}
+                                  aria-label={`Remove ${curr.name} price`}
+                                >
+                                  <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                                </button>
                               </span>
                             ) : null;
                           })}

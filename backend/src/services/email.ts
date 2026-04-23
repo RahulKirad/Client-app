@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { getResolvedSmtpCredentials } from './smtpConfigStore';
 
 /** Recipient address for all inquiry emails (Cottonunique). */
 export const INQUIRY_RECIPIENT_EMAIL = 'cottonunique.co@gmail.com';
@@ -14,22 +15,26 @@ export interface InquiryPayload {
   message: string;
 }
 
-/**
- * Builds and returns a Nodemailer transporter for Gmail SMTP.
- * Uses EMAIL_USER and EMAIL_APP_PASSWORD from environment.
- */
-function getTransporter() {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_APP_PASSWORD;
-  if (!user || !pass) {
-    throw new Error('EMAIL_USER and EMAIL_APP_PASSWORD must be set to send inquiry emails');
+const SMTP_DEFAULT_HOST = process.env.EMAIL_SMTP_HOST || 'smtp.gmail.com';
+const SMTP_DEFAULT_PORT = parseInt(process.env.EMAIL_SMTP_PORT || '587', 10);
+
+type Resolved = Awaited<ReturnType<typeof getResolvedSmtpCredentials>>;
+
+/** Single credential fetch + transporter; throws if nothing configured. */
+async function getTransporterAndFrom(): Promise<{ transporter: nodemailer.Transporter; from: string }> {
+  const creds: Resolved = await getResolvedSmtpCredentials();
+  if (!creds?.user || !creds?.pass) {
+    throw new Error(
+      'SMTP not configured: set Email + App password in Admin → Email / SMTP, or set EMAIL_USER and EMAIL_APP_PASSWORD in the server environment'
+    );
   }
-  return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: { user, pass },
+  const transporter = nodemailer.createTransport({
+    host: SMTP_DEFAULT_HOST,
+    port: SMTP_DEFAULT_PORT,
+    secure: SMTP_DEFAULT_PORT === 465,
+    auth: { user: creds.user, pass: creds.pass },
   });
+  return { transporter, from: creds.user };
 }
 
 /**
@@ -42,8 +47,8 @@ function getTransporter() {
 export async function sendInquiryEmail(payload: InquiryPayload): Promise<boolean> {
   const recipients = buildInquiryRecipients(process.env.INQUIRY_RECIPIENT_EMAIL);
   try {
-    const transporter = getTransporter();
-    const from = process.env.EMAIL_USER || recipients[0] || INQUIRY_RECIPIENT_EMAIL;
+    const { transporter, from: fromUser } = await getTransporterAndFrom();
+    const from = fromUser || process.env.EMAIL_USER || recipients[0] || INQUIRY_RECIPIENT_EMAIL;
     const subject = `[Cottonunique] New inquiry from ${payload.name}`;
     const text = [
       '═══════════════════════════════════════════════════════',
@@ -198,8 +203,31 @@ export async function sendInquiryEmail(payload: InquiryPayload): Promise<boolean
     return true;
   } catch (err) {
     console.error('Failed to send inquiry email:', err);
+    const e = err as { code?: string; responseCode?: number; response?: string };
+    if (e?.code === 'EAUTH' || e?.responseCode === 535) {
+      console.error(
+        'Gmail SMTP: bad credentials. Set EMAIL_USER to the sending Gmail address and EMAIL_APP_PASSWORD to a 16-character App Password (google.com → Account → Security → 2-Step Verification → App passwords), not your normal Gmail password.'
+      );
+    }
     return false;
   }
+}
+
+/**
+ * Sends a test message using the same credentials as inquiry mail (admin DB settings, else .env).
+ */
+export async function sendSmtpTestEmail(to: string): Promise<void> {
+  const normalized = to.trim();
+  if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    throw new Error('Valid test recipient email is required');
+  }
+  const { transporter, from: fromUser } = await getTransporterAndFrom();
+  await transporter.sendMail({
+    from: `Cottonunique <${fromUser}>`,
+    to: normalized,
+    subject: '[Cottonunique] SMTP test',
+    text: `This is a test message from the Cottonunique admin panel.\nIf you received it, SMTP is configured correctly.\n\n${new Date().toISOString()}`,
+  });
 }
 
 function buildInquiryRecipients(envValue?: string): string[] {
