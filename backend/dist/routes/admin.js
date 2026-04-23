@@ -11,6 +11,8 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const auth_1 = require("../middleware/auth");
 const promise_1 = __importDefault(require("mysql2/promise"));
+const smtpConfigStore_1 = require("../services/smtpConfigStore");
+const email_1 = require("../services/email");
 const router = express_1.default.Router();
 const DEFAULT_ADMIN_USERNAME = process.env.DEFAULT_ADMIN_USERNAME || 'abhishek.deolalikar@gmail.com';
 const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || 'admin@Cottonunique2026';
@@ -91,20 +93,20 @@ const DEFAULT_CONTENT_SECTIONS = [
         is_active: true,
     },
     {
-        section_key: 'about_story',
-        title: 'Our Story',
-        content: {
-            content: 'Born from a passion for sustainability and global commerce, Cottonunique blends natural materials with modern branding to serve clients across continents.',
-        },
-        is_active: true,
-    },
-    {
         section_key: 'about',
         title: 'About Us Section',
         content: {
             heading: 'ABOUT US',
             subheading: 'Premium Sustainable Tote Bags',
             description: 'We create beautiful, eco-friendly tote bags that meet the highest global standards. Every piece is ethically sourced, GOTS-certified, and designed for businesses and individuals who value quality and sustainability.',
+        },
+        is_active: true,
+    },
+    {
+        section_key: 'about_story',
+        title: 'Our Story',
+        content: {
+            content: 'Born from a passion for sustainability and global commerce, Cottonunique blends natural materials with modern branding to serve clients across continents.',
         },
         is_active: true,
     },
@@ -184,9 +186,14 @@ const DEFAULT_CONTENT_SECTIONS = [
         content: {
             heading: 'Get in Touch',
             subheading: "Ready to start your sustainable journey? Let's create something amazing together.",
-            email_primary: 'info@cottonunique.com',
-            email_secondary: 'sales@cottonunique.com',
-            phone: '+91 (xxx) xxx-xxxx',
+            email_primary: 'abhishek.deolalikar@gmail.com',
+            email_secondary: '',
+            phone: '+91 7020631149',
+            whatsapp_number: '+91 7020631149',
+            whatsapp_message: "Hi Cottonunique! I’d like to know more about your tote bags.",
+            visit_heading: 'Visit Us',
+            visit_line_1: 'Sr no 131, STG, Alandi Road',
+            visit_line_2: 'Pune - 412105',
         },
         is_active: true,
     },
@@ -513,6 +520,50 @@ router.put('/chatbot-settings', auth_1.authenticateToken, async (req, res) => {
     catch (error) {
         console.error('Error updating chatbot settings:', error);
         res.status(500).json({ error: 'Failed to update chatbot settings' });
+    }
+});
+router.get('/smtp-settings', auth_1.authenticateToken, async (req, res) => {
+    try {
+        const data = await (0, smtpConfigStore_1.getSmtpSettingsForAdmin)();
+        res.json(data);
+    }
+    catch (error) {
+        console.error('Error fetching SMTP settings:', error);
+        res.status(500).json({ error: 'Failed to fetch SMTP settings' });
+    }
+});
+router.put('/smtp-settings', auth_1.authenticateToken, async (req, res) => {
+    try {
+        const { emailUser, appPassword, clearAppPassword } = req.body;
+        const clear = clearAppPassword === true ||
+            clearAppPassword === 1 ||
+            (typeof clearAppPassword === 'string' && clearAppPassword.toLowerCase() === 'true');
+        await (0, smtpConfigStore_1.saveSmtpSettings)({
+            emailUser: typeof emailUser === 'string' ? emailUser : '',
+            appPassword: appPassword !== undefined ? String(appPassword) : undefined,
+            clearAppPassword: clear,
+        });
+        const data = await (0, smtpConfigStore_1.getSmtpSettingsForAdmin)();
+        res.json({ message: 'SMTP settings saved', ...data });
+    }
+    catch (error) {
+        console.error('Error saving SMTP settings:', error);
+        res.status(500).json({ error: error?.message || 'Failed to save SMTP settings' });
+    }
+});
+router.post('/smtp-settings/test', auth_1.authenticateToken, async (req, res) => {
+    try {
+        const { to } = req.body;
+        const addr = typeof to === 'string' && to.trim() ? to.trim() : undefined;
+        if (!addr) {
+            return res.status(400).json({ error: 'Provide a "to" email address for the test message' });
+        }
+        await (0, email_1.sendSmtpTestEmail)(addr);
+        res.json({ message: `Test email sent to ${addr}` });
+    }
+    catch (error) {
+        console.error('SMTP test failed:', error);
+        res.status(400).json({ error: error?.message || 'Failed to send test email' });
     }
 });
 router.get('/chatbot-settings/diagnostics', auth_1.authenticateToken, async (req, res) => {

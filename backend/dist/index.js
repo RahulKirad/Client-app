@@ -14,6 +14,36 @@ const chatbot_1 = __importDefault(require("./routes/chatbot"));
 const email_1 = require("./services/email");
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
+const CANONICAL_IN_PHONE_DISPLAY = '+91 7020631149';
+function parseJsonMaybe(value) {
+    let parsed = value;
+    while (typeof parsed === 'string') {
+        try {
+            parsed = JSON.parse(parsed);
+        }
+        catch {
+            break;
+        }
+    }
+    return parsed;
+}
+function applyCanonicalContactPhones(content) {
+    let raw = content;
+    if (Buffer.isBuffer(raw)) {
+        raw = raw.toString('utf8');
+    }
+    const originalString = typeof raw === 'string' ? raw : null;
+    const parsed = parseJsonMaybe(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+        return content;
+    const obj = parsed;
+    const next = { ...obj };
+    next.phone = CANONICAL_IN_PHONE_DISPLAY;
+    next.whatsapp_number = CANONICAL_IN_PHONE_DISPLAY;
+    if (originalString != null)
+        return JSON.stringify(next);
+    return next;
+}
 app.set('trust proxy', 1);
 app.use((0, cors_1.default)({
     origin: process.env.FRONTEND_URL
@@ -26,7 +56,15 @@ app.use(express_1.default.json());
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000,
     max: 100,
-    skip: (req) => req.method === 'GET' && req.path === '/chatbot/settings'
+    skip: (req) => {
+        if (req.method !== 'GET')
+            return false;
+        if (req.path.startsWith('/content/'))
+            return true;
+        if (req.path === '/chatbot/settings')
+            return true;
+        return false;
+    }
 });
 app.use('/api', limiter);
 app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
@@ -119,7 +157,13 @@ app.get('/api/content/:sectionKey', async (req, res) => {
         if (Array.isArray(rows) && rows.length === 0) {
             return res.status(404).json({ error: 'Content section not found' });
         }
-        res.json(rows[0]);
+        const row = rows[0];
+        if (req.params.sectionKey === 'contact') {
+            const mergedContent = applyCanonicalContactPhones(row?.content);
+            res.json({ ...row, content: mergedContent });
+            return;
+        }
+        res.json(row);
     }
     catch (error) {
         console.error('Error fetching content:', error);

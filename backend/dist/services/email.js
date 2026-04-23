@@ -3,28 +3,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.INQUIRY_RECIPIENT_EMAIL = void 0;
+exports.INQUIRY_RECIPIENT_EMAIL_SECONDARY = exports.INQUIRY_RECIPIENT_EMAIL = void 0;
 exports.sendInquiryEmail = sendInquiryEmail;
+exports.sendSmtpTestEmail = sendSmtpTestEmail;
 const nodemailer_1 = __importDefault(require("nodemailer"));
+const smtpConfigStore_1 = require("./smtpConfigStore");
 exports.INQUIRY_RECIPIENT_EMAIL = 'cottonunique.co@gmail.com';
-function getTransporter() {
-    const user = process.env.EMAIL_USER;
-    const pass = process.env.EMAIL_APP_PASSWORD;
-    if (!user || !pass) {
-        throw new Error('EMAIL_USER and EMAIL_APP_PASSWORD must be set to send inquiry emails');
+exports.INQUIRY_RECIPIENT_EMAIL_SECONDARY = 'cottoniq.co@gmail.com';
+const SMTP_DEFAULT_HOST = process.env.EMAIL_SMTP_HOST || 'smtp.gmail.com';
+const SMTP_DEFAULT_PORT = parseInt(process.env.EMAIL_SMTP_PORT || '587', 10);
+async function getTransporterAndFrom() {
+    const creds = await (0, smtpConfigStore_1.getResolvedSmtpCredentials)();
+    if (!creds?.user || !creds?.pass) {
+        throw new Error('SMTP not configured: set Email + App password in Admin → Email / SMTP, or set EMAIL_USER and EMAIL_APP_PASSWORD in the server environment');
     }
-    return nodemailer_1.default.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: { user, pass },
+    const transporter = nodemailer_1.default.createTransport({
+        host: SMTP_DEFAULT_HOST,
+        port: SMTP_DEFAULT_PORT,
+        secure: SMTP_DEFAULT_PORT === 465,
+        auth: { user: creds.user, pass: creds.pass },
     });
+    return { transporter, from: creds.user };
 }
 async function sendInquiryEmail(payload) {
-    const recipient = process.env.INQUIRY_RECIPIENT_EMAIL || exports.INQUIRY_RECIPIENT_EMAIL;
+    const recipients = buildInquiryRecipients(process.env.INQUIRY_RECIPIENT_EMAIL);
     try {
-        const transporter = getTransporter();
-        const from = process.env.EMAIL_USER || recipient;
+        const { transporter, from: fromUser } = await getTransporterAndFrom();
+        const from = fromUser || process.env.EMAIL_USER || recipients[0] || exports.INQUIRY_RECIPIENT_EMAIL;
         const subject = `[Cottonunique] New inquiry from ${payload.name}`;
         const text = [
             '═══════════════════════════════════════════════════════',
@@ -169,19 +174,50 @@ async function sendInquiryEmail(payload) {
     `;
         await transporter.sendMail({
             from: `Cottonunique Contact <${from}>`,
-            to: recipient,
+            to: recipients.join(', '),
             subject,
             text,
             html,
             replyTo: payload.email,
         });
-        console.log(`Inquiry email sent to ${recipient} for ${payload.email}`);
+        console.log(`Inquiry email sent to ${recipients.join(', ')} for ${payload.email}`);
         return true;
     }
     catch (err) {
         console.error('Failed to send inquiry email:', err);
+        const e = err;
+        if (e?.code === 'EAUTH' || e?.responseCode === 535) {
+            console.error('Gmail SMTP: bad credentials. Set EMAIL_USER to the sending Gmail address and EMAIL_APP_PASSWORD to a 16-character App Password (google.com → Account → Security → 2-Step Verification → App passwords), not your normal Gmail password.');
+        }
         return false;
     }
+}
+async function sendSmtpTestEmail(to) {
+    const normalized = to.trim();
+    if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+        throw new Error('Valid test recipient email is required');
+    }
+    const { transporter, from: fromUser } = await getTransporterAndFrom();
+    await transporter.sendMail({
+        from: `Cottonunique <${fromUser}>`,
+        to: normalized,
+        subject: '[Cottonunique] SMTP test',
+        text: `This is a test message from the Cottonunique admin panel.\nIf you received it, SMTP is configured correctly.\n\n${new Date().toISOString()}`,
+    });
+}
+function buildInquiryRecipients(envValue) {
+    const raw = (envValue || '').trim();
+    const base = raw
+        ? raw.split(',').map((s) => s.trim()).filter(Boolean)
+        : [exports.INQUIRY_RECIPIENT_EMAIL, exports.INQUIRY_RECIPIENT_EMAIL_SECONDARY];
+    const seen = new Set();
+    return base.filter((email) => {
+        const key = email.toLowerCase();
+        if (seen.has(key))
+            return false;
+        seen.add(key);
+        return true;
+    });
 }
 function escapeHtml(s) {
     return s
