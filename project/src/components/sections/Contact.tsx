@@ -7,7 +7,6 @@ const contactInfoFallback = {
   heading: 'Get in Touch',
   subheading: "Ready to start your sustainable journey? Let's create something amazing together.",
   email_primary: 'abhishek.deolalikar@gmail.com',
-  email_secondary: 'cottoniq.co@gmail.com',
   phone: '+91 7020631149',
   whatsapp_number: '+91 7020631149',
   whatsapp_message: "Hi Cottonunique! I’d like to know more about your tote bags.",
@@ -120,9 +119,6 @@ export default function Contact() {
                     <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>Email Us</p>
                     <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
                       {String(contactInfo.email_primary || contactInfoFallback.email_primary)}
-                    </p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
-                      {String(contactInfo.email_secondary || contactInfoFallback.email_secondary)}
                     </p>
                   </div>
                 </div>

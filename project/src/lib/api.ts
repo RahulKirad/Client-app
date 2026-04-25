@@ -1,6 +1,13 @@
 // API client for MySQL backend
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+/** Ensures the base ends with /api (e.g. if VITE_API_URL is only http://localhost:3001). */
+function normalizeViteApiBaseUrl(): string {
+  const raw = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').trim().replace(/\/$/, '');
+  if (/\/api$/i.test(raw)) return raw;
+  return `${raw}/api`;
+}
+
+export const API_BASE_URL = normalizeViteApiBaseUrl();
 const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 // const API_BASE_URL = 'https://app.cottonunique.com/api';
 

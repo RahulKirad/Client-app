@@ -5,7 +5,9 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
-import mysql from 'mysql2/promise';
+import mysql, { ResultSetHeader } from 'mysql2/promise';
+import { getSmtpSettingsForAdmin, saveSmtpSettings } from '../services/smtpConfigStore';
+import { sendSmtpTestEmail } from '../services/email';
 
 const router = express.Router();
 const DEFAULT_ADMIN_USERNAME = process.env.DEFAULT_ADMIN_USERNAME || 'abhishek.deolalikar@gmail.com';
@@ -202,7 +204,7 @@ const DEFAULT_CONTENT_SECTIONS: SeedContentSection[] = [
       heading: 'Get in Touch',
       subheading: "Ready to start your sustainable journey? Let's create something amazing together.",
       email_primary: 'abhishek.deolalikar@gmail.com',
-      email_secondary: 'cottoniq.co@gmail.com',
+      email_secondary: '',
       phone: '+91 7020631149',
       whatsapp_number: '+91 7020631149',
       whatsapp_message: "Hi Cottonunique! I’d like to know more about your tote bags.",
@@ -498,6 +500,22 @@ router.put('/inquiries/:id', authenticateToken, async (req: AuthRequest, res) =>
   }
 });
 
+// Delete inquiry
+router.delete('/inquiries/:id', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await pool.execute('DELETE FROM inquiries WHERE id = ?', [id]);
+    const affected = (result as ResultSetHeader).affectedRows;
+    if (affected === 0) {
+      return res.status(404).json({ error: 'Inquiry not found' });
+    }
+    res.json({ message: 'Inquiry deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting inquiry:', error);
+    res.status(500).json({ error: 'Failed to delete inquiry' });
+  }
+});
+
 // Get content sections
 router.get('/content', authenticateToken, async (req: AuthRequest, res) => {
   try {
@@ -606,6 +624,56 @@ router.put('/chatbot-settings', authenticateToken, async (req: AuthRequest, res)
   } catch (error) {
     console.error('Error updating chatbot settings:', error);
     res.status(500).json({ error: 'Failed to update chatbot settings' });
+  }
+});
+
+// ----- Email / SMTP (admin only, stored in DB; falls back to .env for sending if incomplete) -----
+router.get('/smtp-settings', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const data = await getSmtpSettingsForAdmin();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching SMTP settings:', error);
+    res.status(500).json({ error: 'Failed to fetch SMTP settings' });
+  }
+});
+
+router.put('/smtp-settings', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { emailUser, appPassword, clearAppPassword } = req.body as {
+      emailUser?: string;
+      appPassword?: string;
+      clearAppPassword?: boolean | string | number;
+    };
+    const clear =
+      clearAppPassword === true ||
+      clearAppPassword === 1 ||
+      (typeof clearAppPassword === 'string' && clearAppPassword.toLowerCase() === 'true');
+    await saveSmtpSettings({
+      emailUser: typeof emailUser === 'string' ? emailUser : '',
+      appPassword: appPassword !== undefined ? String(appPassword) : undefined,
+      clearAppPassword: clear,
+    });
+    const data = await getSmtpSettingsForAdmin();
+    res.json({ message: 'SMTP settings saved', ...data });
+  } catch (error: any) {
+    console.error('Error saving SMTP settings:', error);
+    res.status(500).json({ error: error?.message || 'Failed to save SMTP settings' });
+  }
+});
+
+router.post('/smtp-settings/test', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { to } = req.body as { to?: string };
+    const addr = typeof to === 'string' && to.trim() ? to.trim() : undefined;
+    if (!addr) {
+      return res.status(400).json({ error: 'Provide a "to" email address for the test message' });
+    }
+    await sendSmtpTestEmail(addr);
+    res.json({ message: `Test email sent to ${addr}` });
+  } catch (error: any) {
+    console.error('SMTP test failed:', error);
+    res.status(400).json({ error: error?.message || 'Failed to send test email' });
   }
 });
 
