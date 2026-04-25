@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Image, Star, Eye, ExternalLink, X } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Edit, Trash2, Image, Star, Eye, ExternalLink, X, FolderPlus, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { normalizeProducts, resolveMediaUrl } from '../../lib/api';
@@ -14,6 +14,36 @@ function legacyPriceFromMultiCurrency(
     if (cell?.enabled && cell.amount > 0) return cell.amount;
   }
   return 0;
+}
+
+const DEFAULT_PRODUCT_CATEGORIES = [
+  'Classic Cotton Totes',
+  'Foldable Travel Totes',
+  'Branded Corporate Totes',
+  'Seasonal Gift Editions',
+] as const;
+
+const ADMIN_CATEGORIES_STORAGE_KEY = 'cottonunique_admin_product_categories';
+
+function mergeProductCategoryOptions(
+  defaults: readonly string[],
+  extras: string[],
+  productCategoryValues: string[]
+): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const add = (c: string) => {
+    const t = c.trim();
+    if (!t) return;
+    const key = t.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(t);
+  };
+  for (const c of defaults) add(c);
+  for (const c of extras) add(c);
+  for (const c of productCategoryValues) add(c);
+  return out;
 }
 
 interface Product {
@@ -81,6 +111,10 @@ export default function ProductsManager() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [previewProductId, setPreviewProductId] = useState<string | null>(null);
+  const [extraCategories, setExtraCategories] = useState<string[]>([]);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [categoryAddError, setCategoryAddError] = useState<string | null>(null);
+  const [showAddCategoryPanel, setShowAddCategoryPanel] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
   // Use context token or localStorage so the first request (before context hydrates) still sends auth
@@ -94,6 +128,19 @@ export default function ProductsManager() {
     if (t) fetchProducts();
     else setLoading(false);
   }, [token]);
+
+  useEffect(() => {
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(ADMIN_CATEGORIES_STORAGE_KEY) : null;
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) {
+        setExtraCategories(parsed.filter((x): x is string => typeof x === 'string'));
+      }
+    } catch {
+      /* ignore corrupt storage */
+    }
+  }, []);
 
   const fetchProducts = async () => {
     try {
@@ -211,6 +258,9 @@ export default function ProductsManager() {
     }
 
     setSubmitError(null);
+    setNewCategoryName('');
+    setCategoryAddError(null);
+    setShowAddCategoryPanel(false);
     setShowModal(true);
   };
 
@@ -251,6 +301,43 @@ export default function ProductsManager() {
     setSelectedCurrency('inr');
     setImageFiles([]);
     setEditingProduct(null);
+    setNewCategoryName('');
+    setCategoryAddError(null);
+    setShowAddCategoryPanel(false);
+  };
+
+  const categories = useMemo(
+    () =>
+      mergeProductCategoryOptions(
+        DEFAULT_PRODUCT_CATEGORIES,
+        extraCategories,
+        products.map((p) => p.category || '')
+      ),
+    [extraCategories, products]
+  );
+
+  const addCustomCategory = () => {
+    const name = newCategoryName.trim();
+    if (!name) {
+      setCategoryAddError('Enter a category name.');
+      return;
+    }
+    const match = categories.find((c) => c.toLowerCase() === name.toLowerCase());
+    if (match) {
+      setFormData((fd) => ({ ...fd, category: match }));
+      setNewCategoryName('');
+      setCategoryAddError('That category already exists — it is selected below.');
+      return;
+    }
+    const nextExtras = [...extraCategories, name];
+    setExtraCategories(nextExtras);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(ADMIN_CATEGORIES_STORAGE_KEY, JSON.stringify(nextExtras));
+    }
+    setFormData((fd) => ({ ...fd, category: name }));
+    setNewCategoryName('');
+    setCategoryAddError(null);
+    setShowAddCategoryPanel(false);
   };
 
   const removeActiveCurrency = (code: keyof typeof pricing) => {
@@ -259,13 +346,6 @@ export default function ProductsManager() {
       [code]: { amount: 0, enabled: false }
     }));
   };
-
-  const categories = [
-    'Classic Cotton Totes',
-    'Foldable Travel Totes',
-    'Branded Corporate Totes',
-    'Seasonal Gift Editions'
-  ];
 
   const fieldLabelClass = 'block text-sm font-semibold text-slate-700 mb-1.5';
   const fieldInputClass =
@@ -287,7 +367,12 @@ export default function ProductsManager() {
           <p className="text-slate-600">Manage your product catalog</p>
         </div>
         <button
-          onClick={() => { setSubmitError(null); setShowModal(true); }}
+          onClick={() => {
+            setSubmitError(null);
+            setNewCategoryName('');
+            setCategoryAddError(null);
+            setShowModal(true);
+          }}
           className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
         >
           <Plus size={20} className="mr-2" />
@@ -452,6 +537,56 @@ export default function ProductsManager() {
                   
                   <div>
                     <label className={fieldLabelClass}>Category</label>
+                    <div className="mb-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowAddCategoryPanel((v) => !v);
+                          setCategoryAddError(null);
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-emerald-800 hover:bg-emerald-100"
+                      >
+                        <FolderPlus size={14} />
+                        Add category
+                        {showAddCategoryPanel ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                    </div>
+                    {showAddCategoryPanel && (
+                      <div className="mb-3 rounded-lg border border-emerald-200/80 bg-emerald-50/50 p-3 space-y-2">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                          <input
+                            type="text"
+                            value={newCategoryName}
+                            onChange={(e) => {
+                              setNewCategoryName(e.target.value);
+                              setCategoryAddError(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addCustomCategory();
+                              }
+                            }}
+                            placeholder="New category name…"
+                            className={`${fieldInputClass} sm:flex-1`}
+                            aria-label="New category name"
+                          />
+                          <button
+                            type="button"
+                            onClick={addCustomCategory}
+                            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                          >
+                            <FolderPlus size={18} />
+                            Add
+                          </button>
+                        </div>
+                        {categoryAddError && (
+                          <p className="text-xs text-amber-800" role="status">
+                            {categoryAddError}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
