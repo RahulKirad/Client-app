@@ -5,7 +5,7 @@ import { apiClient, Product, normalizeProducts, resolveMediaUrl } from '../lib/a
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-const PRODUCTS_PER_PAGE = 10;
+const PRODUCTS_PER_PAGE = 8;
 
 /** All searchable text for a product (name, fields, specs, price). */
 function productSearchHaystack(p: Product): string {
