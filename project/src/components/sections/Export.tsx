@@ -152,14 +152,6 @@ export default function Export() {
                 Every order ships with complete documentation and region-specific compliance.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="btn-cta-secondary flex items-center justify-center space-x-2"
-                  style={{backgroundColor: 'var(--beige-100)', color: '#78350F', borderColor: 'var(--beige-500)'}}
-                  onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-200)'; e.currentTarget.style.borderColor = 'var(--beige-600)'}}
-                  onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--beige-100)'; e.currentTarget.style.borderColor = 'var(--beige-500)'}}
-                >
-                  <Download size={20} />
-                  <span>{String(sectionContent.cta_primary || exportFallback.cta_primary)}</span>
-                </button>
                 <button
                   onClick={scrollToContact}
                   className="btn-cta-primary flex items-center justify-center space-x-2"

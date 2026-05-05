@@ -66,6 +66,7 @@ interface Product {
 
 export default function ProductsManager() {
   const { token } = useAuth();
+  const MULTI_CURRENCY_ENABLED = false;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -96,6 +97,7 @@ export default function ProductsManager() {
   });
   
   const [selectedCurrency, setSelectedCurrency] = useState<'inr' | 'usd' | 'eur' | 'gbp' | 'aed' | 'sar' | 'qar' | 'kwd'>('inr');
+  const [showPricingSection, setShowPricingSection] = useState(false);
   
   const currencies = [
     { code: 'inr', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳', region: 'Asia' },
@@ -171,9 +173,13 @@ export default function ProductsManager() {
       setSubmitting(false);
       return;
     }
-    specs.pricing = pricing;
+    if (MULTI_CURRENCY_ENABLED) {
+      specs.pricing = pricing;
+    }
 
-    const priceForDb = legacyPriceFromMultiCurrency(pricing as Record<string, { amount: number; enabled: boolean }>) || formData.price;
+    const priceForDb = MULTI_CURRENCY_ENABLED
+      ? legacyPriceFromMultiCurrency(pricing as Record<string, { amount: number; enabled: boolean }>) || formData.price
+      : formData.price || 0;
 
     const submitData = new FormData();
     const formPayload = { ...formData, price: priceForDb };
@@ -242,7 +248,7 @@ export default function ProductsManager() {
 
     // Load pricing data if available; otherwise clear so a previous product's row state cannot leak
     const specs = specObj as Record<string, unknown>;
-    if (specs && typeof specs.pricing === 'object' && specs.pricing !== null) {
+    if (MULTI_CURRENCY_ENABLED && specs && typeof specs.pricing === 'object' && specs.pricing !== null) {
       setPricing(specs.pricing as typeof pricing);
     } else {
       setPricing({
@@ -613,14 +619,37 @@ export default function ProductsManager() {
                 </div>
               </section>
 
-              {/* Multi-Currency Pricing Section */}
+              {/* Multi-Currency Pricing Section (collapsible & currently disabled) */}
               <section className="rounded-xl border border-emerald-200 p-4 md:p-5 bg-emerald-50/30">
-                <label className="block text-sm font-bold text-slate-900 mb-4">
-                  💰 Multi-Currency Pricing (Global Markets)
-                </label>
-                
-                {/* Currency Selector Tabs - Organized by Region */}
-                <div className="space-y-3 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPricingSection((v) => !v)}
+                  className="flex w-full items-center justify-between rounded-lg border border-emerald-200 bg-white px-3 py-2 text-left"
+                >
+                  <span className="block">
+                    <span className="block text-sm font-bold text-slate-900">
+                      💰 Multi-Currency Pricing (Global Markets)
+                    </span>
+                    <span className="mt-0.5 block text-xs font-medium text-amber-700">
+                      Currently disabled – you can ignore this for now.
+                    </span>
+                  </span>
+                  <span className="ml-3 inline-flex items-center gap-2">
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+                      Disabled
+                    </span>
+                    {showPricingSection ? (
+                      <ChevronUp className="h-4 w-4 text-slate-500" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-slate-500" />
+                    )}
+                  </span>
+                </button>
+
+                {!showPricingSection ? null : (
+                  <>
+                    {/* Currency Selector Tabs - Organized by Region */}
+                <div className="space-y-3 mb-4 mt-4 opacity-60 pointer-events-none">
                   {/* Asia */}
                   <div>
                     <p className="text-xs font-semibold text-slate-600 mb-2">🌏 Asia</p>
@@ -717,7 +746,7 @@ export default function ProductsManager() {
                 {/* Selected Currency Input */}
                 {currencies.map((currency) => (
                   selectedCurrency === currency.code && (
-                    <div key={currency.code} className="space-y-3">
+                    <div key={currency.code} className="space-y-3 mt-2 opacity-60 pointer-events-none">
                       <div className="flex items-center space-x-2 mb-2">
                         <input
                           type="checkbox"
@@ -785,6 +814,8 @@ export default function ProductsManager() {
                     </div>
                   )
                 ))}
+                  </>
+                )}
               </section>
 
               <section className="rounded-xl border border-slate-200 bg-white p-4 md:p-5 space-y-4">
