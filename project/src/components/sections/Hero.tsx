@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+import { resolveMediaUrl } from '../../lib/api';
 
 const heroContentFallback = {
   headline: 'Where intelligent design meets ethical craftsmanship',
@@ -117,7 +118,7 @@ export default function Hero() {
             {/* Full Width Background Image */}
             <div className="absolute inset-0 w-full h-full overflow-hidden" style={{backgroundColor: 'var(--beige-100)'}}>
               <img
-                src={slide.image}
+                src={resolveMediaUrl(slide.image)}
                 alt={`${slide.title} - ${slide.subtitle}. ${slide.description}`}
                 className="w-full h-full"
                 style={{ 

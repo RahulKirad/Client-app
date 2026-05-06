@@ -17,6 +17,7 @@ const contactInfoFallback = {
 
 export default function Contact() {
   const contactInfo = useManagedSectionContent('contact', contactInfoFallback);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -28,6 +29,7 @@ export default function Contact() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -38,7 +40,6 @@ export default function Contact() {
   };
 
   const validateForm = (): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.name.trim()) {
       setError('Please enter your full name.');
       return false;
@@ -61,6 +62,13 @@ export default function Contact() {
     }
     return true;
   };
+
+  const isEmailValid = emailRegex.test(formData.email.trim());
+  const canSubmit =
+    !loading &&
+    formData.name.trim().length > 0 &&
+    isEmailValid &&
+    formData.message.trim().length >= 10;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,13 +250,25 @@ export default function Contact() {
                     name="email"
                     required
                     value={formData.email}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      if (!emailTouched) setEmailTouched(true);
+                      handleChange(e);
+                    }}
                     className="w-full px-4 py-3 rounded-lg beige-border transition-all duration-200 font-normal"
                     style={{backgroundColor: 'var(--beige-100)', borderColor: 'var(--beige-300)', color: '#3a2f1f'}}
                     onFocus={(e) => {e.currentTarget.style.borderColor = 'var(--beige-600)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(212, 165, 116, 0.2)'}}
-                    onBlur={(e) => {e.currentTarget.style.borderColor = 'var(--beige-300)'; e.currentTarget.style.boxShadow = 'none'}}
+                    onBlur={(e) => {
+                      setEmailTouched(true);
+                      e.currentTarget.style.borderColor = 'var(--beige-300)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                     placeholder="john@example.com"
                   />
+                  {emailTouched && formData.email.trim() && !isEmailValid ? (
+                    <p className="mt-2 text-xs font-semibold text-red-700">
+                      Please enter a valid email address.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
@@ -322,9 +342,14 @@ export default function Contact() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={!canSubmit}
                   className="w-full btn-cta-primary"
-                  style={{backgroundColor: loading ? 'var(--beige-400)' : 'var(--beige-700)', color: 'white', opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer'}}
+                  style={{
+                    backgroundColor: !canSubmit ? 'var(--beige-400)' : 'var(--beige-700)',
+                    color: 'white',
+                    opacity: !canSubmit ? 0.7 : 1,
+                    cursor: !canSubmit ? 'not-allowed' : 'pointer',
+                  }}
                   aria-label="Send Inquiry"
                 >
                   {loading ? (

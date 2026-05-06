@@ -99,7 +99,7 @@ export default function ProductDetailPage() {
           <h1 className="text-xl font-bold text-slate-800 mb-2">Product not found</h1>
           <p className="text-slate-600 mb-6">{error || 'This product may no longer be available.'}</p>
           <Link
-            to="/products"
+            to="/products#products-list"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-white transition-colors"
             style={{ backgroundColor: 'var(--beige-600)' }}
           >
@@ -121,7 +121,7 @@ export default function ProductDetailPage() {
       <main className="pt-20 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link
-            to="/products"
+            to="/products#products-list"
             className="inline-flex items-center gap-2 text-sm font-semibold mb-8 transition-colors hover:opacity-80"
             style={{ color: 'var(--beige-700)' }}
           >
