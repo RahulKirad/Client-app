@@ -466,9 +466,9 @@ export default function ProductDetailPage() {
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <div className="h-full w-full px-4 pt-2 pb-6 sm:px-6 sm:pt-3 sm:pb-8 flex items-center justify-center">
-              <div className="h-[78vh] w-[96vw] max-w-7xl grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
+          <div className="flex-1 overflow-hidden min-h-0">
+            <div className="h-full w-full px-4 pt-2 pb-4 sm:px-6 sm:pt-3 sm:pb-6 flex items-stretch justify-center">
+              <div className="h-full w-[96vw] max-w-7xl grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
                 {/* Main viewer (left) */}
                 <div className="min-w-0 h-full flex items-center justify-center">
                   <div

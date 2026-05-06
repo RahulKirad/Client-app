@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from '../../lib/api';
 import { Sparkles, Lightbulb, Rocket, Leaf, ShieldCheck, Globe2, HandHeart } from 'lucide-react';
 import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
 
@@ -22,6 +23,8 @@ const aboutFallback = {
   subheading: 'Premium Sustainable Tote Bags',
   description:
     'We create beautiful, eco-friendly tote bags that meet the highest global standards. Every piece is ethically sourced, GOTS-certified, and designed for businesses and individuals who value quality and sustainability.',
+  image_left: '/images/aboutus/about2.png',
+  image_right: '/images/aboutus/about1.png',
 };
 
 const missionFallback = {
@@ -68,7 +71,7 @@ export default function About() {
           {/* Left column - single image */}
           <div className="min-w-0">
             <img
-              src="/images/aboutus/about2.png"
+              src={resolveMediaUrl(String(aboutContent.image_left || aboutFallback.image_left))}
               alt="Cottonunique organic cotton tote bags with GOTS certification"
               className="w-full h-72 md:h-80 object-contain object-center -ml-4 lg:-ml-6"
             />
@@ -77,7 +80,7 @@ export default function About() {
           {/* Right column - image above Modern Elegance, then Philosophy, Mission */}
           <div className="space-y-6 lg:-mt-72 min-w-0">
             <img
-              src="/images/aboutus/about1.png"
+              src={resolveMediaUrl(String(aboutContent.image_right || aboutFallback.image_right))}
               alt="Cottonunique sustainable tote bags and certifications"
               className="w-full h-80 md:h-96 object-cover object-center scale-95 -mt-8 lg:-mt-14"
             />

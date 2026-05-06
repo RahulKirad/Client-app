@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { FileText, Edit, Save, X, ExternalLink } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ExternalLink, Edit2, Check, X, Eye, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { resolveMediaUrl } from '../../lib/api';
 
 interface ContentSection {
   id: string;
@@ -14,15 +15,18 @@ interface ContentSection {
 
 function normalizeSectionContent(raw: unknown): unknown {
   let parsed: unknown = raw;
-  // Backend/DB can return content as stringified JSON (sometimes double-stringified).
   while (typeof parsed === 'string') {
-    try {
-      parsed = JSON.parse(parsed);
-    } catch {
-      break;
-    }
+    try { parsed = JSON.parse(parsed); } catch { break; }
   }
   return parsed;
+}
+
+function isImageKey(key: string): boolean {
+  return key === 'image' || key.startsWith('image_') || key.endsWith('_image');
+}
+
+function fmtKey(key: string) {
+  return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
 export default function ContentManager() {
@@ -31,6 +35,8 @@ export default function ContentManager() {
   const [loading, setLoading] = useState(true);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [dashboardPreviewHash, setDashboardPreviewHash] = useState<string | null>(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
@@ -39,411 +45,433 @@ export default function ContentManager() {
     return t ? { Authorization: `Bearer ${t}` } : {};
   };
 
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2800);
+  };
+
   useEffect(() => {
     const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
-    if (t) fetchContent();
-    else setLoading(false);
+    if (t) fetchContent(); else setLoading(false);
   }, [token]);
 
   const fetchContent = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/admin/content`, { headers: authHeaders() });
-      const normalized = (response.data as ContentSection[]).map((section) => ({
-        ...section,
-        content: normalizeSectionContent(section.content),
-      }));
-      setSections(normalized);
-    } catch (error) {
-      console.error('Error fetching content:', error);
-    } finally {
-      setLoading(false);
-    }
+      const res = await axios.get(`${API_BASE_URL}/admin/content`, { headers: authHeaders() });
+      setSections((res.data as ContentSection[]).map(s => ({ ...s, content: normalizeSectionContent(s.content) })));
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
-  const startEditing = (section: ContentSection) => {
-    setEditingSection(section.id);
-    setEditData({
-      title: section.title,
-      content: normalizeSectionContent(section.content),
-      is_active: section.is_active
-    });
+  const startEditing = (s: ContentSection) => {
+    setEditingSection(s.id);
+    setEditData({ title: s.title, content: normalizeSectionContent(s.content), is_active: s.is_active });
   };
 
   const saveSection = async (sectionId: string) => {
+    setSaving(true);
     try {
       await axios.put(`${API_BASE_URL}/admin/content/${sectionId}`, editData, { headers: authHeaders() });
-      fetchContent();
+      showToast('✓ Section saved successfully');
+      await fetchContent();
       setEditingSection(null);
       setEditData({});
-    } catch (error) {
-      console.error('Error updating content:', error);
-    }
+    } catch (e) { console.error(e); showToast('✗ Failed to save'); }
+    finally { setSaving(false); }
   };
 
-  const cancelEditing = () => {
-    setEditingSection(null);
-    setEditData({});
+  const cancelEditing = () => { setEditingSection(null); setEditData({}); };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append('image', file);
+    const t = token ?? localStorage.getItem('admin_token');
+    const res = await axios.post(`${API_BASE_URL}/admin/content/upload-image`, fd, {
+      headers: { ...(t ? { Authorization: `Bearer ${t}` } : {}), 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data.url as string;
   };
 
-  const renderContentEditor = (content: any, onChange: (newContent: any) => void) => {
-    if (typeof content === 'string') {
-      return (
-        <textarea
-          value={content}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          rows={4}
+  // ── Image upload field ──────────────────────────────────────────────
+  const ImageUploadField = ({ value, onChange }: { value: string; onChange: (url: string) => void }) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+    const handleFile = async (file: File) => {
+      setUploading(true);
+      try { onChange(await uploadImage(file)); }
+      catch (e) { console.error(e); }
+      finally { setUploading(false); }
+    };
+    return (
+      <div>
+        <input
+          type="text" value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder="/images/example.jpg"
+          style={{ width:'100%', fontFamily:'inherit', fontSize:15, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'10px 14px', outline:'none', marginBottom:10 }}
         />
-      );
-    }
-
-    if (Array.isArray(content)) {
-      return (
-        <div className="space-y-2">
-          {content.map((item, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <input
-                type="text"
-                value={item}
-                onChange={(e) => {
-                  const newContent = [...content];
-                  newContent[index] = e.target.value;
-                  onChange(newContent);
-                }}
-                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              />
-              <button
-                onClick={() => {
-                  const newContent = content.filter((_, i) => i !== index);
-                  onChange(newContent);
-                }}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          ))}
-          <button
-            onClick={() => onChange([...content, ''])}
-            className="px-3 py-1 text-sm bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200"
-          >
-            Add Item
-          </button>
-        </div>
-      );
-    }
-
-    if (typeof content === 'object' && content !== null) {
-      return (
-        <div className="space-y-3">
-          {Object.entries(content).map(([key, value]) => (
-            <div key={key}>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-              </label>
-              {typeof value === 'string' ? (
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => onChange({ ...content, [key]: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              ) : Array.isArray(value) ? (
-                renderContentEditor(value, (newValue) => onChange({ ...content, [key]: newValue }))
-              ) : (
-                <textarea
-                  value={JSON.stringify(value, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      const parsed = JSON.parse(e.target.value);
-                      onChange({ ...content, [key]: parsed });
-                    } catch (err) {
-                      // Invalid JSON, don't update
-                    }
-                  }}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono text-sm"
-                  rows={3}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    return (
-      <textarea
-        value={JSON.stringify(content, null, 2)}
-        onChange={(e) => {
-          try {
-            const parsed = JSON.parse(e.target.value);
-            onChange(parsed);
-          } catch (err) {
-            // Invalid JSON, don't update
+        <div style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', background:'#f4f5f7', border:'1px solid #e2e5ea', borderRadius:6 }}>
+          {value
+            ? <img src={resolveMediaUrl(value)} alt="preview" style={{ width:52, height:52, borderRadius:4, objectFit:'cover', border:'1px solid #e2e5ea', flexShrink:0 }} />
+            : <div style={{ width:52, height:52, borderRadius:4, background:'#e5e7eb', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <svg width="22" height="22" fill="none" stroke="#9ca3af" strokeWidth="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
           }
-        }}
-        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono text-sm"
-        rows={6}
-      />
-    );
-  };
-
-  const renderWhatsAppContainer = (
-    content: Record<string, unknown>,
-    onChange: (newContent: Record<string, unknown>) => void
-  ) => {
-    const whatsappNumber = String(content?.whatsapp_number ?? '').trim();
-    const whatsappMessage = String(content?.whatsapp_message ?? '').trim();
-
-    return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-          <h3 className="text-sm font-semibold text-slate-900">WhatsApp button</h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">WhatsApp number</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="Example: 9198XXXXXXXX"
-              value={whatsappNumber}
-              onChange={(e) => onChange({ ...content, whatsapp_number: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
-            />
-            <p className="text-xs text-slate-600 mt-1">
-              Use digits with country code (no spaces). Leaving it blank hides the WhatsApp icon on the website.
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Default message (optional)</label>
-            <input
-              type="text"
-              placeholder="Hi Cottonunique! I’d like to know more about your tote bags."
-              value={whatsappMessage}
-              onChange={(e) => onChange({ ...content, whatsapp_message: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
-            />
-            <p className="text-xs text-slate-600 mt-1">
-              This message will be pre-filled when a visitor opens WhatsApp from the icon.
-            </p>
-          </div>
+          <span style={{ fontSize:14, color:'#6b7280', wordBreak:'break-all', flex:1 }}>{value || 'No image set'}</span>
+          <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading}
+            style={{ marginLeft:'auto', flexShrink:0, display:'inline-flex', alignItems:'center', gap:6, background:'#1c2b4a', color:'#fff', border:'none', borderRadius:6, padding:'9px 15px', fontSize:14, fontWeight:500, cursor:'pointer', opacity: uploading ? 0.6 : 1 }}>
+            <RefreshCw size={14} />
+            {uploading ? 'Uploading…' : 'Replace Image'}
+          </button>
+          <input ref={inputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
         </div>
       </div>
     );
   };
 
-  const renderContentPreview = (content: any) => {
+  // ── Content editor (edit mode) ──────────────────────────────────────
+  const renderEditor = (content: any, onChange: (v: any) => void): React.ReactNode => {
     if (typeof content === 'string') {
-      return <p className="text-slate-700">{content}</p>;
+      return <textarea value={content} onChange={e => onChange(e.target.value)} rows={3}
+        style={{ width:'100%', fontFamily:'inherit', fontSize:15, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'10px 14px', outline:'none', resize:'vertical' }} />;
     }
 
     if (Array.isArray(content)) {
+      if (content.length > 0 && typeof content[0] === 'object' && content[0] !== null) {
+        return (
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            {content.map((item, idx) => (
+              <div key={idx} style={{ border:'1px solid #e2e5ea', borderRadius:8, padding:18, background:'#fafbfc' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.5px' }}>Item {idx + 1}</span>
+                  <button type="button" onClick={() => onChange(content.filter((_:any, i:number) => i !== idx))}
+                    style={{ background:'none', border:'none', cursor:'pointer', color:'#dc2626', padding:5 }}><X size={15}/></button>
+                </div>
+                {Object.entries(item).map(([k, v]) => (
+                  <div key={k} style={{ marginBottom:12 }}>
+                    <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.5px', marginBottom:5 }}>{fmtKey(k)}</label>
+                    {isImageKey(k)
+                      ? <ImageUploadField value={String(v ?? '')} onChange={url => { const u=[...content]; u[idx]={...item,[k]:url}; onChange(u); }} />
+                      : <input type="text" value={String(v ?? '')} onChange={e => { const u=[...content]; u[idx]={...item,[k]:e.target.value}; onChange(u); }}
+                          style={{ width:'100%', fontFamily:'inherit', fontSize:15, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'9px 13px', outline:'none' }} />
+                    }
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        );
+      }
       return (
-        <ul className="list-disc list-inside space-y-1">
-          {content.map((item, index) => (
-            <li key={index} className="text-slate-700">{item}</li>
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          {content.map((item: string, idx: number) => (
+            <div key={idx} style={{ display:'flex', gap:10 }}>
+              <input type="text" value={item} onChange={e => { const n=[...content]; n[idx]=e.target.value; onChange(n); }}
+                style={{ flex:1, fontFamily:'inherit', fontSize:15, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'9px 13px', outline:'none' }} />
+              <button type="button" onClick={() => onChange(content.filter((_:any,i:number)=>i!==idx))}
+                style={{ background:'none', border:'1px solid #e2e5ea', borderRadius:6, cursor:'pointer', color:'#dc2626', padding:'0 12px' }}><X size={15}/></button>
+            </div>
           ))}
-        </ul>
+          <button type="button" onClick={() => onChange([...content,''])}
+            style={{ alignSelf:'flex-start', background:'#eef1f7', color:'#1c2b4a', border:'none', borderRadius:6, padding:'8px 16px', fontSize:14, fontWeight:600, cursor:'pointer' }}>+ Add Item</button>
+        </div>
       );
     }
 
     if (typeof content === 'object' && content !== null) {
       return (
-        <div className="space-y-2">
-          {Object.entries(content).map(([key, value]) => (
-            <div key={key}>
-              <span className="font-medium text-slate-900">
-                {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
+        <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+          {Object.entries(content).map(([k, v]) => {
+            const isLong = typeof v === 'string' && v.length > 80;
+            const isArr = Array.isArray(v);
+            const isNestedObj = typeof v === 'object' && v !== null && !Array.isArray(v);
+            
+            return (
+              <div key={k} style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                <label style={{ fontSize:14, fontWeight:700, color:'#1c2b4a', textTransform:'uppercase', letterSpacing:'.5px', borderBottom:'1px solid #e2e5ea', paddingBottom:5 }}>{fmtKey(k)}</label>
+                
+                {isNestedObj ? (
+                  // Nested object (like main_banner: { title, image, etc })
+                  <div style={{ border:'1px solid #e2e5ea', borderRadius:8, padding:16, background:'#fafbfc' }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px 18px' }}>
+                      {Object.entries(v as Record<string,any>).map(([nk, nv]) => {
+                        const nestedIsLong = typeof nv === 'string' && nv.length > 60;
+                        const spanAll = nestedIsLong || isImageKey(nk);
+                        return (
+                          <div key={nk} style={{ gridColumn: spanAll ? 'span 2' : 'span 1', display:'flex', flexDirection:'column', gap:5 }}>
+                            <label style={{ fontSize:12, fontWeight:600, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.4px' }}>{fmtKey(nk)}</label>
+                            {isImageKey(nk) ? (
+                              <ImageUploadField value={String(nv ?? '')} onChange={url => onChange({ ...content, [k]: { ...v, [nk]: url } })} />
+                            ) : nestedIsLong ? (
+                              <textarea value={String(nv ?? '')} rows={2} onChange={e => onChange({ ...content, [k]: { ...v, [nk]: e.target.value } })}
+                                style={{ width:'100%', fontFamily:'inherit', fontSize:14, color:'#1a1d23', background:'#fff', border:'1px solid #e2e5ea', borderRadius:6, padding:'8px 12px', outline:'none', resize:'vertical' }} />
+                            ) : (
+                              <input type="text" value={String(nv ?? '')} onChange={e => onChange({ ...content, [k]: { ...v, [nk]: e.target.value } })}
+                                style={{ width:'100%', fontFamily:'inherit', fontSize:14, color:'#1a1d23', background:'#fff', border:'1px solid #e2e5ea', borderRadius:6, padding:'8px 12px', outline:'none' }} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : isImageKey(k) ? (
+                  <ImageUploadField value={String(v ?? '')} onChange={url => onChange({ ...content, [k]: url })} />
+                ) : isArr ? (
+                  renderEditor(v, nv => onChange({ ...content, [k]: nv }))
+                ) : isLong ? (
+                  <textarea value={String(v ?? '')} rows={3} onChange={e => onChange({ ...content, [k]: e.target.value })}
+                    style={{ width:'100%', fontFamily:'inherit', fontSize:15, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'9px 13px', outline:'none', resize:'vertical' }} />
+                ) : (
+                  <input type="text" value={String(v ?? '')} onChange={e => onChange({ ...content, [k]: e.target.value })}
+                    style={{ width:'100%', fontFamily:'inherit', fontSize:15, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'9px 13px', outline:'none' }} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return <textarea value={JSON.stringify(content, null, 2)} rows={5}
+      onChange={e => { try { onChange(JSON.parse(e.target.value)); } catch {} }}
+      style={{ width:'100%', fontFamily:'monospace', fontSize:12, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'7px 11px', outline:'none', resize:'vertical' }} />;
+  };
+
+  // ── Preview (collapsed view) ────────────────────────────────────────
+  const renderPreview = (content: any) => {
+    if (typeof content === 'string') return (
+      <div style={{ display:'flex', alignItems:'baseline', gap:10, padding:'7px 0', borderBottom:'1px dashed #e2e5ea' }}>
+        <span style={{ fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.4px', width:120, flexShrink:0 }}>Content</span>
+        <span style={{ fontSize:13, color:'#6b7280', lineHeight:1.5 }}>{content}</span>
+      </div>
+    );
+
+    if (Array.isArray(content)) {
+      if (content.length > 0 && typeof content[0] === 'object') {
+        return (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+            {content.slice(0,5).map((item:any, i:number) => (
+              <span key={i} style={{ background:'#eef1f7', border:'1px solid #c5d5ea', color:'#1c2b4a', fontSize:12, fontWeight:500, padding:'4px 12px', borderRadius:20 }}>
+                {item.title || item.name || `Item ${i+1}`}
               </span>
-              <span className="ml-2 text-slate-700">
-                {typeof value === 'string' ? value : JSON.stringify(value)}
-              </span>
-            </div>
+            ))}
+            {content.length > 5 && <span style={{ background:'#eef1f7', border:'1px solid #c5d5ea', color:'#1c2b4a', fontSize:12, fontWeight:500, padding:'4px 12px', borderRadius:20 }}>+{content.length-5} more</span>}
+          </div>
+        );
+      }
+      return (
+        <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+          {content.map((item:string, i:number) => (
+            <span key={i} style={{ background:'#eef1f7', border:'1px solid #c5d5ea', color:'#1c2b4a', fontSize:12, padding:'3px 10px', borderRadius:20 }}>{item}</span>
           ))}
         </div>
       );
     }
 
-    return <pre className="text-sm text-slate-700 bg-slate-50 p-2 rounded">{JSON.stringify(content, null, 2)}</pre>;
+    if (typeof content === 'object' && content !== null) {
+      return (
+        <div>
+          {Object.entries(content).map(([k, v], i, arr) => {
+            const isNestedObj = typeof v === 'object' && v !== null && !Array.isArray(v);
+            return (
+              <div key={k} style={{ padding:'7px 0', borderBottom: i < arr.length-1 ? '1px dashed #e2e5ea' : 'none' }}>
+                <div style={{ display:'flex', alignItems: isImageKey(k) ? 'center' : 'baseline', gap:10, marginBottom: isNestedObj ? 6 : 0 }}>
+                  <span style={{ fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.4px', width:120, flexShrink:0 }}>{fmtKey(k)}</span>
+                  {isNestedObj ? (
+                    <span style={{ fontSize:11, color:'#1c2b4a', background:'#eef1f7', padding:'2px 8px', borderRadius:12 }}>
+                      {Object.keys(v as Record<string,any>).length} fields
+                    </span>
+                  ) : isImageKey(k) && typeof v === 'string' ? (
+                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                      <img src={resolveMediaUrl(v)} alt={k} style={{ width:48, height:36, objectFit:'cover', borderRadius:4, border:'1px solid #e2e5ea' }} />
+                      <span style={{ fontSize:12, color:'#9ca3af' }}>{v}</span>
+                    </div>
+                  ) : Array.isArray(v) ? (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
+                      {(v as any[]).slice(0,3).map((item:any,i:number) => (
+                        <span key={i} style={{ background:'#eef1f7', color:'#1c2b4a', fontSize:11, padding:'2px 8px', borderRadius:20 }}>{typeof item==='string'?item:item.title||`Item ${i+1}`}</span>
+                      ))}
+                      {v.length > 3 && <span style={{ background:'#eef1f7', color:'#1c2b4a', fontSize:11, padding:'2px 8px', borderRadius:20 }}>+{v.length-3}</span>}
+                    </div>
+                  ) : (
+                    <span style={{ fontSize:13, color: typeof v==='string'&&v.length>60?'#6b7280':'#1a1d23', lineHeight:1.5, maxWidth:600 }}>
+                      {typeof v === 'string' ? v : JSON.stringify(v)}
+                    </span>
+                  )}
+                </div>
+                {isNestedObj && (
+                  <div style={{ marginLeft:130, display:'flex', flexWrap:'wrap', gap:6 }}>
+                    {Object.entries(v as Record<string,any>).map(([nk, nv]) => (
+                      <div key={nk} style={{ display:'flex', alignItems:'center', gap:4, background:'#f9fafb', padding:'3px 8px', borderRadius:6, border:'1px solid #e2e5ea' }}>
+                        <span style={{ fontSize:10, fontWeight:600, color:'#9ca3af' }}>{fmtKey(nk)}:</span>
+                        {isImageKey(nk) && typeof nv === 'string' ? (
+                          <img src={resolveMediaUrl(nv)} alt={nk} style={{ width:24, height:18, objectFit:'cover', borderRadius:2 }} />
+                        ) : (
+                          <span style={{ fontSize:11, color:'#1a1d23' }}>{typeof nv === 'string' ? (nv.length > 30 ? nv.slice(0,30)+'…' : nv) : JSON.stringify(nv)}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+    return <pre style={{ fontSize:12, color:'#6b7280', background:'#f4f5f7', padding:10, borderRadius:6 }}>{JSON.stringify(content, null, 2)}</pre>;
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-600 border-t-transparent"></div>
+  const renderWhatsApp = (content: Record<string,unknown>, onChange: (v: Record<string,unknown>) => void) => (
+    <div style={{ border:'1px solid #bbf7d0', background:'#f0fdf4', borderRadius:8, padding:18, marginBottom:16 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+        <div style={{ width:12, height:12, borderRadius:'50%', background:'#16a34a' }} />
+        <span style={{ fontSize:15, fontWeight:600, color:'#1a1d23' }}>WhatsApp button</span>
       </div>
-    );
-  }
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+        <div>
+          <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.5px', marginBottom:6 }}>WhatsApp number</label>
+          <input type="text" inputMode="numeric" placeholder="9198XXXXXXXX" value={String(content?.whatsapp_number??'')}
+            onChange={e => onChange({...content, whatsapp_number: e.target.value})}
+            style={{ width:'100%', fontFamily:'inherit', fontSize:15, color:'#1a1d23', background:'#fff', border:'1px solid #e2e5ea', borderRadius:6, padding:'9px 13px', outline:'none' }} />
+          <p style={{ fontSize:13, color:'#6b7280', marginTop:5 }}>Country code + digits, no spaces. Leave blank to hide icon.</p>
+        </div>
+        <div>
+          <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.5px', marginBottom:6 }}>Default message</label>
+          <input type="text" placeholder="Hi Cottonunique!…" value={String(content?.whatsapp_message??'')}
+            onChange={e => onChange({...content, whatsapp_message: e.target.value})}
+            style={{ width:'100%', fontFamily:'inherit', fontSize:15, color:'#1a1d23', background:'#fff', border:'1px solid #e2e5ea', borderRadius:6, padding:'9px 13px', outline:'none' }} />
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Shared button styles ────────────────────────────────────────────
+  const btnBase: React.CSSProperties = { display:'inline-flex', alignItems:'center', gap:6, fontFamily:'inherit', fontSize:15, fontWeight:500, padding:'9px 16px', borderRadius:6, cursor:'pointer', border:'none', lineHeight:1, transition:'all .15s' };
+  const btnGhost: React.CSSProperties = { ...btnBase, background:'transparent', border:'1px solid #e2e5ea', color:'#6b7280' };
+  const btnDark: React.CSSProperties  = { ...btnBase, background:'#1c2b4a', color:'#fff' };
+  const btnGreen: React.CSSProperties = { ...btnBase, background:'#16a34a', color:'#fff' };
+  const btnRed: React.CSSProperties   = { ...btnBase, background:'transparent', border:'1px solid #e2e5ea', color:'#dc2626' };
+
+  if (loading) return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:240 }}>
+      <div style={{ width:44, height:44, border:'4px solid #e2e5ea', borderTopColor:'#1c2b4a', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 
   return (
-    <div>
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+    <div style={{ fontFamily:"'DM Sans', system-ui, sans-serif", color:'#1a1d23', maxWidth:'1400px', margin:'0 auto', padding:'0 24px' }}>
+
+      {/* Page header */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16, marginBottom:36 }}>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Content Management</h1>
-          <p className="text-slate-600">Manage website content sections</p>
+          <h1 style={{ fontSize:32, fontWeight:700, color:'#1a1d23', margin:0, letterSpacing:'-.2px' }}>Content Management</h1>
+          <p style={{ fontSize:16, color:'#6b7280', marginTop:6 }}>Manage and edit all website content sections from one place.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => setDashboardPreviewHash('')}
-          className="flex items-center px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors"
-        >
-          <ExternalLink size={18} className="mr-2" />
-          Preview on dashboard
+        <button style={btnDark} onClick={() => setDashboardPreviewHash('')}>
+          <ExternalLink size={16} /> Preview on Dashboard
         </button>
       </div>
 
-      {/* Dashboard preview modal (iframe) */}
+      {/* Dashboard preview modal */}
       {dashboardPreviewHash !== null && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 shrink-0">
-              <h2 className="text-lg font-semibold text-slate-900">
-                Dashboard preview — how content appears to users
-              </h2>
-              <button
-                type="button"
-                onClick={() => setDashboardPreviewHash(null)}
-                className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-                aria-label="Close preview"
-              >
-                <X size={24} />
-              </button>
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.55)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50, padding:20 }}>
+          <div style={{ background:'#fff', borderRadius:12, boxShadow:'0 8px 40px rgba(0,0,0,.18)', width:'100%', maxWidth:1200, display:'flex', flexDirection:'column', maxHeight:'90vh' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 24px', borderBottom:'1px solid #e2e5ea' }}>
+              <span style={{ fontSize:17, fontWeight:600 }}>Dashboard preview</span>
+              <button onClick={() => setDashboardPreviewHash(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280' }}><X size={22}/></button>
             </div>
-            <div className="flex-1 min-h-0 p-4">
-              <iframe
-                title="Dashboard preview"
+            <div style={{ flex:1, minHeight:0, padding:20 }}>
+              <iframe title="Dashboard preview"
                 src={`${window.location.origin}/${dashboardPreviewHash ? `#${dashboardPreviewHash}` : ''}`}
-                className="w-full h-full min-h-[70vh] rounded-lg border border-slate-200 bg-white"
-              />
+                style={{ width:'100%', height:'100%', minHeight:'70vh', borderRadius:8, border:'1px solid #e2e5ea' }} />
             </div>
           </div>
         </div>
       )}
 
-      <div className="space-y-6">
-        {sections.map((section) => (
-          <div key={section.id} className="bg-white rounded-xl shadow-sm border border-slate-200">
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900">{section.title}</h2>
-                  <p className="text-sm text-slate-500 mt-1">
-                    Section: {section.section_key} • 
-                    Last updated: {new Date(section.updated_at).toLocaleDateString()}
-                  </p>
+      {/* Section cards */}
+      <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+        {sections.map(section => {
+          const isEditing = editingSection === section.id;
+          return (
+            <div key={section.id} style={{ background:'#fff', border:'1px solid #e2e5ea', borderRadius:12, boxShadow:'0 1px 3px rgba(0,0,0,.06)', overflow:'hidden' }}>
+
+              {/* Card header */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 24px', borderBottom:'1px solid #e2e5ea', background:'#fafbfc', gap:16, flexWrap:'wrap' }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:17, fontWeight:600, color:'#1a1d23' }}>{section.title}</div>
+                  <div style={{ fontSize:14, color:'#9ca3af', marginTop:3 }}>
+                    Section: <strong>{section.section_key}</strong> · Last updated: {new Date(section.updated_at).toLocaleDateString()}
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setDashboardPreviewHash(section.section_key?.startsWith('about') ? 'about' : '')}
-                    className="flex items-center px-3 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
-                    title="Preview how this section looks on the dashboard"
-                  >
-                    <ExternalLink size={14} className="mr-1" />
-                    Preview
-                  </button>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    section.is_active 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+                  <span style={{ background: section.is_active ? '#d1fae5' : '#fee2e2', color: section.is_active ? '#065f46' : '#991b1b', fontSize:12, fontWeight:600, padding:'4px 12px', borderRadius:20, letterSpacing:'.3px' }}>
                     {section.is_active ? 'Active' : 'Inactive'}
                   </span>
-                  {editingSection === section.id ? (
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => saveSection(section.id)}
-                        className="flex items-center px-3 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                      >
-                        <Save size={16} className="mr-1" />
-                        Save
+                  <button style={btnGhost} onClick={() => setDashboardPreviewHash(section.section_key.startsWith('about') ? 'about' : '')}>
+                    <Eye size={15}/> Preview
+                  </button>
+                  {isEditing ? (
+                    <>
+                      <button style={{ ...btnGreen, opacity: saving ? 0.7 : 1 }} onClick={() => saveSection(section.id)} disabled={saving}>
+                        <Check size={15}/> {saving ? 'Saving…' : 'Save'}
                       </button>
-                      <button
-                        onClick={cancelEditing}
-                        className="flex items-center px-3 py-1 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
-                      >
-                        <X size={16} className="mr-1" />
-                        Cancel
+                      <button style={btnRed} onClick={cancelEditing}>
+                        <X size={15}/> Cancel
                       </button>
-                    </div>
+                    </>
                   ) : (
-                    <button
-                      onClick={() => startEditing(section)}
-                      className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <Edit size={16} className="mr-1" />
-                      Edit
+                    <button style={btnDark} onClick={() => startEditing(section)}>
+                      <Edit2 size={15}/> Edit
                     </button>
                   )}
                 </div>
               </div>
-            </div>
 
-            <div className="p-6">
-              {editingSection === section.id ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      value={editData.title}
-                      onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Content
-                    </label>
-                    {section.section_key === 'contact' &&
-                    editData?.content &&
-                    typeof editData.content === 'object' &&
-                    !Array.isArray(editData.content) ? (
-                      <div className="space-y-4">
-                        {renderWhatsAppContainer(
-                          editData.content as Record<string, unknown>,
-                          (next) => setEditData({ ...editData, content: next })
-                        )}
-                        {renderContentEditor(editData.content, (newContent) =>
-                          setEditData({ ...editData, content: newContent })
-                        )}
-                      </div>
-                    ) : (
-                      renderContentEditor(editData.content, (newContent) =>
-                        setEditData({ ...editData, content: newContent })
-                      )
+              {/* Card body */}
+              <div style={{ padding:'22px 24px' }}>
+                {isEditing ? (
+                  <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+                    {/* Title field */}
+                    <div>
+                      <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.5px', marginBottom:6 }}>Title</label>
+                      <input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})}
+                        style={{ width:'100%', fontFamily:'inherit', fontSize:16, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'10px 14px', outline:'none' }} />
+                    </div>
+                    <hr style={{ border:'none', borderTop:'1px dashed #e2e5ea', margin:'4px 0' }} />
+                    <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.8px' }}>Content</div>
+                    {/* WhatsApp special case */}
+                    {section.section_key === 'contact' && editData?.content && typeof editData.content === 'object' && !Array.isArray(editData.content) && (
+                      renderWhatsApp(editData.content, next => setEditData({...editData, content: next}))
                     )}
+                    {renderEditor(editData.content, nc => setEditData({...editData, content: nc}))}
+                    <hr style={{ border:'none', borderTop:'1px dashed #e2e5ea', margin:'4px 0' }} />
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      <input type="checkbox" id={`active-${section.id}`} checked={editData.is_active}
+                        onChange={e => setEditData({...editData, is_active: e.target.checked})}
+                        style={{ width:17, height:17, accentColor:'#1c2b4a', cursor:'pointer' }} />
+                      <label htmlFor={`active-${section.id}`} style={{ fontSize:15, fontWeight:500, color:'#6b7280', cursor:'pointer' }}>
+                        Mark as Active (visible on website)
+                      </label>
+                    </div>
                   </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`active-${section.id}`}
-                      checked={editData.is_active}
-                      onChange={(e) => setEditData({ ...editData, is_active: e.target.checked })}
-                      className="mr-2"
-                    />
-                    <label htmlFor={`active-${section.id}`} className="text-sm font-medium text-slate-700">
-                      Active
-                    </label>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  {renderContentPreview(section.content)}
-                </div>
-              )}
+                ) : (
+                  renderPreview(section.content)
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position:'fixed', bottom:32, right:32, background:'#1c2b4a', color:'#fff', padding:'14px 24px', borderRadius:8, fontSize:15, fontWeight:500, boxShadow:'0 4px 20px rgba(0,0,0,.2)', zIndex:999 }}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

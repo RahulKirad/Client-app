@@ -4,6 +4,7 @@ import { ArrowLeft, Package, ShoppingBag, Filter, Grid, List, ChevronLeft, Chevr
 import { apiClient, Product, normalizeProducts, resolveMediaUrl } from '../lib/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Banner from '../components/sections/Banner';
 
 const PRODUCTS_PER_PAGE = 8;
 
@@ -182,6 +183,22 @@ export default function ProductsPage() {
       <Header />
       
       <main className="pt-20 bg-slate-50">
+        {/* Products Banner */}
+        <section className="py-8">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
+            <Banner
+              bannerKey="main_banner"
+              fallback={{
+                title: 'Our Product Collection',
+                subtitle: 'Sustainable tote bags for every need',
+                description: 'Discover our range of eco-friendly, GOTS-certified cotton tote bags',
+                image: '/images/banner/baner5.png',
+              }}
+              className="mb-8"
+            />
+          </div>
+        </section>
+
         {/* Top Bar */}
         <section className="bg-white border-b border-gray-200 py-5">
           <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">

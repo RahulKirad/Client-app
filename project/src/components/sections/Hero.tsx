@@ -7,6 +7,43 @@ const heroContentFallback = {
   subheadline: 'Smart. Sustainable. Global.',
   cta_primary: 'Contact Us',
   cta_secondary: 'View Products',
+  slides: [
+    {
+      title: 'ECOTOTE DUOPACK',
+      subtitle: 'Sustainable Packaging',
+      description: 'Reusable Cotton Tote + Compostable Inner Bag. Plastic-free packaging for fashion brands and exporters.',
+      image: '/images/banner/baner5.png',
+      badge: 'Premium. Sustainable. Zero-Waste.',
+    },
+    {
+      title: 'FLORAL ELEGANCE',
+      subtitle: 'Premium Canvas Totes',
+      description: 'Beautiful cream canvas tote bags featuring vibrant floral designs. Perfect blend of style and sustainability for your everyday needs.',
+      image: '/images/banner/baner1.jpeg',
+      badge: 'Elegant. Stylish. Sustainable.',
+    },
+    {
+      title: 'FIND JOY',
+      subtitle: 'In The Ordinary',
+      description: 'Light beige canvas tote with cheerful bee design. Spread positivity and joy with our beautifully crafted, eco-friendly tote bags.',
+      image: '/images/banner/baner2.jpeg',
+      badge: 'Joyful. Inspiring. Eco-Friendly.',
+    },
+    {
+      title: 'WATERCOLOR COLLECTION',
+      subtitle: 'Artistic Designs',
+      description: 'Stunning watercolor floral prints on premium canvas. Each tote is a work of art, combining functionality with beautiful aesthetics.',
+      image: '/images/banner/baner3.jpeg',
+      badge: 'Artistic. Unique. Premium.',
+    },
+    {
+      title: 'SUNFLOWER EMBROIDERED',
+      subtitle: 'Handcrafted Excellence',
+      description: 'Exquisite embroidered sunflower design on natural canvas. Handcrafted with attention to detail for a truly special tote bag.',
+      image: '/images/banner/baner4.jpeg',
+      badge: 'Handcrafted. Detailed. Special.',
+    },
+  ],
 };
 
 export default function Hero() {
@@ -14,48 +51,9 @@ export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  const slides = [
-    {
-      title: "ECOTOTE DUOPACK",
-      subtitle: "Sustainable Packaging",
-      description: "Reusable Cotton Tote + Compostable Inner Bag. Plastic-free packaging for fashion brands and exporters.",
-      image: "/images/banner/baner5.png",
-      badge: "Premium. Sustainable. Zero-Waste.",
-      gradient: "from-[#A7C957] to-[#6B8E23]"
-    },
-    {
-      title: "FLORAL ELEGANCE",
-      subtitle: "Premium Canvas Totes",
-      description: "Beautiful cream canvas tote bags featuring vibrant floral designs. Perfect blend of style and sustainability for your everyday needs.",
-      image: "/images/banner/baner1.jpeg",
-      badge: "Elegant. Stylish. Sustainable.",
-      gradient: "from-[#A7C957] to-[#6B8E23]"
-    },
-    {
-      title: "FIND JOY",
-      subtitle: "In The Ordinary",
-      description: "Light beige canvas tote with cheerful bee design. Spread positivity and joy with our beautifully crafted, eco-friendly tote bags.",
-      image: "/images/banner/baner2.jpeg",
-      badge: "Joyful. Inspiring. Eco-Friendly.",
-      gradient: "from-[#FFD700] to-[#FFA500]"
-    },
-    {
-      title: "WATERCOLOR COLLECTION",
-      subtitle: "Artistic Designs",
-      description: "Stunning watercolor floral prints on premium canvas. Each tote is a work of art, combining functionality with beautiful aesthetics.",
-      image: "/images/banner/baner3.jpeg",
-      badge: "Artistic. Unique. Premium.",
-      gradient: "from-[#B8E0D2] to-[#95D5C4]"
-    },
-    {
-      title: "SUNFLOWER EMBROIDERED",
-      subtitle: "Handcrafted Excellence",
-      description: "Exquisite embroidered sunflower design on natural canvas. Handcrafted with attention to detail for a truly special tote bag.",
-      image: "/images/banner/baner4.jpeg",
-      badge: "Handcrafted. Detailed. Special.",
-      gradient: "from-[#FFB4A2] to-[#FF9A85]"
-    }
-  ];
+  const slides = Array.isArray(heroContent.slides) && heroContent.slides.length > 0
+    ? heroContent.slides
+    : heroContentFallback.slides;
 
   // Auto-slide effect
   useEffect(() => {

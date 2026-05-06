@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Content Management — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f4f5f7;
+      --surface:     #ffffff;
+      --border:      #e2e5ea;
+      --border-hover:#c8cdd6;
+      --text-primary:#1a1d23;
+      --text-secondary:#6b7280;
+      --text-muted:  #9ca3af;
+      --accent:      #1c2b4a;          /* deep navy – from the dark buttons */
+      --accent-light:#eef1f7;
+      --green:       #16a34a;
+      --green-bg:    #dcfce7;
+      --red:         #dc2626;
+      --red-bg:      #fee2e2;
+      --blue:        #2563eb;
+      --blue-bg:     #dbeafe;
+      --badge-active-bg: #d1fae5;
+      --badge-active-text: #065f46;
+      --shadow-sm:   0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md:   0 4px 12px rgba(0,0,0,.08);
+      --radius:      10px;
+      --radius-sm:   6px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* ─── TOP NAV ──────────────────────────────────────────────────── */
+    .topbar {
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .topbar-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: .3px;
+    }
+    .topbar-brand span { color: #7fb3f5; }
+    .btn-preview-dash {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-preview-dash:hover { background: rgba(255,255,255,.2); }
+
+    /* ─── PAGE SHELL ───────────────────────────────────────────────── */
+    .page-shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+    .page-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -.2px;
+    }
+    .page-header p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* ─── SECTION CARD ─────────────────────────────────────────────── */
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: box-shadow .2s;
+    }
+    .section-card:hover { box-shadow: var(--shadow-md); }
+
+    /* Card header row */
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      background: #fafbfc;
+      gap: 12px;
+    }
+    .card-header-left { flex: 1; min-width: 0; }
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .card-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .card-meta span { margin-right: 6px; }
+
+    /* Action buttons */
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .badge-active {
+      background: var(--badge-active-bg);
+      color: var(--badge-active-text);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: .3px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+      line-height: 1;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .btn-ghost:hover { border-color: var(--border-hover); background: var(--bg); }
+    .btn-dark {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-dark:hover { background: #253861; }
+    .btn-green {
+      background: var(--green);
+      color: #fff;
+    }
+    .btn-green:hover { background: #15803d; }
+    .btn-red-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--red);
+    }
+    .btn-red-outline:hover { border-color: var(--red); background: var(--red-bg); }
+
+    /* Card body */
+    .card-body {
+      padding: 20px 22px;
+    }
+    .card-body.collapsed { display: none; }
+
+    /* ─── FORM GRID ────────────────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 24px;
+    }
+    .form-grid.cols-1 { grid-template-columns: 1fr; }
+    .span-2 { grid-column: span 2; }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .form-input, .form-textarea {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      width: 100%;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .form-input:focus, .form-textarea:focus {
+      border-color: #93afd4;
+      box-shadow: 0 0 0 3px rgba(37,99,235,.08);
+      background: #fff;
+    }
+    .form-textarea { min-height: 80px; resize: vertical; }
+
+    /* Read-only display rows (collapsed view) */
+    .field-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .field-row:last-child { border-bottom: none; }
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      width: 120px;
+      flex-shrink: 0;
+    }
+    .field-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+    .field-value.long {
+      font-size: 13px;
+      color: var(--text-secondary);
+      max-width: 680px;
+    }
+
+    /* Image preview strip */
+    .image-preview-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .image-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      background: #e5e7eb;
+    }
+    .image-path {
+      font-size: 13px;
+      color: var(--text-secondary);
+      word-break: break-all;
+    }
+    .btn-replace {
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* Active toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 8px;
+    }
+    .toggle-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+    input[type="checkbox"].toggle {
+      width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer;
+    }
+
+    /* Slides preview chips */
+    .slides-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .slide-chip {
+      background: var(--accent-light);
+      border: 1px solid #c5d5ea;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* Divider inside card */
+    .form-divider {
+      grid-column: span 2;
+      border: none;
+      border-top: 1px dashed var(--border);
+      margin: 4px 0;
+    }
+
+    .section-subtitle {
+      grid-column: span 2;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-muted);
+      padding-top: 4px;
+    }
+
+    /* ─── RESPONSIVE ───────────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .span-2 { grid-column: span 1; }
+      .form-divider, .section-subtitle { grid-column: span 1; }
+      .card-header { flex-wrap: wrap; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topbar">
+  <div class="topbar-brand">Cotton<span>unique</span> &nbsp;·&nbsp; Admin</div>
+  <button class="btn-preview-dash">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Preview on Dashboard
+  </button>
+</nav>
+
+<div class="page-shell">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Content Management</h1>
+    <p>Manage and edit all website content sections from one place.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- ABOUT US SECTION – EDIT MODE -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-card" id="card-about">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-title">About Us Section</div>
+        <div class="card-meta">
+          <span>Section: <strong>about</strong></span>
+          <span>· Last updated: 5/9/2026</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="badge-active">Active</span>
+        <button class="btn btn-ghost" onclick="previewSection('about')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </button>
+        <button class="btn btn-green" onclick="saveSection('about')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Save
+        </button>
+        <button class="btn btn-red-outline" onclick="cancelEdit('about')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body" id="body-about">
+      <div class="form-grid">
+        <!-- Title -->
+        <div class="form-group span-2">
+          <label class="form-label">Title</label>
+          <input class="form-input" type="text" value="About Us Section" />
+        </div>
+
+        <hr class="form-divider"/>
+        <div class="section-subtitle">Content</div>
+
+        <!-- Heading + Subheading -->
+        <div class="form-group">
+          <label class="form-label">Heading</label>
+          <input class="form-input" type="text" placeholder="Enter section heading…" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subheading</label>
+          <input class="form-input" type="text" placeholder="Enter subheading…" />
+        </div>
+
+        <!-- Description -->
+        <div class="form-group span-2">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea">We create beautiful, eco-friendly tote bags that meet the highest global standards. Every piece is ethically sourced, GOTS-certified, and designed for businesses and individuals who value quality and sustainability.</textarea>
+        </div>
+
+        <hr class="form-divider"/>
+        <div class="section-subtitle">Images</div>
+
+        <!-- Image Left -->
+        <div class="form-group">
+          <label class="form-label">Image Left</label>
+          <input class="form-input" type="text" value="/images/aboutus/about2.png" style="margin-bottom:8px;"/>
+          <div class="image-preview-strip">
+            <div class="image-thumb" style="background:#e5e7eb; display:flex; align-items:center; justify-content:center;">
+              <svg width="20" height="20" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <span class="image-path">/images/aboutus/about2.png</span>
+            <button class="btn btn-dark btn-replace">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.87"/></svg>
+              Replace Image
+            </button>
+          </div>
+        </div>
+
+        <!-- Image Right -->
+        <div class="form-group">
+          <label class="form-label">Image Right</label>
+          <input class="form-input" type="text" value="/images/aboutus/about1.png" style="margin-bottom:8px;"/>
+          <div class="image-preview-strip">
+            <div class="image-thumb" style="background:#e5e7eb; display:flex; align-items:center; justify-content:center;">
+              <svg width="20" height="20" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <span class="image-path">/images/aboutus/about1.png</span>
+            <button class="btn btn-dark btn-replace">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.87"/></svg>
+              Replace Image
+            </button>
+          </div>
+        </div>
+
+        <hr class="form-divider"/>
+
+        <!-- Active toggle -->
+        <div class="form-group span-2">
+          <div class="toggle-row">
+            <input class="toggle" type="checkbox" id="active-about" checked />
+            <label class="toggle-label" for="active-about">Mark as Active (visible on website)</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- OUR MISSION – COLLAPSED -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-card" id="card-mission">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-title">Our Mission</div>
+        <div class="card-meta">
+          <span>Section: <strong>about_mission</strong></span>
+          <span>· Last updated: 11/2/2025</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="badge-active">Active</span>
+        <button class="btn btn-ghost" onclick="previewSection('mission')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </button>
+        <button class="btn btn-dark" onclick="toggleEdit('mission')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body" id="body-mission">
+      <div class="field-row">
+        <span class="field-label">Content</span>
+        <span class="field-value long">To deliver premium, sustainable tote bags that meet the highest global standards—ethically sourced, intelligently designed, and export-ready.</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- OUR STORY – COLLAPSED -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-card" id="card-story">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-title">Our Story</div>
+        <div class="card-meta">
+          <span>Section: <strong>about_story</strong></span>
+          <span>· Last updated: 11/2/2025</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="badge-active">Active</span>
+        <button class="btn btn-ghost" onclick="previewSection('story')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </button>
+        <button class="btn btn-dark" onclick="toggleEdit('story')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body" id="body-story">
+      <div class="field-row">
+        <span class="field-label">Content</span>
+        <span class="field-value long">Born from a passion for sustainability and global commerce, Cottonunique blends natural materials with modern branding to serve clients across continents.</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- ECOTOTE DUOPACK – COLLAPSED -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-card" id="card-ecotote">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-title">EcoTote DuoPack Section</div>
+        <div class="card-meta">
+          <span>Section: <strong>ecotote_duopack</strong></span>
+          <span>· Last updated: 4/21/2026</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="badge-active">Active</span>
+        <button class="btn btn-ghost" onclick="previewSection('ecotote')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </button>
+        <button class="btn btn-dark" onclick="toggleEdit('ecotote')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body" id="body-ecotote">
+      <div class="field-row">
+        <span class="field-label">Heading</span>
+        <span class="field-value">ECOTOTE</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Subheading</span>
+        <span class="field-value">Our Competitive Edge</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Description</span>
+        <span class="field-value long">We provide lower than industry standard MOQ's to help test markets and refine products at competitive prices.</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">CTA</span>
+        <span class="field-value">Request Quote for EcoTote DuoPack</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- EXPORT & COMPLIANCE – COLLAPSED -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-card" id="card-export">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-title">Export &amp; Compliance Section</div>
+        <div class="card-meta">
+          <span>Section: <strong>export</strong></span>
+          <span>· Last updated: 5/6/2026</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="badge-active">Active</span>
+        <button class="btn btn-ghost" onclick="previewSection('export')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </button>
+        <button class="btn btn-dark" onclick="toggleEdit('export')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body" id="body-export">
+      <div class="field-row">
+        <span class="field-label">Heading</span>
+        <span class="field-value">Export &amp; Compliance</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Subheading</span>
+        <span class="field-value">Seamless global delivery with complete regulatory compliance</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">CTA Primary</span>
+        <span class="field-value">Download Export Pack</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">CTA Secondary</span>
+        <span class="field-value">Talk to Our Compliance Team</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Image</span>
+        <div class="image-preview-strip" style="margin-top:0; max-width:420px;">
+          <div class="image-thumb" style="background:#e5e7eb; display:flex; align-items:center; justify-content:center;">
+            <svg width="20" height="20" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <span class="image-path">/images/banner/export.png</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- GET IN TOUCH – COLLAPSED -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-card" id="card-contact">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-title">Get in Touch Section</div>
+        <div class="card-meta">
+          <span>Section: <strong>get_in_touch</strong></span>
+          <span>· Last updated: 4/21/2026</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="badge-active">Active</span>
+        <button class="btn btn-ghost" onclick="previewSection('contact')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </button>
+        <button class="btn btn-dark" onclick="toggleEdit('contact')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body" id="body-contact">
+      <div class="field-row">
+        <span class="field-label">Heading</span>
+        <span class="field-value">Get in Touch</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Subheading</span>
+        <span class="field-value">Ready to start your sustainable journey? Let's create something amazing together.</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">CTA</span>
+        <span class="field-value">Send Inquiry</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- HOMEPAGE HERO – COLLAPSED -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-card" id="card-hero">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-title">Homepage Hero</div>
+        <div class="card-meta">
+          <span>Section: <strong>hero</strong></span>
+          <span>· Last updated: 5/8/2026</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="badge-active">Active</span>
+        <button class="btn btn-ghost" onclick="previewSection('hero')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </button>
+        <button class="btn btn-dark" onclick="toggleEdit('hero')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body" id="body-hero">
+      <div class="field-row">
+        <span class="field-label">Headline</span>
+        <span class="field-value">Where intelligent design meets ethical craftsmanship</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Subheadline</span>
+        <span class="field-value">Smart. Sustainable. Global.</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">CTA Primary</span>
+        <span class="field-value">Explore Our Totes</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">CTA Secondary</span>
+        <span class="field-value">Corporate Solutions</span>
+      </div>
+      <div class="field-row" style="align-items: flex-start;">
+        <span class="field-label" style="padding-top:4px;">Slides</span>
+        <div class="slides-chips">
+          <span class="slide-chip">ECOTOTE DUOPACK</span>
+          <span class="slide-chip">FLORAL ELEGANCE</span>
+          <span class="slide-chip">FIND JOY</span>
+          <span class="slide-chip">WATERCOLOR COLLECTION</span>
+          <span class="slide-chip">+ more</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- SMART BRANDING – COLLAPSED -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-card" id="card-branding">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-title">Smart Branding for Global Teams</div>
+        <div class="card-meta">
+          <span>Section: <strong>smart_branding</strong></span>
+          <span>· Last updated: 4/21/2026</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="badge-active">Active</span>
+        <button class="btn btn-ghost" onclick="previewSection('branding')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </button>
+        <button class="btn btn-dark" onclick="toggleEdit('branding')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body" id="body-branding">
+      <div class="field-row">
+        <span class="field-label">Heading</span>
+        <span class="field-value">Smart Branding for Global Teams</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Subheading</span>
+        <span class="field-value">Transform your corporate gifting with sustainable, custom-branded solutions</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">CTA</span>
+        <span class="field-value">Book a Consultation</span>
+      </div>
+      <div class="field-row" style="align-items: flex-start;">
+        <span class="field-label" style="padding-top:4px;">Image</span>
+        <div class="image-preview-strip" style="margin-top:0; max-width:420px;">
+          <div class="image-thumb" style="background:#e5e7eb; display:flex; align-items:center; justify-content:center;">
+            <svg width="20" height="20" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <span class="image-path">/images/banner/branding.jpg</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-shell -->
+
+<!-- ─── TOAST NOTIFICATION ──────────────────────────────────────────── -->
+<div id="toast" style="
+  position:fixed; bottom:28px; right:28px;
+  background:var(--accent); color:#fff;
+  padding:12px 20px; border-radius:8px;
+  font-size:13px; font-weight:500;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  transform:translateY(80px); opacity:0;
+  transition:all .3s ease;
+  z-index:999;
+"></div>
+
+<script>
+  // ── EDIT / COLLAPSE TOGGLE ─────────────────────────────────────────
+  const editStates = {};
+
+  function toggleEdit(id) {
+    const body  = document.getElementById('body-' + id);
+    const card  = document.getElementById('card-' + id);
+    const isEditing = editStates[id];
+
+    if (isEditing) {
+      // switch to collapsed view
+      renderCollapsed(id);
+      editStates[id] = false;
+    } else {
+      renderEditMode(id);
+      editStates[id] = true;
+    }
+  }
+
+  function renderEditMode(id) {
+    const body = document.getElementById('body-' + id);
+    const header = body.previousElementSibling;
+
+    // Update buttons
+    const actions = header.querySelector('.card-actions');
+    const editBtn = actions.querySelector('.btn-dark');
+    if (editBtn) {
+      actions.innerHTML = `
+        <span class="badge-active">Active</span>
+        <button class="btn btn-ghost" onclick="previewSection('${id}')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </button>
+        <button class="btn btn-green" onclick="saveSection('${id}')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Save
+        </button>
+        <button class="btn btn-red-outline" onclick="cancelEdit('${id}')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Cancel
+        </button>`;
+    }
+
+    // Build generic edit form from current field-rows
+    const rows = body.querySelectorAll('.field-row');
+    let html = '<div class="form-grid">';
+    rows.forEach(row => {
+      const label = row.querySelector('.field-label')?.textContent.trim() || '';
+      const value = row.querySelector('.field-value')?.textContent.trim() || '';
+      const isLong = row.querySelector('.field-value.long');
+      if (isLong || value.length > 80) {
+        html += `<div class="form-group span-2">
+          <label class="form-label">${label}</label>
+          <textarea class="form-textarea">${value}</textarea>
+        </div>`;
+      } else {
+        html += `<div class="form-group">
+          <label class="form-label">${label}</label>
+          <input class="form-input" type="text" value="${value}" />
+        </div>`;
+      }
+    });
+    html += '<div class="form-group span-2"><div class="toggle-row"><input class="toggle" type="checkbox" checked /><label class="toggle-label">Mark as Active (visible on website)</label></div></div>';
+    html += '</div>';
+    body.innerHTML = html;
+  }
+
+  function cancelEdit(id) {
+    location.reload();
+  }
+
+  function saveSection(id) {
+    showToast('✓ Section saved successfully');
+    setTimeout(() => location.reload(), 1200);
+  }
+
+  function previewSection(id) {
+    showToast('Opening preview…');
+  }
+
+  function renderCollapsed(id) {
+    // just reload to reset — in a real app you'd store original HTML
+    location.reload();
+  }
+
+  // ── TOAST ──────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.transform = 'translateY(0)';
+    t.style.opacity   = '1';
+    setTimeout(() => {
+      t.style.transform = 'translateY(80px)';
+      t.style.opacity   = '0';
+    }, 2800);
+  }
+</script>
+</body>
+</html>
