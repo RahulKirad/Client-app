@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ExternalLink, Edit2, Check, X, Eye, RefreshCw } from 'lucide-react';
+import { ExternalLink, Edit2, Check, X, Eye, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { resolveMediaUrl } from '../../lib/api';
@@ -21,12 +21,70 @@ function normalizeSectionContent(raw: unknown): unknown {
   return parsed;
 }
 
-function isImageKey(key: string): boolean {
-  return key === 'image' || key.startsWith('image_') || key.endsWith('_image');
+function isLikelyImageField(key: string, value: unknown): boolean {
+  const k = (key || '').toLowerCase();
+  if (k === 'image' || k.startsWith('image_') || k.endsWith('_image')) return true;
+  if (k === 'imageurl' || k.endsWith('_image_url') || k.endsWith('_imageurl') || k.endsWith('image_url')) return true;
+  if (k === 'src' || k.endsWith('_src') || k === 'banner' || k.endsWith('_banner') || k.includes('background')) return true;
+  if (typeof value === 'string') {
+    const v = value.trim().toLowerCase();
+    if (v.startsWith('/uploads/') || v.startsWith('/images/') || v.startsWith('http://') || v.startsWith('https://')) {
+      if (/\.(png|jpe?g|gif|webp|svg)(\?.*)?$/.test(v)) return true;
+    }
+  }
+  return false;
 }
 
 function fmtKey(key: string) {
   return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function extractImageUrlsFromValue(key: string, value: unknown): string[] {
+  const out: string[] = [];
+  const pushUrl = (v: unknown) => {
+    if (typeof v !== 'string') return;
+    const s = v.trim();
+    if (!s) return;
+    // Only push if it's likely an image field or looks like an image URL.
+    if (isLikelyImageField(key, s) || /\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(s) || s.startsWith('/uploads/') || s.startsWith('/images/')) {
+      out.push(s);
+    }
+  };
+
+  if (typeof value === 'string') {
+    pushUrl(value);
+    return out;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      if (typeof item === 'string') pushUrl(item);
+      else if (item && typeof item === 'object') {
+        for (const [k, v] of Object.entries(item as Record<string, unknown>)) {
+          if (isLikelyImageField(k, v)) pushUrl(String(v ?? ''));
+        }
+      }
+    }
+    return out;
+  }
+
+  if (value && typeof value === 'object') {
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (isLikelyImageField(k, v)) pushUrl(String(v ?? ''));
+      // handle nested slides arrays like { slides: [{ image: ... }] }
+      if (Array.isArray(v)) {
+        for (const item of v) {
+          if (item && typeof item === 'object') {
+            for (const [ik, iv] of Object.entries(item as Record<string, unknown>)) {
+              if (isLikelyImageField(ik, iv)) pushUrl(String(iv ?? ''));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return out;
 }
 
 export default function ContentManager() {
@@ -38,6 +96,10 @@ export default function ContentManager() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [dashboardPreviewHash, setDashboardPreviewHash] = useState<string | null>(null);
+  const [slideDraft, setSlideDraft] = useState<any[]>([]);
+  const [savingSlides, setSavingSlides] = useState(false);
+  const [openSlides, setOpenSlides] = useState<Set<number>>(new Set());
+  const [collapsedSectionIds, setCollapsedSectionIds] = useState<Set<string>>(new Set());
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
   const authHeaders = () => {
@@ -58,7 +120,14 @@ export default function ContentManager() {
   const fetchContent = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/admin/content`, { headers: authHeaders() });
-      setSections((res.data as ContentSection[]).map(s => ({ ...s, content: normalizeSectionContent(s.content) })));
+      const normalized = (res.data as ContentSection[]).map((s) => ({ ...s, content: normalizeSectionContent(s.content) }));
+      setSections(normalized);
+      const hero = normalized.find((s) => s.section_key === 'hero');
+      const hc = hero && hero.content && typeof hero.content === 'object' ? (hero.content as Record<string, unknown>) : null;
+      const slides = hc && Array.isArray((hc as any).slides) ? ((hc as any).slides as any[]) : [];
+      setSlideDraft(slides.map((x) => (x && typeof x === 'object' ? { ...x } : x)));
+      setOpenSlides(new Set()); // collapsed by default
+      setCollapsedSectionIds(new Set(normalized.map((s) => s.id))); // all collapsed by default
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -66,6 +135,11 @@ export default function ContentManager() {
   const startEditing = (s: ContentSection) => {
     setEditingSection(s.id);
     setEditData({ title: s.title, content: normalizeSectionContent(s.content), is_active: s.is_active });
+    setCollapsedSectionIds((prev) => {
+      const next = new Set(prev);
+      next.delete(s.id); // ensure open while editing
+      return next;
+    });
   };
 
   const saveSection = async (sectionId: string) => {
@@ -81,6 +155,31 @@ export default function ContentManager() {
   };
 
   const cancelEditing = () => { setEditingSection(null); setEditData({}); };
+
+  const saveSlides = async () => {
+    const hero = sections.find((s) => s.section_key === 'hero');
+    if (!hero) {
+      showToast('✗ Hero section not found');
+      return;
+    }
+    const heroContent = hero.content && typeof hero.content === 'object' && !Array.isArray(hero.content) ? (hero.content as Record<string, unknown>) : {};
+    const nextContent = { ...heroContent, slides: slideDraft };
+    setSavingSlides(true);
+    try {
+      await axios.put(
+        `${API_BASE_URL}/admin/content/${hero.id}`,
+        { title: hero.title, content: nextContent, is_active: hero.is_active },
+        { headers: authHeaders() }
+      );
+      showToast('✓ Slides saved successfully');
+      await fetchContent();
+    } catch (e) {
+      console.error(e);
+      showToast('✗ Failed to save slides');
+    } finally {
+      setSavingSlides(false);
+    }
+  };
 
   const uploadImage = async (file: File): Promise<string> => {
     const fd = new FormData();
@@ -150,7 +249,7 @@ export default function ContentManager() {
                 {Object.entries(item).map(([k, v]) => (
                   <div key={k} style={{ marginBottom:12 }}>
                     <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.5px', marginBottom:5 }}>{fmtKey(k)}</label>
-                    {isImageKey(k)
+                    {isLikelyImageField(k, v)
                       ? <ImageUploadField value={String(v ?? '')} onChange={url => { const u=[...content]; u[idx]={...item,[k]:url}; onChange(u); }} />
                       : <input type="text" value={String(v ?? '')} onChange={e => { const u=[...content]; u[idx]={...item,[k]:e.target.value}; onChange(u); }}
                           style={{ width:'100%', fontFamily:'inherit', fontSize:15, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'9px 13px', outline:'none' }} />
@@ -196,11 +295,11 @@ export default function ContentManager() {
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px 18px' }}>
                       {Object.entries(v as Record<string,any>).map(([nk, nv]) => {
                         const nestedIsLong = typeof nv === 'string' && nv.length > 60;
-                        const spanAll = nestedIsLong || isImageKey(nk);
+                        const spanAll = nestedIsLong || isLikelyImageField(nk, nv);
                         return (
                           <div key={nk} style={{ gridColumn: spanAll ? 'span 2' : 'span 1', display:'flex', flexDirection:'column', gap:5 }}>
                             <label style={{ fontSize:12, fontWeight:600, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.4px' }}>{fmtKey(nk)}</label>
-                            {isImageKey(nk) ? (
+                            {isLikelyImageField(nk, nv) ? (
                               <ImageUploadField value={String(nv ?? '')} onChange={url => onChange({ ...content, [k]: { ...v, [nk]: url } })} />
                             ) : nestedIsLong ? (
                               <textarea value={String(nv ?? '')} rows={2} onChange={e => onChange({ ...content, [k]: { ...v, [nk]: e.target.value } })}
@@ -214,7 +313,7 @@ export default function ContentManager() {
                       })}
                     </div>
                   </div>
-                ) : isImageKey(k) ? (
+                ) : isLikelyImageField(k, v) ? (
                   <ImageUploadField value={String(v ?? '')} onChange={url => onChange({ ...content, [k]: url })} />
                 ) : isArr ? (
                   renderEditor(v, nv => onChange({ ...content, [k]: nv }))
@@ -273,15 +372,36 @@ export default function ContentManager() {
         <div>
           {Object.entries(content).map(([k, v], i, arr) => {
             const isNestedObj = typeof v === 'object' && v !== null && !Array.isArray(v);
+            const isImg = isLikelyImageField(k, v);
+            const nestedThumbs = isNestedObj ? extractImageUrlsFromValue(k, v) : [];
             return (
               <div key={k} style={{ padding:'7px 0', borderBottom: i < arr.length-1 ? '1px dashed #e2e5ea' : 'none' }}>
-                <div style={{ display:'flex', alignItems: isImageKey(k) ? 'center' : 'baseline', gap:10, marginBottom: isNestedObj ? 6 : 0 }}>
+                <div style={{ display:'flex', alignItems: isImg ? 'center' : 'baseline', gap:10, marginBottom: isNestedObj ? 6 : 0 }}>
                   <span style={{ fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.4px', width:120, flexShrink:0 }}>{fmtKey(k)}</span>
                   {isNestedObj ? (
-                    <span style={{ fontSize:11, color:'#1c2b4a', background:'#eef1f7', padding:'2px 8px', borderRadius:12 }}>
-                      {Object.keys(v as Record<string,any>).length} fields
-                    </span>
-                  ) : isImageKey(k) && typeof v === 'string' ? (
+                    <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
+                      <span style={{ fontSize:11, color:'#1c2b4a', background:'#eef1f7', padding:'2px 8px', borderRadius:12 }}>
+                        {Object.keys(v as Record<string,any>).length} fields
+                      </span>
+                      {nestedThumbs.length > 0 && (
+                        <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
+                          {nestedThumbs.slice(0, 4).map((url, idx) => (
+                            <img
+                              key={`${k}-thumb-${idx}`}
+                              src={resolveMediaUrl(url)}
+                              alt={`${k} image ${idx + 1}`}
+                              style={{ width:44, height:34, objectFit:'cover', borderRadius:6, border:'1px solid #e2e5ea' }}
+                            />
+                          ))}
+                          {nestedThumbs.length > 4 && (
+                            <span style={{ fontSize:11, color:'#6b7280', background:'#f3f4f6', padding:'2px 8px', borderRadius:12 }}>
+                              +{nestedThumbs.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : isImg && typeof v === 'string' ? (
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                       <img src={resolveMediaUrl(v)} alt={k} style={{ width:48, height:36, objectFit:'cover', borderRadius:4, border:'1px solid #e2e5ea' }} />
                       <span style={{ fontSize:12, color:'#9ca3af' }}>{v}</span>
@@ -304,7 +424,7 @@ export default function ContentManager() {
                     {Object.entries(v as Record<string,any>).map(([nk, nv]) => (
                       <div key={nk} style={{ display:'flex', alignItems:'center', gap:4, background:'#f9fafb', padding:'3px 8px', borderRadius:6, border:'1px solid #e2e5ea' }}>
                         <span style={{ fontSize:10, fontWeight:600, color:'#9ca3af' }}>{fmtKey(nk)}:</span>
-                        {isImageKey(nk) && typeof nv === 'string' ? (
+                        {isLikelyImageField(nk, nv) && typeof nv === 'string' ? (
                           <img src={resolveMediaUrl(nv)} alt={nk} style={{ width:24, height:18, objectFit:'cover', borderRadius:2 }} />
                         ) : (
                           <span style={{ fontSize:11, color:'#1a1d23' }}>{typeof nv === 'string' ? (nv.length > 30 ? nv.slice(0,30)+'…' : nv) : JSON.stringify(nv)}</span>
@@ -393,13 +513,230 @@ export default function ContentManager() {
 
       {/* Section cards */}
       <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+        {/* Slides manager (always first) */}
+        {sections.some((s) => s.section_key === 'hero') && (
+          <div style={{ background:'#fff', border:'1px solid #e2e5ea', borderRadius:12, boxShadow:'0 1px 3px rgba(0,0,0,.06)', overflow:'hidden' }}>
+            <button
+              type="button"
+              onClick={() =>
+                setOpenSlides((prev) => {
+                  // Use a sentinel collapse state: if any open -> collapse all, else expand first slide.
+                  if (prev.size > 0) return new Set();
+                  const next = new Set<number>();
+                  next.add(0);
+                  return next;
+                })
+              }
+              style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 24px', border:'none', background:'#fafbfc', gap:16, cursor:'pointer' }}
+              aria-label="Toggle Slide Images section"
+            >
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:17, fontWeight:700, color:'#1a1d23' }}>Slide Images</div>
+                <div style={{ fontSize:14, color:'#9ca3af', marginTop:3 }}>
+                  Manage hero carousel slides (image + text). These appear on the homepage banner.
+                </div>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+                <button
+                  style={{ ...btnGreen, opacity: savingSlides ? 0.7 : 1 }}
+                  onClick={saveSlides}
+                  disabled={savingSlides}
+                >
+                  <Check size={15} /> {savingSlides ? 'Saving…' : 'Save slides'}
+                </button>
+                {openSlides.size > 0 ? <ChevronUp size={18} color="#6b7280" /> : <ChevronDown size={18} color="#6b7280" />}
+              </div>
+            </button>
+            {openSlides.size === 0 ? null : (
+              <div style={{ padding:'22px 24px', borderTop:'1px solid #e2e5ea' }}>
+              {slideDraft.length === 0 ? (
+                <div style={{ fontSize:14, color:'#6b7280' }}>No slides found in `hero.slides`.</div>
+              ) : (
+                <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                  {slideDraft.map((slide, idx) => (
+                    <div key={idx} style={{ border:'1px solid #e2e5ea', borderRadius:10, padding:16, background:'#fafbfc' }}>
+                      {(() => {
+                        const isOpen = openSlides.has(idx);
+                        const title =
+                          slide && typeof slide === 'object' && typeof (slide as any).title === 'string' && (slide as any).title.trim()
+                            ? String((slide as any).title).trim()
+                            : `Slide ${idx + 1}`;
+                        const imageVal =
+                          slide && typeof slide === 'object' && typeof (slide as any).image === 'string'
+                            ? String((slide as any).image)
+                            : '';
+                        return (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOpenSlides((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(idx)) next.delete(idx);
+                                  else next.add(idx);
+                                  return next;
+                                })
+                              }
+                              style={{
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 12,
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: 0,
+                                marginBottom: isOpen ? 12 : 0,
+                              }}
+                              aria-expanded={isOpen}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                                {imageVal ? (
+                                  <img
+                                    src={resolveMediaUrl(imageVal)}
+                                    alt={`Slide ${idx + 1}`}
+                                    style={{ width: 44, height: 34, objectFit: 'cover', borderRadius: 8, border: '1px solid #e2e5ea', flexShrink: 0 }}
+                                  />
+                                ) : (
+                                  <div style={{ width: 44, height: 34, borderRadius: 8, background: '#e5e7eb', border: '1px solid #e2e5ea', flexShrink: 0 }} />
+                                )}
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1d23', letterSpacing: '.2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {title}
+                                  </div>
+                                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+                                    {isOpen ? 'Click to collapse' : 'Click to expand'}
+                                  </div>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSlideDraft((prev) => prev.filter((_, i) => i !== idx));
+                                    setOpenSlides((prev) => {
+                                      const next = new Set(prev);
+                                      next.delete(idx);
+                                      // shift indices above removed slide
+                                      for (const v of Array.from(prev)) {
+                                        if (v > idx) {
+                                          next.delete(v);
+                                          next.add(v - 1);
+                                        }
+                                      }
+                                      return next;
+                                    });
+                                  }}
+                                  style={{ background: 'none', border: '1px solid #e2e5ea', borderRadius: 8, cursor: 'pointer', color: '#dc2626', padding: '6px 10px', fontSize: 13, fontWeight: 700 }}
+                                >
+                                  Remove
+                                </button>
+                                {isOpen ? <ChevronUp size={18} color="#6b7280" /> : <ChevronDown size={18} color="#6b7280" />}
+                              </div>
+                            </button>
+
+                            {!isOpen ? null : slide && typeof slide === 'object' ? (
+                              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px 18px' }}>
+                                {Object.entries(slide as Record<string, unknown>).map(([k, v]) => {
+                                  const isLong = typeof v === 'string' && v.length > 80;
+                                  const spanAll = isLong || isLikelyImageField(k, v);
+                                  return (
+                                    <div key={k} style={{ gridColumn: spanAll ? 'span 2' : 'span 1', display:'flex', flexDirection:'column', gap:6 }}>
+                                      <label style={{ fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.4px' }}>{fmtKey(k)}</label>
+                                      {isLikelyImageField(k, v) ? (
+                                        <ImageUploadField
+                                          value={String(v ?? '')}
+                                          onChange={(url) =>
+                                            setSlideDraft((prev) => {
+                                              const next = [...prev];
+                                              const cur = next[idx] as Record<string, unknown>;
+                                              next[idx] = { ...cur, [k]: url };
+                                              return next;
+                                            })
+                                          }
+                                        />
+                                      ) : isLong ? (
+                                        <textarea
+                                          value={String(v ?? '')}
+                                          rows={3}
+                                          onChange={(e) =>
+                                            setSlideDraft((prev) => {
+                                              const next = [...prev];
+                                              const cur = next[idx] as Record<string, unknown>;
+                                              next[idx] = { ...cur, [k]: e.target.value };
+                                              return next;
+                                            })
+                                          }
+                                          style={{ width:'100%', fontFamily:'inherit', fontSize:14, color:'#1a1d23', background:'#fff', border:'1px solid #e2e5ea', borderRadius:6, padding:'8px 12px', outline:'none', resize:'vertical' }}
+                                        />
+                                      ) : (
+                                        <input
+                                          type="text"
+                                          value={String(v ?? '')}
+                                          onChange={(e) =>
+                                            setSlideDraft((prev) => {
+                                              const next = [...prev];
+                                              const cur = next[idx] as Record<string, unknown>;
+                                              next[idx] = { ...cur, [k]: e.target.value };
+                                              return next;
+                                            })
+                                          }
+                                          style={{ width:'100%', fontFamily:'inherit', fontSize:14, color:'#1a1d23', background:'#fff', border:'1px solid #e2e5ea', borderRadius:6, padding:'8px 12px', outline:'none' }}
+                                        />
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div style={{ fontSize:13, color:'#6b7280' }}>Invalid slide format.</div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSlideDraft((prev) => [
+                        ...prev,
+                        { title: '', subtitle: '', description: '', image: '', badge: '' },
+                      ])
+                    }
+                    style={{ alignSelf:'flex-start', background:'#eef1f7', color:'#1c2b4a', border:'none', borderRadius:8, padding:'10px 16px', fontSize:14, fontWeight:700, cursor:'pointer' }}
+                  >
+                    + Add slide
+                  </button>
+                </div>
+              )}
+              </div>
+            )}
+          </div>
+        )}
+
         {sections.map(section => {
           const isEditing = editingSection === section.id;
+          const isCollapsed = collapsedSectionIds.has(section.id) && !isEditing;
           return (
             <div key={section.id} style={{ background:'#fff', border:'1px solid #e2e5ea', borderRadius:12, boxShadow:'0 1px 3px rgba(0,0,0,.06)', overflow:'hidden' }}>
 
               {/* Card header */}
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 24px', borderBottom:'1px solid #e2e5ea', background:'#fafbfc', gap:16, flexWrap:'wrap' }}>
+              <button
+                type="button"
+                onClick={() =>
+                  setCollapsedSectionIds((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(section.id)) next.delete(section.id);
+                    else next.add(section.id);
+                    return next;
+                  })
+                }
+                style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 24px', border:'none', background:'#fafbfc', gap:16, cursor:'pointer', flexWrap:'wrap' as any }}
+                aria-expanded={!isCollapsed}
+              >
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:17, fontWeight:600, color:'#1a1d23' }}>{section.title}</div>
                   <div style={{ fontSize:14, color:'#9ca3af', marginTop:3 }}>
@@ -427,40 +764,43 @@ export default function ContentManager() {
                       <Edit2 size={15}/> Edit
                     </button>
                   )}
+                  {isCollapsed ? <ChevronDown size={18} color="#6b7280" /> : <ChevronUp size={18} color="#6b7280" />}
                 </div>
-              </div>
+              </button>
 
               {/* Card body */}
-              <div style={{ padding:'22px 24px' }}>
-                {isEditing ? (
-                  <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-                    {/* Title field */}
-                    <div>
-                      <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.5px', marginBottom:6 }}>Title</label>
-                      <input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})}
-                        style={{ width:'100%', fontFamily:'inherit', fontSize:16, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'10px 14px', outline:'none' }} />
+              {isCollapsed ? null : (
+                <div style={{ padding:'22px 24px', borderTop:'1px solid #e2e5ea' }}>
+                  {isEditing ? (
+                    <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+                      {/* Title field */}
+                      <div>
+                        <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.5px', marginBottom:6 }}>Title</label>
+                        <input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})}
+                          style={{ width:'100%', fontFamily:'inherit', fontSize:16, color:'#1a1d23', background:'#f9fafb', border:'1px solid #e2e5ea', borderRadius:6, padding:'10px 14px', outline:'none' }} />
+                      </div>
+                      <hr style={{ border:'none', borderTop:'1px dashed #e2e5ea', margin:'4px 0' }} />
+                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.8px' }}>Content</div>
+                      {/* WhatsApp special case */}
+                      {section.section_key === 'contact' && editData?.content && typeof editData.content === 'object' && !Array.isArray(editData.content) && (
+                        renderWhatsApp(editData.content, next => setEditData({...editData, content: next}))
+                      )}
+                      {renderEditor(editData.content, nc => setEditData({...editData, content: nc}))}
+                      <hr style={{ border:'none', borderTop:'1px dashed #e2e5ea', margin:'4px 0' }} />
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <input type="checkbox" id={`active-${section.id}`} checked={editData.is_active}
+                          onChange={e => setEditData({...editData, is_active: e.target.checked})}
+                          style={{ width:17, height:17, accentColor:'#1c2b4a', cursor:'pointer' }} />
+                        <label htmlFor={`active-${section.id}`} style={{ fontSize:15, fontWeight:500, color:'#6b7280', cursor:'pointer' }}>
+                          Mark as Active (visible on website)
+                        </label>
+                      </div>
                     </div>
-                    <hr style={{ border:'none', borderTop:'1px dashed #e2e5ea', margin:'4px 0' }} />
-                    <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.8px' }}>Content</div>
-                    {/* WhatsApp special case */}
-                    {section.section_key === 'contact' && editData?.content && typeof editData.content === 'object' && !Array.isArray(editData.content) && (
-                      renderWhatsApp(editData.content, next => setEditData({...editData, content: next}))
-                    )}
-                    {renderEditor(editData.content, nc => setEditData({...editData, content: nc}))}
-                    <hr style={{ border:'none', borderTop:'1px dashed #e2e5ea', margin:'4px 0' }} />
-                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                      <input type="checkbox" id={`active-${section.id}`} checked={editData.is_active}
-                        onChange={e => setEditData({...editData, is_active: e.target.checked})}
-                        style={{ width:17, height:17, accentColor:'#1c2b4a', cursor:'pointer' }} />
-                      <label htmlFor={`active-${section.id}`} style={{ fontSize:15, fontWeight:500, color:'#6b7280', cursor:'pointer' }}>
-                        Mark as Active (visible on website)
-                      </label>
-                    </div>
-                  </div>
-                ) : (
-                  renderPreview(section.content)
-                )}
-              </div>
+                  ) : (
+                    renderPreview(section.content)
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
