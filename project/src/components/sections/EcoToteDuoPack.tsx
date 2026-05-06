@@ -1,5 +1,6 @@
 import { CheckCircle, ShoppingBag, Package, Leaf } from 'lucide-react';
 import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+import { resolveMediaUrl } from '../../lib/api';
 
 const ecototeFallback = {
   heading: 'ECOTOTE',
@@ -7,6 +8,7 @@ const ecototeFallback = {
   description:
     "We provide lower than industry standard MOQ's to help test markets and refine products at competitive prices.",
   cta: 'Request Quote for EcoTote DuoPack',
+  image: '/images/banner/d.png',
 };
 
 export default function EcoToteDuoPack() {
@@ -21,7 +23,7 @@ export default function EcoToteDuoPack() {
           <div className="relative order-1 md:order-1">
             <div className="relative rounded-2xl overflow-hidden">
               <img
-                src="/images/banner/d.png"
+                src={resolveMediaUrl(String(sectionContent.image || ecototeFallback.image))}
                 alt="EcoTote DuoPack - Sustainable Garment Packaging"
                 className="w-full h-[300px] sm:h-[400px] md:h-[500px] object-cover"
                 style={{

@@ -79,8 +79,45 @@ const DEFAULT_CONTENT_SECTIONS: SeedContentSection[] = [
     content: {
       headline: 'Where intelligent design meets ethical craftsmanship',
       subheadline: 'Smart. Sustainable. Global.',
-      cta_primary: 'Explore Our Totes',
-      cta_secondary: 'Corporate Solutions',
+      cta_primary: 'Contact Us',
+      cta_secondary: 'View Products',
+      slides: [
+        {
+          title: 'ECOTOTE DUOPACK',
+          subtitle: 'Sustainable Packaging',
+          description: 'Reusable Cotton Tote + Compostable Inner Bag. Plastic-free packaging for fashion brands and exporters.',
+          image: '/images/banner/baner5.png',
+          badge: 'Premium. Sustainable. Zero-Waste.',
+        },
+        {
+          title: 'FLORAL ELEGANCE',
+          subtitle: 'Premium Canvas Totes',
+          description: 'Beautiful cream canvas tote bags featuring vibrant floral designs. Perfect blend of style and sustainability for your everyday needs.',
+          image: '/images/banner/baner1.jpeg',
+          badge: 'Elegant. Stylish. Sustainable.',
+        },
+        {
+          title: 'FIND JOY',
+          subtitle: 'In The Ordinary',
+          description: 'Light beige canvas tote with cheerful bee design. Spread positivity and joy with our beautifully crafted, eco-friendly tote bags.',
+          image: '/images/banner/baner2.jpeg',
+          badge: 'Joyful. Inspiring. Eco-Friendly.',
+        },
+        {
+          title: 'WATERCOLOR COLLECTION',
+          subtitle: 'Artistic Designs',
+          description: 'Stunning watercolor floral prints on premium canvas. Each tote is a work of art, combining functionality with beautiful aesthetics.',
+          image: '/images/banner/baner3.jpeg',
+          badge: 'Artistic. Unique. Premium.',
+        },
+        {
+          title: 'SUNFLOWER EMBROIDERED',
+          subtitle: 'Handcrafted Excellence',
+          description: 'Exquisite embroidered sunflower design on natural canvas. Handcrafted with attention to detail for a truly special tote bag.',
+          image: '/images/banner/baner4.jpeg',
+          badge: 'Handcrafted. Detailed. Special.',
+        },
+      ],
     },
     is_active: true,
   },
@@ -114,6 +151,8 @@ const DEFAULT_CONTENT_SECTIONS: SeedContentSection[] = [
       subheading: 'Premium Sustainable Tote Bags',
       description:
         'We create beautiful, eco-friendly tote bags that meet the highest global standards. Every piece is ethically sourced, GOTS-certified, and designed for businesses and individuals who value quality and sustainability.',
+      image_left: '/images/aboutus/about2.png',
+      image_right: '/images/aboutus/about1.png',
     },
     is_active: true,
   },
@@ -143,6 +182,7 @@ const DEFAULT_CONTENT_SECTIONS: SeedContentSection[] = [
       description:
         "We provide lower than industry standard MOQ's to help test markets and refine products at competitive prices.",
       cta: 'Request Quote for EcoTote DuoPack',
+      image: '/images/banner/d.png',
     },
     is_active: true,
   },
@@ -164,6 +204,7 @@ const DEFAULT_CONTENT_SECTIONS: SeedContentSection[] = [
       heading: 'Smart Branding for Global Teams',
       subheading: 'Transform your corporate gifting with sustainable, custom-branded solutions',
       cta: 'Book a Consultation',
+      image: '/images/corporate/image2.png',
     },
     is_active: true,
   },
@@ -174,6 +215,7 @@ const DEFAULT_CONTENT_SECTIONS: SeedContentSection[] = [
       heading: 'More Than Just a Bag',
       subheading: 'Every Cottonunique product tells a story of sustainable practices and positive impact',
       report_cta: 'View Our Sustainability Report',
+      image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg',
     },
     is_active: true,
   },
@@ -185,6 +227,42 @@ const DEFAULT_CONTENT_SECTIONS: SeedContentSection[] = [
       subheading: 'Seamless global delivery with complete regulatory compliance',
       cta_primary: 'Download Export Pack',
       cta_secondary: 'Talk to Our Compliance Team',
+      image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg',
+    },
+    is_active: true,
+  },
+  {
+    section_key: 'banners',
+    title: 'Website Banners',
+    content: {
+      main_banner: {
+        title: 'Premium Sustainable Tote Bags',
+        subtitle: 'Eco-friendly solutions for global commerce',
+        description: 'GOTS-certified cotton totes designed for businesses worldwide',
+        image: '/images/banner/baner5.png',
+        cta_text: 'Explore Products',
+        cta_link: '/#products',
+      },
+      about_banner: {
+        title: 'About Our Mission',
+        subtitle: 'Sustainable craftsmanship meets global standards',
+        image: '/images/aboutus/about1.png',
+      },
+      corporate_banner: {
+        title: 'Corporate Solutions',
+        subtitle: 'Custom branding for global teams',
+        image: '/images/corporate/image2.png',
+      },
+      sustainability_banner: {
+        title: 'Sustainability First',
+        subtitle: 'Every product tells a story of positive impact',
+        image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg',
+      },
+      export_banner: {
+        title: 'Export & Compliance',
+        subtitle: 'Seamless global delivery with complete compliance',
+        image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg',
+      },
     },
     is_active: true,
   },
@@ -242,6 +320,87 @@ async function ensureDefaultContentSections() {
         section.section_key,
       ]
     );
+  }
+  // Migrate existing rows: inject missing image fields without overwriting existing ones
+  await migrateContentImages();
+}
+
+// Image fields to inject per section if missing
+const IMAGE_MIGRATIONS: Record<string, Record<string, string>> = {
+  about: {
+    image_left: '/images/aboutus/about2.png',
+    image_right: '/images/aboutus/about1.png',
+  },
+  corporate: { image: '/images/corporate/image2.png' },
+  sustainability: { image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg' },
+  export: { image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg' },
+  ecotote_duopack: { image: '/images/banner/d.png' },
+  banners: {
+    main_banner: JSON.stringify({
+      title: 'Premium Sustainable Tote Bags',
+      subtitle: 'Eco-friendly solutions for global commerce',
+      description: 'GOTS-certified cotton totes designed for businesses worldwide',
+      image: '/images/banner/baner5.png',
+      cta_text: 'Explore Products',
+      cta_link: '/#products',
+    }),
+    about_banner: JSON.stringify({
+      title: 'About Our Mission',
+      subtitle: 'Sustainable craftsmanship meets global standards',
+      image: '/images/aboutus/about1.png',
+    }),
+    corporate_banner: JSON.stringify({
+      title: 'Corporate Solutions',
+      subtitle: 'Custom branding for global teams',
+      image: '/images/corporate/image2.png',
+    }),
+    sustainability_banner: JSON.stringify({
+      title: 'Sustainability First',
+      subtitle: 'Every product tells a story of positive impact',
+      image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg',
+    }),
+    export_banner: JSON.stringify({
+      title: 'Export & Compliance',
+      subtitle: 'Seamless global delivery with complete compliance',
+      image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg',
+    }),
+  },
+  hero: {
+    slides: JSON.stringify([
+      { title: 'ECOTOTE DUOPACK', subtitle: 'Sustainable Packaging', description: 'Reusable Cotton Tote + Compostable Inner Bag. Plastic-free packaging for fashion brands and exporters.', image: '/images/banner/baner5.png', badge: 'Premium. Sustainable. Zero-Waste.' },
+      { title: 'FLORAL ELEGANCE', subtitle: 'Premium Canvas Totes', description: 'Beautiful cream canvas tote bags featuring vibrant floral designs. Perfect blend of style and sustainability for your everyday needs.', image: '/images/banner/baner1.jpeg', badge: 'Elegant. Stylish. Sustainable.' },
+      { title: 'FIND JOY', subtitle: 'In The Ordinary', description: 'Light beige canvas tote with cheerful bee design. Spread positivity and joy with our beautifully crafted, eco-friendly tote bags.', image: '/images/banner/baner2.jpeg', badge: 'Joyful. Inspiring. Eco-Friendly.' },
+      { title: 'WATERCOLOR COLLECTION', subtitle: 'Artistic Designs', description: 'Stunning watercolor floral prints on premium canvas. Each tote is a work of art, combining functionality with beautiful aesthetics.', image: '/images/banner/baner3.jpeg', badge: 'Artistic. Unique. Premium.' },
+      { title: 'SUNFLOWER EMBROIDERED', subtitle: 'Handcrafted Excellence', description: 'Exquisite embroidered sunflower design on natural canvas. Handcrafted with attention to detail for a truly special tote bag.', image: '/images/banner/baner4.jpeg', badge: 'Handcrafted. Detailed. Special.' },
+    ]),
+  },
+};
+
+async function migrateContentImages() {
+  for (const [sectionKey, fields] of Object.entries(IMAGE_MIGRATIONS)) {
+    const [rows] = await pool.execute(
+      'SELECT id, content FROM content_sections WHERE section_key = ?',
+      [sectionKey]
+    ) as any[];
+    if (!rows || rows.length === 0) continue;
+    const row = rows[0];
+    let content: Record<string, unknown>;
+    try {
+      content = typeof row.content === 'string' ? JSON.parse(row.content) : row.content;
+    } catch { continue; }
+    let changed = false;
+    for (const [field, defaultVal] of Object.entries(fields)) {
+      if (content[field] === undefined || content[field] === null) {
+        content[field] = field === 'slides' ? JSON.parse(defaultVal as string) : defaultVal;
+        changed = true;
+      }
+    }
+    if (changed) {
+      await pool.execute(
+        'UPDATE content_sections SET content = ? WHERE id = ?',
+        [JSON.stringify(content), row.id]
+      );
+    }
   }
 }
 
@@ -545,6 +704,20 @@ router.put('/content/:id', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Error updating content:', error);
     res.status(500).json({ error: 'Failed to update content' });
+  }
+});
+
+// Upload image for content sections
+router.post('/content/upload-image', authenticateToken, upload.single('image'), async (req: AuthRequest, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ url });
+  } catch (error) {
+    console.error('Error uploading content image:', error);
+    res.status(500).json({ error: 'Failed to upload image' });
   }
 });
 

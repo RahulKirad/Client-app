@@ -1,10 +1,12 @@
 import { Leaf, Recycle, Droplets, TreePine, TrendingDown, Users, Download, Package, Factory, CheckCircle } from 'lucide-react';
 import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+import Banner from './Banner';
 
 const sustainabilityFallback = {
   heading: 'More Than Just a Bag',
   subheading: 'Every Cottonunique product tells a story of sustainable practices and positive impact',
   report_cta: 'View Our Sustainability Report',
+  image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg',
 };
 
 export default function Sustainability() {
@@ -71,20 +73,17 @@ export default function Sustainability() {
           </p>
         </div>
 
-        {/* Sustainability Image Section */}
-        <div className="mb-12 rounded-lg overflow-hidden soft-shadow-lg">
-          <div className="relative h-64 md:h-96">
-            <img
-              src="/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg"
-              alt="Sustainable Practices"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-            <div className="absolute bottom-8 left-8 right-8 text-white">
-              <h3 className="text-3xl md:text-4xl font-black mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Sustainable by Design</h3>
-              <p className="text-lg font-medium" style={{fontFamily: 'var(--heading-font)'}}>Every product tells a story of sustainable practices and positive impact</p>
-            </div>
-          </div>
+        {/* Sustainability Banner */}
+        <div className="mb-12">
+          <Banner
+            bannerKey="sustainability_banner"
+            fallback={{
+              title: 'Sustainability First',
+              subtitle: 'Every product tells a story of positive impact',
+              image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg',
+            }}
+            className="soft-shadow-lg"
+          />
         </div>
 
         <div className="mb-20">

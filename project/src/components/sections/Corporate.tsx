@@ -1,10 +1,12 @@
 import { Briefcase, Users, Building2, Heart, Calendar, FileCheck } from 'lucide-react';
 import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+import Banner from './Banner';
 
 const corporateFallback = {
   heading: 'Smart Branding for Global Teams',
   subheading: 'Transform your corporate gifting with sustainable, custom-branded solutions',
   cta: 'Book a Consultation',
+  image: '/images/corporate/image2.png',
 };
 
 export default function Corporate() {
@@ -78,20 +80,17 @@ export default function Corporate() {
           </p>
         </div>
 
-        {/* Corporate Image Section */}
-        <div className="mb-12 rounded-lg overflow-hidden soft-shadow-lg">
-          <div className="relative h-64 md:h-96">
-            <img
-              src="/images/corporate/image2.png"
-              alt="Cottonunique corporate tote bags with natural styling"
-              className="w-full h-full object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-            <div className="absolute bottom-4 left-4 right-4 sm:bottom-8 sm:left-8 sm:right-8 text-white">
-              <h3 className="text-xl sm:text-3xl md:text-4xl font-black mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Premium Corporate Branding</h3>
-              <p className="text-sm sm:text-lg font-medium" style={{fontFamily: 'var(--heading-font)'}}>Elevate your brand with sustainable, custom-branded solutions</p>
-            </div>
-          </div>
+        {/* Corporate Banner */}
+        <div className="mb-12">
+          <Banner
+            bannerKey="corporate_banner"
+            fallback={{
+              title: 'Corporate Solutions',
+              subtitle: 'Custom branding for global teams',
+              image: '/images/corporate/image2.png',
+            }}
+            className="soft-shadow-lg"
+          />
         </div>
 
         <div className="mb-20">

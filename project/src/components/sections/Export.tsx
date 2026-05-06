@@ -1,11 +1,13 @@
 import { Globe, FileText, Languages, Shield, Download, CheckCircle, Award } from 'lucide-react';
 import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
+import Banner from './Banner';
 
 const exportFallback = {
   heading: 'Export & Compliance',
   subheading: 'Seamless global delivery with complete regulatory compliance',
   cta_primary: 'Download Export Pack',
   cta_secondary: 'Talk to Our Compliance Team',
+  image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg',
 };
 
 export default function Export() {
@@ -70,20 +72,17 @@ export default function Export() {
           </p>
         </div>
 
-        {/* Export Image Section */}
-        <div className="mb-12 rounded-lg overflow-hidden soft-shadow-lg">
-          <div className="relative h-64 md:h-96">
-            <img
-              src="/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg"
-              alt="Global Export"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-            <div className="absolute bottom-4 left-4 right-4 sm:bottom-8 sm:left-8 sm:right-8 text-white">
-              <h3 className="text-xl sm:text-3xl md:text-4xl font-black mb-2 uppercase tracking-wide" style={{fontFamily: 'var(--heading-font)'}}>Global Reach, Local Compliance</h3>
-              <p className="text-sm sm:text-lg font-medium" style={{fontFamily: 'var(--heading-font)'}}>Seamless global delivery with complete regulatory compliance</p>
-            </div>
-          </div>
+        {/* Export Banner */}
+        <div className="mb-12">
+          <Banner
+            bannerKey="export_banner"
+            fallback={{
+              title: 'Export & Compliance',
+              subtitle: 'Seamless global delivery with complete compliance',
+              image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg',
+            }}
+            className="soft-shadow-lg"
+          />
         </div>
 
         <div className="mb-16">
