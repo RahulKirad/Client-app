@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const express_1 = __importDefault(require("express"));
+const crypto_1 = require("crypto");
 const cors_1 = __importDefault(require("cors"));
 const promise_1 = __importDefault(require("mysql2/promise"));
 const path_1 = __importDefault(require("path"));
@@ -50,6 +51,7 @@ app.use((0, cors_1.default)({
         ? process.env.FRONTEND_URL
         : ['https://cottonunique.com', 'https://app.cottonunique.com', 'http://localhost:5173'],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express_1.default.json());
@@ -88,11 +90,37 @@ console.log('🔧 Database config:', {
     hasPassword: !!dbConfig.password
 });
 const pool = promise_1.default.createPool(dbConfig);
+async function repairEmptyProductIds() {
+    let repaired = 0;
+    try {
+        for (;;) {
+            const [check] = await pool.execute(`SELECT 1 AS ok FROM products WHERE TRIM(COALESCE(id, '')) = '' LIMIT 1`);
+            if (!Array.isArray(check) || check.length === 0)
+                break;
+            const newId = (0, crypto_1.randomUUID)();
+            const [upd] = await pool.execute(`UPDATE products SET id = ? WHERE TRIM(COALESCE(id, '')) = '' LIMIT 1`, [newId]);
+            if (upd.affectedRows === 0)
+                break;
+            repaired += 1;
+            if (repaired > 100) {
+                console.warn('repairEmptyProductIds: stopped after 100 updates (unexpected loop)');
+                break;
+            }
+        }
+        if (repaired > 0) {
+            console.log(`🔧 Repaired ${repaired} product row(s) that had an empty id`);
+        }
+    }
+    catch (e) {
+        console.error('repairEmptyProductIds failed (non-fatal):', e);
+    }
+}
 async function testConnection() {
     try {
         const connection = await pool.getConnection();
         console.log('✅ Connected to MySQL database');
         connection.release();
+        await repairEmptyProductIds();
     }
     catch (error) {
         console.error('❌ Database connection failed:', error);
@@ -120,7 +148,11 @@ app.get('/api/products/featured', async (req, res) => {
 });
 app.get('/api/products/:id', async (req, res) => {
     try {
-        const [rows] = await pool.execute('SELECT * FROM products WHERE id = ? AND is_active = TRUE', [req.params.id]);
+        const id = String(req.params.id || '').trim();
+        if (!id) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        const [rows] = await pool.execute('SELECT * FROM products WHERE id = ? AND is_active = TRUE', [id]);
         if (Array.isArray(rows) && rows.length === 0) {
             return res.status(404).json({ error: 'Product not found' });
         }

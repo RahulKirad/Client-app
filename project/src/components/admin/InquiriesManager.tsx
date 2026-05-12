@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   MessageSquare,
   Mail,
@@ -108,15 +108,21 @@ export default function InquiriesManager() {
     setDeletingId(id);
     setListMessage(null);
     try {
-      await axios.delete(`${API_BASE_URL}/admin/inquiries/${id}`, { headers: authHeaders() });
+      await axios.post(
+        `${API_BASE_URL}/admin/inquiries/${encodeURIComponent(id)}/delete`,
+        {},
+        { headers: authHeaders() }
+      );
       if (selectedInquiry?.id === id) {
         setSelectedInquiry(null);
       }
       await fetchInquiries();
       setListMessage('Inquiry removed from your list.');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting inquiry:', error);
-      setListMessage('Could not delete. Try again.');
+      const ax = error && typeof error === 'object' && 'response' in error ? (error as { response?: { data?: { error?: string }; status?: number } }).response : null;
+      const serverMsg = ax?.data && typeof ax.data === 'object' && 'error' in ax.data ? String((ax.data as { error?: string }).error) : '';
+      setListMessage(serverMsg ? `Could not delete: ${serverMsg}` : 'Could not delete. Try again or check that the API allows POST /admin/inquiries/:id/delete.');
     } finally {
       setDeletingId(null);
     }

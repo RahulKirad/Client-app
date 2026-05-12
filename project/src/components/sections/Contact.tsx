@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, Send, CheckCircle } from 'lucide-react';
 import { apiClient } from '../../lib/api';
 import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
 
@@ -10,9 +10,6 @@ const contactInfoFallback = {
   phone: '+91 7020631149',
   whatsapp_number: '+91 7020631149',
   whatsapp_message: "Hi Cottonunique! I’d like to know more about your tote bags.",
-  visit_heading: 'Visit Us',
-  visit_line_1: 'Sr no 131, STG, Alandi Road',
-  visit_line_2: 'Pune - 412105',
 };
 
 export default function Contact() {
@@ -141,23 +138,6 @@ export default function Contact() {
                       {String(contactInfo.phone || contactInfoFallback.phone)}
                     </p>
                     <p className="text-sm font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>Mon-Fri, 9am-6pm IST</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 rounded-lg beige-border" style={{backgroundColor: 'var(--beige-300)'}}>
-                    <MapPin size={24} style={{color: '#78350F'}} />
-                  </div>
-                  <div>
-                    <p className="font-bold uppercase tracking-wide" style={{color: '#78350F', fontFamily: 'var(--heading-font)'}}>
-                      {String(contactInfo.visit_heading || contactInfoFallback.visit_heading)}
-                    </p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
-                      {String(contactInfo.visit_line_1 || contactInfoFallback.visit_line_1)}
-                    </p>
-                    <p className="font-normal" style={{color: '#3a2f1f', fontFamily: 'var(--body-font)'}}>
-                      {String(contactInfo.visit_line_2 || contactInfoFallback.visit_line_2)}
-                    </p>
                   </div>
                 </div>
               </div>

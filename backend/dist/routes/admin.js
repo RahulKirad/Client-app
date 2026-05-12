@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const crypto_1 = require("crypto");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const multer_1 = __importDefault(require("multer"));
@@ -14,6 +15,7 @@ const promise_1 = __importDefault(require("mysql2/promise"));
 const smtpConfigStore_1 = require("../services/smtpConfigStore");
 const email_1 = require("../services/email");
 const router = express_1.default.Router();
+const MAX_PRODUCT_IMAGES = 10;
 const DEFAULT_ADMIN_USERNAME = process.env.DEFAULT_ADMIN_USERNAME || 'abhishek.deolalikar@gmail.com';
 const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || 'admin@Cottonunique2026';
 const uploadsDir = path_1.default.join(__dirname, '../../uploads');
@@ -66,8 +68,45 @@ const DEFAULT_CONTENT_SECTIONS = [
         content: {
             headline: 'Where intelligent design meets ethical craftsmanship',
             subheadline: 'Smart. Sustainable. Global.',
-            cta_primary: 'Explore Our Totes',
-            cta_secondary: 'Corporate Solutions',
+            cta_primary: 'Contact Us',
+            cta_secondary: 'View Products',
+            slides: [
+                {
+                    title: 'ECOTOTE DUOPACK',
+                    subtitle: 'Sustainable Packaging',
+                    description: 'Reusable Cotton Tote + Compostable Inner Bag. Plastic-free packaging for fashion brands and exporters.',
+                    image: '/images/banner/baner5.png',
+                    badge: 'Premium. Sustainable. Zero-Waste.',
+                },
+                {
+                    title: 'FLORAL ELEGANCE',
+                    subtitle: 'Premium Canvas Totes',
+                    description: 'Beautiful cream canvas tote bags featuring vibrant floral designs. Perfect blend of style and sustainability for your everyday needs.',
+                    image: '/images/banner/baner1.jpeg',
+                    badge: 'Elegant. Stylish. Sustainable.',
+                },
+                {
+                    title: 'FIND JOY',
+                    subtitle: 'In The Ordinary',
+                    description: 'Light beige canvas tote with cheerful bee design. Spread positivity and joy with our beautifully crafted, eco-friendly tote bags.',
+                    image: '/images/banner/baner2.jpeg',
+                    badge: 'Joyful. Inspiring. Eco-Friendly.',
+                },
+                {
+                    title: 'WATERCOLOR COLLECTION',
+                    subtitle: 'Artistic Designs',
+                    description: 'Stunning watercolor floral prints on premium canvas. Each tote is a work of art, combining functionality with beautiful aesthetics.',
+                    image: '/images/banner/baner3.jpeg',
+                    badge: 'Artistic. Unique. Premium.',
+                },
+                {
+                    title: 'SUNFLOWER EMBROIDERED',
+                    subtitle: 'Handcrafted Excellence',
+                    description: 'Exquisite embroidered sunflower design on natural canvas. Handcrafted with attention to detail for a truly special tote bag.',
+                    image: '/images/banner/baner4.jpeg',
+                    badge: 'Handcrafted. Detailed. Special.',
+                },
+            ],
         },
         is_active: true,
     },
@@ -99,6 +138,8 @@ const DEFAULT_CONTENT_SECTIONS = [
             heading: 'ABOUT US',
             subheading: 'Premium Sustainable Tote Bags',
             description: 'We create beautiful, eco-friendly tote bags that meet the highest global standards. Every piece is ethically sourced, GOTS-certified, and designed for businesses and individuals who value quality and sustainability.',
+            image_left: '/images/aboutus/about2.png',
+            image_right: '/images/aboutus/about1.png',
         },
         is_active: true,
     },
@@ -126,6 +167,21 @@ const DEFAULT_CONTENT_SECTIONS = [
             subheading: 'Our Competitive Edge',
             description: "We provide lower than industry standard MOQ's to help test markets and refine products at competitive prices.",
             cta: 'Request Quote for EcoTote DuoPack',
+            image: '/images/banner/d.png',
+            outer_bag: {
+                title: 'Outer Bag',
+                material: '100% cotton, 180 GSM',
+                size: 'available in customized size',
+                printing: 'Water-based (1–3 colors)',
+                certification: 'GOTS compliant',
+            },
+            inner_bag: {
+                title: 'Inner Bag',
+                material: 'PLA/PBAT blend',
+                size: 'available in customized size',
+                finish: 'Transparent or frosted',
+                certification: 'ISO/IEC17025, ASTM D6866',
+            },
         },
         is_active: true,
     },
@@ -147,6 +203,7 @@ const DEFAULT_CONTENT_SECTIONS = [
             heading: 'Smart Branding for Global Teams',
             subheading: 'Transform your corporate gifting with sustainable, custom-branded solutions',
             cta: 'Book a Consultation',
+            image: '/images/corporate/image2.png',
         },
         is_active: true,
     },
@@ -157,6 +214,7 @@ const DEFAULT_CONTENT_SECTIONS = [
             heading: 'More Than Just a Bag',
             subheading: 'Every Cottonunique product tells a story of sustainable practices and positive impact',
             report_cta: 'View Our Sustainability Report',
+            image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg',
         },
         is_active: true,
     },
@@ -168,6 +226,42 @@ const DEFAULT_CONTENT_SECTIONS = [
             subheading: 'Seamless global delivery with complete regulatory compliance',
             cta_primary: 'Download Export Pack',
             cta_secondary: 'Talk to Our Compliance Team',
+            image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg',
+        },
+        is_active: true,
+    },
+    {
+        section_key: 'banners',
+        title: 'Website Banners',
+        content: {
+            main_banner: {
+                title: 'Premium Sustainable Tote Bags',
+                subtitle: 'Eco-friendly solutions for global commerce',
+                description: 'GOTS-certified cotton totes designed for businesses worldwide',
+                image: '/images/banner/baner5.png',
+                cta_text: 'Explore Products',
+                cta_link: '/#products',
+            },
+            about_banner: {
+                title: 'About Our Mission',
+                subtitle: 'Sustainable craftsmanship meets global standards',
+                image: '/images/aboutus/about1.png',
+            },
+            corporate_banner: {
+                title: 'Corporate Solutions',
+                subtitle: 'Custom branding for global teams',
+                image: '/images/corporate/image2.png',
+            },
+            sustainability_banner: {
+                title: 'Sustainability First',
+                subtitle: 'Every product tells a story of positive impact',
+                image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg',
+            },
+            export_banner: {
+                title: 'Export & Compliance',
+                subtitle: 'Seamless global delivery with complete compliance',
+                image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg',
+            },
         },
         is_active: true,
     },
@@ -220,6 +314,141 @@ async function ensureDefaultContentSections() {
             JSON.stringify(section.content),
             section.is_active ? 1 : 0,
             section.section_key,
+        ]);
+    }
+    await migrateContentImages();
+    await migrateEcototeDuopackSpecs();
+}
+const IMAGE_MIGRATIONS = {
+    about: {
+        image_left: '/images/aboutus/about2.png',
+        image_right: '/images/aboutus/about1.png',
+    },
+    corporate: { image: '/images/corporate/image2.png' },
+    sustainability: { image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg' },
+    export: { image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg' },
+    ecotote_duopack: { image: '/images/banner/d.png' },
+    banners: {
+        main_banner: JSON.stringify({
+            title: 'Premium Sustainable Tote Bags',
+            subtitle: 'Eco-friendly solutions for global commerce',
+            description: 'GOTS-certified cotton totes designed for businesses worldwide',
+            image: '/images/banner/baner5.png',
+            cta_text: 'Explore Products',
+            cta_link: '/#products',
+        }),
+        about_banner: JSON.stringify({
+            title: 'About Our Mission',
+            subtitle: 'Sustainable craftsmanship meets global standards',
+            image: '/images/aboutus/about1.png',
+        }),
+        corporate_banner: JSON.stringify({
+            title: 'Corporate Solutions',
+            subtitle: 'Custom branding for global teams',
+            image: '/images/corporate/image2.png',
+        }),
+        sustainability_banner: JSON.stringify({
+            title: 'Sustainability First',
+            subtitle: 'Every product tells a story of positive impact',
+            image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.05 PM.jpeg',
+        }),
+        export_banner: JSON.stringify({
+            title: 'Export & Compliance',
+            subtitle: 'Seamless global delivery with complete compliance',
+            image: '/images/new/WhatsApp Image 2025-12-27 at 6.17.08 PM (2).jpeg',
+        }),
+    },
+    hero: {
+        slides: JSON.stringify([
+            { title: 'ECOTOTE DUOPACK', subtitle: 'Sustainable Packaging', description: 'Reusable Cotton Tote + Compostable Inner Bag. Plastic-free packaging for fashion brands and exporters.', image: '/images/banner/baner5.png', badge: 'Premium. Sustainable. Zero-Waste.' },
+            { title: 'FLORAL ELEGANCE', subtitle: 'Premium Canvas Totes', description: 'Beautiful cream canvas tote bags featuring vibrant floral designs. Perfect blend of style and sustainability for your everyday needs.', image: '/images/banner/baner1.jpeg', badge: 'Elegant. Stylish. Sustainable.' },
+            { title: 'FIND JOY', subtitle: 'In The Ordinary', description: 'Light beige canvas tote with cheerful bee design. Spread positivity and joy with our beautifully crafted, eco-friendly tote bags.', image: '/images/banner/baner2.jpeg', badge: 'Joyful. Inspiring. Eco-Friendly.' },
+            { title: 'WATERCOLOR COLLECTION', subtitle: 'Artistic Designs', description: 'Stunning watercolor floral prints on premium canvas. Each tote is a work of art, combining functionality with beautiful aesthetics.', image: '/images/banner/baner3.jpeg', badge: 'Artistic. Unique. Premium.' },
+            { title: 'SUNFLOWER EMBROIDERED', subtitle: 'Handcrafted Excellence', description: 'Exquisite embroidered sunflower design on natural canvas. Handcrafted with attention to detail for a truly special tote bag.', image: '/images/banner/baner4.jpeg', badge: 'Handcrafted. Detailed. Special.' },
+        ]),
+    },
+};
+async function migrateContentImages() {
+    for (const [sectionKey, fields] of Object.entries(IMAGE_MIGRATIONS)) {
+        const [rows] = await pool.execute('SELECT id, content FROM content_sections WHERE section_key = ?', [sectionKey]);
+        if (!rows || rows.length === 0)
+            continue;
+        const row = rows[0];
+        let content;
+        try {
+            content = typeof row.content === 'string' ? JSON.parse(row.content) : row.content;
+        }
+        catch {
+            continue;
+        }
+        let changed = false;
+        for (const [field, defaultVal] of Object.entries(fields)) {
+            if (field === 'slides') {
+                const raw = content[field];
+                let parsed = raw;
+                if (typeof raw === 'string') {
+                    try {
+                        parsed = JSON.parse(raw);
+                    }
+                    catch {
+                        parsed = null;
+                    }
+                }
+                if (!Array.isArray(parsed) || parsed.length === 0) {
+                    content[field] = JSON.parse(defaultVal);
+                    changed = true;
+                }
+                continue;
+            }
+            if (content[field] === undefined || content[field] === null) {
+                content[field] = defaultVal;
+                changed = true;
+            }
+        }
+        if (changed) {
+            await pool.execute('UPDATE content_sections SET content = ? WHERE id = ?', [JSON.stringify(content), row.id]);
+        }
+    }
+}
+async function migrateEcototeDuopackSpecs() {
+    const OUTER_DEFAULT = {
+        title: 'Outer Bag',
+        material: '100% cotton, 180 GSM',
+        size: 'available in customized size',
+        printing: 'Water-based (1–3 colors)',
+        certification: 'GOTS compliant',
+    };
+    const INNER_DEFAULT = {
+        title: 'Inner Bag',
+        material: 'PLA/PBAT blend',
+        size: 'available in customized size',
+        finish: 'Transparent or frosted',
+        certification: 'ISO/IEC17025, ASTM D6866',
+    };
+    const mergeNested = (def, cur) => ({
+        ...def,
+        ...(cur && typeof cur === 'object' && !Array.isArray(cur) ? cur : {}),
+    });
+    const [rows] = await pool.execute('SELECT id, content FROM content_sections WHERE section_key = ?', ['ecotote_duopack']);
+    if (!rows || rows.length === 0)
+        return;
+    const row = rows[0];
+    let content;
+    try {
+        content = typeof row.content === 'string' ? JSON.parse(row.content) : row.content;
+    }
+    catch {
+        return;
+    }
+    const next = {
+        ...content,
+        outer_bag: mergeNested(OUTER_DEFAULT, content.outer_bag),
+        inner_bag: mergeNested(INNER_DEFAULT, content.inner_bag),
+    };
+    if (JSON.stringify(next) !== JSON.stringify(content)) {
+        await pool.execute('UPDATE content_sections SET content = ? WHERE id = ?', [
+            JSON.stringify(next),
+            row.id,
         ]);
     }
 }
@@ -310,7 +539,7 @@ router.post('/products', auth_1.authenticateToken, upload.any(), async (req, res
             return res.status(400).json({ error: 'Name, category, and description are required' });
         }
         const rawFiles = req.files;
-        const files = Array.isArray(rawFiles) ? rawFiles.slice(0, 3) : [];
+        const files = Array.isArray(rawFiles) ? rawFiles.slice(0, MAX_PRODUCT_IMAGES) : [];
         const urls = Array.isArray(files) && files.length > 0
             ? files.map((f) => `/uploads/${f.filename}`)
             : [];
@@ -318,6 +547,7 @@ router.post('/products', auth_1.authenticateToken, upload.any(), async (req, res
         const gallery_images = JSON.stringify(urls);
         const specsStr = normalizeSpecifications(specifications);
         const isFeatured = is_featured === 'true' || is_featured === true;
+        const productId = (0, crypto_1.randomUUID)();
         const baseParams = [
             String(name),
             String(category),
@@ -331,15 +561,14 @@ router.post('/products', auth_1.authenticateToken, upload.any(), async (req, res
             specsStr,
             isFeatured
         ];
-        let result;
         try {
-            [result] = await pool.execute(`INSERT INTO products (name, category, description, material, print_type, packaging, moq, price, image_url, gallery_images, specifications, is_featured, is_active) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`, [baseParams[0], baseParams[1], baseParams[2], baseParams[3], baseParams[4], baseParams[5], baseParams[6], baseParams[7], baseParams[8], gallery_images, baseParams[9], baseParams[10]]);
+            await pool.execute(`INSERT INTO products (id, name, category, description, material, print_type, packaging, moq, price, image_url, gallery_images, specifications, is_featured, is_active) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`, [productId, baseParams[0], baseParams[1], baseParams[2], baseParams[3], baseParams[4], baseParams[5], baseParams[6], baseParams[7], baseParams[8], gallery_images, baseParams[9], baseParams[10]]);
         }
         catch (insertErr) {
             if (insertErr?.code === 'ER_BAD_FIELD_ERROR' && insertErr?.sqlMessage?.includes('gallery_images')) {
-                [result] = await pool.execute(`INSERT INTO products (name, category, description, material, print_type, packaging, moq, price, image_url, specifications, is_featured, is_active) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`, baseParams);
+                await pool.execute(`INSERT INTO products (id, name, category, description, material, print_type, packaging, moq, price, image_url, specifications, is_featured, is_active) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`, [productId, ...baseParams]);
             }
             else {
                 throw insertErr;
@@ -347,7 +576,7 @@ router.post('/products', auth_1.authenticateToken, upload.any(), async (req, res
         }
         res.status(201).json({
             message: 'Product created successfully',
-            id: result.insertId
+            id: productId
         });
     }
     catch (error) {
@@ -383,7 +612,7 @@ router.put('/products/:id', auth_1.authenticateToken, upload.any(), async (req, 
             is_featured === 'true' || is_featured === true
         ];
         const rawFiles = req.files;
-        const files = Array.isArray(rawFiles) ? rawFiles.slice(0, 3) : [];
+        const files = Array.isArray(rawFiles) ? rawFiles.slice(0, MAX_PRODUCT_IMAGES) : [];
         if (Array.isArray(files) && files.length > 0) {
             const urls = files.map((f) => `/uploads/${f.filename}`);
             updateQuery += ', image_url = ?, gallery_images = ?';
@@ -432,6 +661,26 @@ router.put('/inquiries/:id', auth_1.authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Failed to update inquiry' });
     }
 });
+async function deleteInquiryHandler(req, res) {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ error: 'Missing inquiry id' });
+        }
+        const [result] = await pool.execute('DELETE FROM inquiries WHERE id = ?', [id]);
+        const affected = result.affectedRows;
+        if (affected === 0) {
+            return res.status(404).json({ error: 'Inquiry not found' });
+        }
+        res.json({ message: 'Inquiry deleted successfully' });
+    }
+    catch (error) {
+        console.error('Error deleting inquiry:', error);
+        res.status(500).json({ error: 'Failed to delete inquiry' });
+    }
+}
+router.delete('/inquiries/:id', auth_1.authenticateToken, deleteInquiryHandler);
+router.post('/inquiries/:id/delete', auth_1.authenticateToken, deleteInquiryHandler);
 router.get('/content', auth_1.authenticateToken, async (req, res) => {
     try {
         await ensureDefaultContentSections();
@@ -453,6 +702,19 @@ router.put('/content/:id', auth_1.authenticateToken, async (req, res) => {
     catch (error) {
         console.error('Error updating content:', error);
         res.status(500).json({ error: 'Failed to update content' });
+    }
+});
+router.post('/content/upload-image', auth_1.authenticateToken, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No image file provided' });
+        }
+        const url = `/uploads/${req.file.filename}`;
+        res.json({ url });
+    }
+    catch (error) {
+        console.error('Error uploading content image:', error);
+        res.status(500).json({ error: 'Failed to upload image' });
     }
 });
 async function ensureChatbotSettingsTable() {
