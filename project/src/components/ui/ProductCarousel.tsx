@@ -2,14 +2,17 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { Product, resolveMediaUrl } from '../../lib/api';
+import { htmlToPlainText } from '../../lib/productDescriptionHtml';
 
 interface ProductCarouselProps {
   products: Product[];
   onRequestSample: () => void;
 }
 
+const AUTOPLAY_MS = 4500;
+
 export default function ProductCarousel({ products, onRequestSample }: ProductCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [pageIndex, setPageIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   // Show 4 products at a time on desktop, 2 on tablet, 1 on mobile
@@ -34,30 +37,38 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
   }, []);
 
   useEffect(() => {
-    if (!isAutoPlaying || products.length <= itemsPerView) return;
+    setPageIndex(0);
+  }, [products]);
+
+  const maxStart = Math.max(0, products.length - itemsPerView);
+  const numPages =
+    products.length <= itemsPerView ? 1 : Math.ceil(products.length / itemsPerView);
+  const startIndex = Math.min(pageIndex * itemsPerView, maxStart);
+
+  useEffect(() => {
+    setPageIndex((p) => Math.min(p, Math.max(0, numPages - 1)));
+  }, [itemsPerView, products.length, numPages]);
+
+  useEffect(() => {
+    if (!isAutoPlaying || products.length <= itemsPerView || numPages <= 1) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        const maxIndex = Math.max(0, products.length - itemsPerView);
-        return prevIndex >= maxIndex ? 0 : prevIndex + 1;
-      });
-    }, 4000);
+      setPageIndex((prev) => (prev + 1) % numPages);
+    }, AUTOPLAY_MS);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, products.length, itemsPerView]);
+  }, [isAutoPlaying, products.length, itemsPerView, numPages]);
 
   const nextSlide = () => {
-    const maxIndex = Math.max(0, products.length - itemsPerView);
-    setCurrentIndex((prevIndex) => (prevIndex >= maxIndex ? 0 : prevIndex + 1));
+    setPageIndex((prev) => (prev + 1) % numPages);
   };
 
   const prevSlide = () => {
-    const maxIndex = Math.max(0, products.length - itemsPerView);
-    setCurrentIndex((prevIndex) => (prevIndex <= 0 ? maxIndex : prevIndex - 1));
+    setPageIndex((prev) => (prev <= 0 ? numPages - 1 : prev - 1));
   };
 
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
+  const goToPage = (page: number) => {
+    setPageIndex(Math.max(0, Math.min(page, numPages - 1)));
   };
 
   if (products.length === 0) {
@@ -71,12 +82,14 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
     );
   }
 
-  const maxIndex = Math.max(0, products.length - itemsPerView);
   const showNavigation = products.length > itemsPerView;
+  // % is relative to the flex row width; skip startIndex of n products => scroll (startIndex/n) of row.
+  const translateXPercent =
+    products.length > 0 ? (startIndex / products.length) * 100 : 0;
 
   return (
-    <div 
-      className="relative"
+    <div
+      className="relative py-6 sm:py-8 md:py-10"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
@@ -106,16 +119,19 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
         </>
       )}
 
-      {/* Products Container - Carousel */}
-      <div className="overflow-hidden">
-        <div 
+      {/* Horizontal clip only — vertical room for scale, ring-offset, shadow, hover lift */}
+      <div className="overflow-x-hidden overflow-y-visible">
+        <div
           className="flex transition-transform duration-500 ease-in-out"
           style={{ 
-            transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
+            transform: `translateX(-${translateXPercent}%)`,
             width: `${(products.length / itemsPerView) * 100}%`
           }}
         >
-          {products.map((product) => {
+          {products.map((product, productIndex) => {
+            const isInActiveSlide =
+              productIndex >= startIndex &&
+              productIndex < startIndex + itemsPerView;
             return (
               <div
                 key={product.id}
@@ -124,7 +140,11 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
               >
                 <Link to={`/products/${product.id}`} className="block">
                   <div
-                    className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 h-[500px] flex flex-col group cursor-pointer"
+                    className={`relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 ease-out transform hover:-translate-y-2 h-[460px] sm:h-[500px] lg:h-[540px] flex flex-col group cursor-pointer ${
+                      isInActiveSlide
+                        ? 'ring-[3px] ring-[var(--beige-500)] ring-offset-2 ring-offset-[var(--beige-100)] scale-[1.02] z-[1] shadow-xl'
+                        : 'ring-0 ring-offset-0 scale-100'
+                    }`}
                   >
                   {/* Background Image */}
                   <div className="absolute inset-0">
@@ -158,7 +178,7 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
                     {/* Description - Hidden by default, appears on hover */}
                     <div className="overflow-hidden">
                       <p className="text-white/90 text-sm sm:text-base mb-4 drop-shadow-md leading-relaxed transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100 max-h-0 group-hover:max-h-32">
-                        {product.description}
+                        {htmlToPlainText(product.description)}
                       </p>
                     </div>
 
@@ -187,20 +207,21 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
         </div>
       </div>
 
-      {/* Dots Indicator */}
-      {showNavigation && (
-        <div className="flex justify-center mt-8 space-x-2">
-          {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+      {/* Dots: one per full page (e.g. 16 products @ 4-wide = 4 dots) */}
+      {showNavigation && numPages > 1 && (
+        <div className="flex justify-center mt-10 sm:mt-12 space-x-2">
+          {Array.from({ length: numPages }).map((_, index) => (
             <button
               key={index}
-              onClick={() => goToSlide(index)}
+              type="button"
+              onClick={() => goToPage(index)}
               className={`w-3 h-3 rounded-full transition-all duration-300 beige-border ${
-                index === currentIndex
+                index === pageIndex
                   ? 'scale-110'
                   : 'opacity-50 hover:opacity-80'
               }`}
-              style={index === currentIndex ? {backgroundColor: 'var(--beige-600)', borderColor: 'var(--beige-400)'} : {backgroundColor: 'var(--beige-300)', borderColor: 'var(--beige-400)'}}
-              aria-label={`Go to slide ${index + 1}`}
+              style={index === pageIndex ? {backgroundColor: 'var(--beige-600)', borderColor: 'var(--beige-400)'} : {backgroundColor: 'var(--beige-300)', borderColor: 'var(--beige-400)'}}
+              aria-label={`Go to page ${index + 1} of ${numPages}`}
             />
           ))}
         </div>

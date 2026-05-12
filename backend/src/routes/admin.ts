@@ -1,4 +1,5 @@
 import express from 'express';
+import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
@@ -10,6 +11,8 @@ import { getSmtpSettingsForAdmin, saveSmtpSettings } from '../services/smtpConfi
 import { sendSmtpTestEmail } from '../services/email';
 
 const router = express.Router();
+/** Max gallery files accepted per create/update product request. */
+const MAX_PRODUCT_IMAGES = 10;
 const DEFAULT_ADMIN_USERNAME = process.env.DEFAULT_ADMIN_USERNAME || 'abhishek.deolalikar@gmail.com';
 const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || 'admin@Cottonunique2026';
 
@@ -183,6 +186,20 @@ const DEFAULT_CONTENT_SECTIONS: SeedContentSection[] = [
         "We provide lower than industry standard MOQ's to help test markets and refine products at competitive prices.",
       cta: 'Request Quote for EcoTote DuoPack',
       image: '/images/banner/d.png',
+      outer_bag: {
+        title: 'Outer Bag',
+        material: '100% cotton, 180 GSM',
+        size: 'available in customized size',
+        printing: 'Water-based (1–3 colors)',
+        certification: 'GOTS compliant',
+      },
+      inner_bag: {
+        title: 'Inner Bag',
+        material: 'PLA/PBAT blend',
+        size: 'available in customized size',
+        finish: 'Transparent or frosted',
+        certification: 'ISO/IEC17025, ASTM D6866',
+      },
     },
     is_active: true,
   },
@@ -323,6 +340,7 @@ async function ensureDefaultContentSections() {
   }
   // Migrate existing rows: inject missing image fields without overwriting existing ones
   await migrateContentImages();
+  await migrateEcototeDuopackSpecs();
 }
 
 // Image fields to inject per section if missing
@@ -390,8 +408,24 @@ async function migrateContentImages() {
     } catch { continue; }
     let changed = false;
     for (const [field, defaultVal] of Object.entries(fields)) {
+      if (field === 'slides') {
+        const raw = content[field];
+        let parsed: unknown = raw;
+        if (typeof raw === 'string') {
+          try {
+            parsed = JSON.parse(raw);
+          } catch {
+            parsed = null;
+          }
+        }
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+          content[field] = JSON.parse(defaultVal as string);
+          changed = true;
+        }
+        continue;
+      }
       if (content[field] === undefined || content[field] === null) {
-        content[field] = field === 'slides' ? JSON.parse(defaultVal as string) : defaultVal;
+        content[field] = defaultVal;
         changed = true;
       }
     }
@@ -401,6 +435,51 @@ async function migrateContentImages() {
         [JSON.stringify(content), row.id]
       );
     }
+  }
+}
+
+async function migrateEcototeDuopackSpecs() {
+  const OUTER_DEFAULT: Record<string, string> = {
+    title: 'Outer Bag',
+    material: '100% cotton, 180 GSM',
+    size: 'available in customized size',
+    printing: 'Water-based (1–3 colors)',
+    certification: 'GOTS compliant',
+  };
+  const INNER_DEFAULT: Record<string, string> = {
+    title: 'Inner Bag',
+    material: 'PLA/PBAT blend',
+    size: 'available in customized size',
+    finish: 'Transparent or frosted',
+    certification: 'ISO/IEC17025, ASTM D6866',
+  };
+  const mergeNested = (def: Record<string, string>, cur: unknown): Record<string, string> => ({
+    ...def,
+    ...(cur && typeof cur === 'object' && !Array.isArray(cur) ? (cur as Record<string, string>) : {}),
+  });
+
+  const [rows] = await pool.execute(
+    'SELECT id, content FROM content_sections WHERE section_key = ?',
+    ['ecotote_duopack']
+  ) as any[];
+  if (!rows || rows.length === 0) return;
+  const row = rows[0];
+  let content: Record<string, unknown>;
+  try {
+    content = typeof row.content === 'string' ? JSON.parse(row.content) : row.content;
+  } catch {
+    return;
+  }
+  const next = {
+    ...content,
+    outer_bag: mergeNested(OUTER_DEFAULT, content.outer_bag),
+    inner_bag: mergeNested(INNER_DEFAULT, content.inner_bag),
+  };
+  if (JSON.stringify(next) !== JSON.stringify(content)) {
+    await pool.execute('UPDATE content_sections SET content = ? WHERE id = ?', [
+      JSON.stringify(next),
+      row.id,
+    ]);
   }
 }
 
@@ -498,7 +577,7 @@ function normalizeSpecifications(specifications: unknown): string {
   }
 }
 
-// Create new product (up to 3 images). Accept both "image" and "images" field names.
+// Create new product (up to MAX_PRODUCT_IMAGES gallery files). Accept both "image" and "images" field names.
 router.post('/products', authenticateToken, upload.any(), async (req: AuthRequest, res) => {
   try {
     const body = req.body || {};
@@ -509,7 +588,7 @@ router.post('/products', authenticateToken, upload.any(), async (req: AuthReques
     }
 
     const rawFiles = (req as any).files as Express.Multer.File[] | undefined;
-    const files = Array.isArray(rawFiles) ? rawFiles.slice(0, 3) : [];
+    const files = Array.isArray(rawFiles) ? rawFiles.slice(0, MAX_PRODUCT_IMAGES) : [];
     const urls = Array.isArray(files) && files.length > 0
       ? files.map((f) => `/uploads/${f.filename}`)
       : [];
@@ -518,6 +597,7 @@ router.post('/products', authenticateToken, upload.any(), async (req: AuthReques
 
     const specsStr = normalizeSpecifications(specifications);
     const isFeatured = is_featured === 'true' || is_featured === true;
+    const productId = randomUUID();
 
     const baseParams = [
       String(name),
@@ -533,19 +613,18 @@ router.post('/products', authenticateToken, upload.any(), async (req: AuthReques
       isFeatured
     ];
 
-    let result: any;
     try {
-      [result] = await pool.execute(
-        `INSERT INTO products (name, category, description, material, print_type, packaging, moq, price, image_url, gallery_images, specifications, is_featured, is_active) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-        [baseParams[0], baseParams[1], baseParams[2], baseParams[3], baseParams[4], baseParams[5], baseParams[6], baseParams[7], baseParams[8], gallery_images, baseParams[9], baseParams[10]]
+      await pool.execute(
+        `INSERT INTO products (id, name, category, description, material, print_type, packaging, moq, price, image_url, gallery_images, specifications, is_featured, is_active) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+        [productId, baseParams[0], baseParams[1], baseParams[2], baseParams[3], baseParams[4], baseParams[5], baseParams[6], baseParams[7], baseParams[8], gallery_images, baseParams[9], baseParams[10]]
       );
     } catch (insertErr: any) {
       if (insertErr?.code === 'ER_BAD_FIELD_ERROR' && insertErr?.sqlMessage?.includes('gallery_images')) {
-        [result] = await pool.execute(
-          `INSERT INTO products (name, category, description, material, print_type, packaging, moq, price, image_url, specifications, is_featured, is_active) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-          baseParams
+        await pool.execute(
+          `INSERT INTO products (id, name, category, description, material, print_type, packaging, moq, price, image_url, specifications, is_featured, is_active) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+          [productId, ...baseParams]
         );
       } else {
         throw insertErr;
@@ -554,7 +633,7 @@ router.post('/products', authenticateToken, upload.any(), async (req: AuthReques
 
     res.status(201).json({
       message: 'Product created successfully',
-      id: (result as any).insertId
+      id: productId
     });
   } catch (error: any) {
     console.error('Error creating product:', error);
@@ -566,7 +645,7 @@ router.post('/products', authenticateToken, upload.any(), async (req: AuthReques
   }
 });
 
-// Update product (up to 3 images). Accept both "image" and "images" field names.
+// Update product (up to MAX_PRODUCT_IMAGES gallery files). Accept both "image" and "images" field names.
 router.put('/products/:id', authenticateToken, upload.any(), async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
@@ -595,7 +674,7 @@ router.put('/products/:id', authenticateToken, upload.any(), async (req: AuthReq
     ];
 
     const rawFiles = (req as any).files as Express.Multer.File[] | undefined;
-    const files = Array.isArray(rawFiles) ? rawFiles.slice(0, 3) : [];
+    const files = Array.isArray(rawFiles) ? rawFiles.slice(0, MAX_PRODUCT_IMAGES) : [];
     if (Array.isArray(files) && files.length > 0) {
       const urls = files.map((f) => `/uploads/${f.filename}`);
       updateQuery += ', image_url = ?, gallery_images = ?';
@@ -659,10 +738,13 @@ router.put('/inquiries/:id', authenticateToken, async (req: AuthRequest, res) =>
   }
 });
 
-// Delete inquiry
-router.delete('/inquiries/:id', authenticateToken, async (req: AuthRequest, res) => {
+// Delete inquiry (DELETE for standards-compliant clients; POST for hosts that block DELETE)
+async function deleteInquiryHandler(req: AuthRequest, res: express.Response) {
   try {
     const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'Missing inquiry id' });
+    }
     const [result] = await pool.execute('DELETE FROM inquiries WHERE id = ?', [id]);
     const affected = (result as ResultSetHeader).affectedRows;
     if (affected === 0) {
@@ -673,7 +755,10 @@ router.delete('/inquiries/:id', authenticateToken, async (req: AuthRequest, res)
     console.error('Error deleting inquiry:', error);
     res.status(500).json({ error: 'Failed to delete inquiry' });
   }
-});
+}
+
+router.delete('/inquiries/:id', authenticateToken, deleteInquiryHandler);
+router.post('/inquiries/:id/delete', authenticateToken, deleteInquiryHandler);
 
 // Get content sections
 router.get('/content', authenticateToken, async (req: AuthRequest, res) => {

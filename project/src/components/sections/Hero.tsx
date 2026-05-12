@@ -96,10 +96,10 @@ export default function Hero() {
   };
 
   return (
-    <section id="home" className="relative min-h-[60vh] sm:min-h-[70vh] flex items-center pt-20 overflow-hidden">
-      {/* Carousel Container - Full Width */}
-      <div 
-        className="relative w-full h-[60vh] min-h-[380px] sm:min-h-[500px] sm:h-[70vh] max-h-[700px]"
+    <section id="home" className="relative w-full max-w-[100vw] flex flex-col overflow-hidden pt-20">
+      {/* Shorter band; mobile height uses svh + caps so the image fills this box edge-to-edge */}
+      <div
+        className="relative isolate w-full min-h-[260px] h-[38svh] max-h-[340px] sm:min-h-[300px] sm:h-[42svh] sm:max-h-[400px] md:min-h-[320px] md:h-[46svh] md:max-h-[460px] lg:h-[min(48vh,32rem)] lg:max-h-[500px]"
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
@@ -116,17 +116,13 @@ export default function Hero() {
             }`}
           >
             {/* Full Width Background Image */}
-            <div className="absolute inset-0 w-full h-full overflow-hidden" style={{backgroundColor: 'var(--beige-100)'}}>
+            <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ backgroundColor: 'var(--beige-100)' }}>
               <img
                 src={resolveMediaUrl(slide.image)}
                 alt={`${slide.title} - ${slide.subtitle}. ${slide.description}`}
-                className="w-full h-full"
-                style={{ 
-                  objectFit: 'cover',
-                  objectPosition: 'center center',
-                  width: '100%',
-                  height: '100%'
-                }}
+                className="block h-full w-full min-h-0 object-cover object-center"
+                sizes="100vw"
+                decoding="async"
               />
               {/* Dark Overlay for Text Readability */}
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
@@ -134,35 +130,35 @@ export default function Hero() {
             </div>
 
             {/* Text Content Overlay */}
-            <div className="relative z-10 h-full flex items-center py-20">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                <div className="max-w-2xl space-y-10">
+            <div className="relative z-10 flex h-full min-h-0 items-center py-6 sm:py-12 md:py-16">
+              <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8">
+                <div className="max-w-2xl space-y-4 sm:space-y-6 md:space-y-8">
                   <div className="inline-flex items-center space-x-2 px-5 py-1.5 rounded-full text-xs font-medium animate-bounce-subtle soft-shadow bg-white/90 backdrop-blur-sm">
                     <Sparkles size={14} className="animate-spin-slow" style={{color: 'var(--beige-700)'}} aria-hidden />
                     <span style={{color: 'var(--beige-700)'}}>{slide.badge}</span>
                   </div>
 
-                  <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-white drop-shadow-lg" style={{fontFamily: 'var(--heading-font)'}}>
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold leading-tight text-white drop-shadow-lg" style={{fontFamily: 'var(--heading-font)'}}>
                     {slide.title}{' '}
                     <span className="block mt-2 text-white/95">
                       {slide.subtitle}
                     </span>
                   </h1>
 
-                  <p className="text-sm sm:text-base lg:text-lg leading-relaxed font-normal text-white/90 drop-shadow-md max-w-xl" style={{fontFamily: 'var(--body-font)'}}>
+                  <p className="line-clamp-3 text-xs sm:text-base lg:text-lg leading-relaxed font-normal text-white/90 drop-shadow-md max-w-xl sm:line-clamp-none" style={{fontFamily: 'var(--body-font)'}}>
                     {slide.description}
                   </p>
-                  <div className="flex flex-wrap gap-3 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-1 sm:gap-3 sm:pt-2">
                     <a
                       href="/#contact"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded font-semibold text-sm transition-all duration-200 bg-white text-[#78350F] hover:bg-[var(--beige-100)] shadow-lg"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 rounded font-semibold text-xs sm:text-sm transition-all duration-200 bg-white text-[#78350F] hover:bg-[var(--beige-100)] shadow-lg"
                       style={{ fontFamily: 'var(--heading-font)' }}
                     >
                       {String(heroContent.cta_primary || heroContentFallback.cta_primary)}
                     </a>
                     <a
                       href="/#products"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded font-semibold text-sm transition-all duration-200 border-2 border-white text-white hover:bg-white/10"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 rounded font-semibold text-xs sm:text-sm transition-all duration-200 border-2 border-white text-white hover:bg-white/10"
                       style={{ fontFamily: 'var(--heading-font)' }}
                     >
                       {String(heroContent.cta_secondary || heroContentFallback.cta_secondary)}
@@ -191,7 +187,7 @@ export default function Hero() {
         </button>
 
         {/* Slide Indicators */}
-        <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex space-x-2 sm:space-x-3 z-30">
+        <div className="absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 space-x-2 sm:bottom-6 sm:space-x-3">
           {slides.map((_, index) => (
             <button
               key={index}

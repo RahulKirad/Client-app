@@ -122,7 +122,11 @@ class ApiClient {
   }
 
   async getProduct(id: string): Promise<Product> {
-    const data = await this.request<Record<string, unknown>>(`/products/${id}`);
+    const trimmed = String(id ?? '').trim();
+    if (!trimmed) {
+      throw new Error('Invalid product');
+    }
+    const data = await this.request<Record<string, unknown>>(`/products/${encodeURIComponent(trimmed)}`);
     const list = normalizeProducts([data]);
     if (!list.length) throw new Error('Product not found');
     return list[0];

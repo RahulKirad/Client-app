@@ -12,6 +12,17 @@ const productsHomeFallback = {
   cta_secondary: 'Request Samples',
 };
 
+const HOME_CAROUSEL_COUNT = 16;
+
+function shuffleInPlace<T>(items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default function Products() {
   const sectionContent = useManagedSectionContent('products_home', productsHomeFallback);
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,8 +34,10 @@ export default function Products() {
 
   const fetchProducts = async () => {
     try {
-      const data = await apiClient.getFeaturedProducts();
-      setProducts(normalizeProducts(Array.isArray(data) ? data : []).slice(0, 8));
+      const data = await apiClient.getProducts();
+      const normalized = normalizeProducts(Array.isArray(data) ? data : []);
+      const randomSubset = shuffleInPlace(normalized).slice(0, HOME_CAROUSEL_COUNT);
+      setProducts(randomSubset);
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
@@ -41,9 +54,9 @@ export default function Products() {
   };
 
   return (
-    <section id="products" className="pt-4 pb-20">
+    <section id="products" className="pt-4 pb-24 sm:pb-28">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 sm:mb-14">
           <h2 className="heading-h2 text-4xl sm:text-5xl lg:text-6xl mb-4 text-center" style={{color: 'var(--heading-color)'}}>
             {String(sectionContent.heading || productsHomeFallback.heading)}
           </h2>
@@ -59,7 +72,7 @@ export default function Products() {
         ) : (
           <>
             {/* Product Carousel */}
-            <div className="mb-12">
+            <div className="mb-14 sm:mb-16">
               <ProductCarousel 
                 products={products} 
                 onRequestSample={scrollToContact}

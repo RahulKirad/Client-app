@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Package, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { apiClient, Product, resolveMediaUrl } from '../lib/api';
+import ExpandableRichProductDescription from '../components/ExpandableRichProductDescription';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -15,8 +16,9 @@ export default function ProductDetailPage() {
   const [showImageFrame, setShowImageFrame] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [zoomCursor, setZoomCursor] = useState<'default' | 'in' | 'out'>('default');
-  const [showFullViewerDescription, setShowFullViewerDescription] = useState(false);
   const viewerImageWrapRef = useRef<HTMLDivElement | null>(null);
+  const thumbBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const modalThumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [viewerImageNatural, setViewerImageNatural] = useState({ w: 0, h: 0 });
   const [scan, setScan] = useState<{ active: boolean; x: number; y: number }>({ active: false, x: 0, y: 0 });
 
@@ -74,6 +76,23 @@ export default function ProductDetailPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [showImageFrame]);
 
+  useEffect(() => {
+    thumbBtnRefs.current[selectedImageIndex]?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    });
+  }, [selectedImageIndex]);
+
+  useEffect(() => {
+    if (!showImageFrame) return;
+    modalThumbRefs.current[selectedImageIndex]?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    });
+  }, [selectedImageIndex, showImageFrame]);
+
   const scrollToContact = () => {
     navigate('/#contact');
   };
@@ -119,7 +138,7 @@ export default function ProductDetailPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <main className="pt-20 pb-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link
             to="/products#products-list"
             className="inline-flex items-center gap-2 text-sm font-semibold mb-8 transition-colors hover:opacity-80"
@@ -129,36 +148,14 @@ export default function ProductDetailPage() {
             Back to products
           </Link>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
-            {/* Thumbnails on left (desktop) / below (mobile) + main image */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              {imageList.length > 1 && (
-                <div className="flex flex-row sm:flex-col gap-2 flex-shrink-0 sm:order-1 order-2 justify-center sm:justify-start">
-                  {imageList.map((url, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setSelectedImageIndex(i)}
-                      className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 bg-gray-100 flex-shrink-0 transition-all ${
-                        selectedImageIndex === i
-                          ? 'border-slate-800 ring-2 ring-slate-400 ring-offset-2'
-                          : 'border-slate-200 hover:border-slate-400'
-                      }`}
-                    >
-                      <img
-                        src={resolveMediaUrl(url)}
-                        alt={`${product.name} view ${i + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="relative flex-1 min-w-0 rounded-2xl overflow-hidden shadow-lg bg-gray-100 aspect-square max-h-[600px] lg:max-h-none group sm:order-2 order-1">
-                {/* Main image (hover scan) */}
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-start gap-10 lg:gap-14">
+            {/* Main image + horizontal thumbnail carousel below */}
+            <div className="flex flex-col gap-5 w-full max-w-xl sm:max-w-2xl lg:max-w-none mx-auto lg:mx-0 self-start">
+              <div className="relative w-full rounded-2xl overflow-hidden shadow-xl bg-gray-100 aspect-square min-h-[min(100vw-2rem,340px)] max-h-[min(720px,92vw)] sm:min-h-[400px] sm:max-h-[720px] group">
+                {/* Main image (hover scan) — fixed aspect; height does not track description column */}
                 <div
                   ref={viewerImageWrapRef}
-                  className="relative h-full w-full bg-gray-100 overflow-hidden cursor-pointer"
+                  className="absolute inset-0 bg-gray-100 overflow-hidden cursor-pointer"
                   onMouseEnter={() => setScan((s) => ({ ...s, active: true }))}
                   onMouseLeave={() => setScan((s) => ({ ...s, active: false }))}
                   onMouseMove={(e) => {
@@ -197,7 +194,6 @@ export default function ProductDetailPage() {
                   onClick={() => {
                     setZoom(1);
                     setZoomCursor('default');
-                    setShowFullViewerDescription(false);
                     setShowImageFrame(true);
                   }}
                   title="Click to open image viewer"
@@ -260,34 +256,66 @@ export default function ProductDetailPage() {
                     })()
                   ) : null}
                 </div>
-                {imageList.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedImageIndex((i) => (i <= 0 ? imageList.length - 1 : i - 1))}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center text-slate-700 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      aria-label="Previous image"
-                    >
-                      <ChevronLeft size={24} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedImageIndex((i) => (i >= imageList.length - 1 ? 0 : i + 1))}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center text-slate-700 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      aria-label="Next image"
-                    >
-                      <ChevronRight size={24} />
-                    </button>
-                  </>
-                )}
               </div>
+
+              {imageList.length > 1 ? (
+                <div className="flex items-center gap-2 sm:gap-3 w-full">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedImageIndex((i) => (i <= 0 ? imageList.length - 1 : i - 1))
+                    }
+                    className="flex-shrink-0 inline-flex h-11 w-11 sm:h-12 sm:w-12 touch-manipulation items-center justify-center rounded-full border-2 bg-white shadow-md text-slate-800 transition hover:bg-slate-50"
+                    style={{ borderColor: 'var(--beige-400)' }}
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="h-6 w-6" strokeWidth={2.25} />
+                  </button>
+                  <div className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain py-1 [scrollbar-width:thin]">
+                    <div className="flex flex-row gap-2 sm:gap-3 justify-center sm:justify-start min-w-min px-1">
+                      {imageList.map((url, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          ref={(el) => {
+                            thumbBtnRefs.current[i] = el;
+                          }}
+                          onClick={() => setSelectedImageIndex(i)}
+                          className={`h-[4.5rem] w-[4.5rem] sm:h-24 sm:w-24 flex-shrink-0 rounded-xl overflow-hidden border-2 bg-gray-100 transition-all ${
+                            selectedImageIndex === i
+                              ? 'border-slate-800 ring-2 ring-slate-400 ring-offset-2 scale-[1.02]'
+                              : 'border-slate-200 hover:border-slate-400'
+                          }`}
+                        >
+                          <img
+                            src={resolveMediaUrl(url)}
+                            alt={`${product.name} view ${i + 1}`}
+                            className="h-full w-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedImageIndex((i) => (i >= imageList.length - 1 ? 0 : i + 1))
+                    }
+                    className="flex-shrink-0 inline-flex h-11 w-11 sm:h-12 sm:w-12 touch-manipulation items-center justify-center rounded-full border-2 bg-white shadow-md text-slate-800 transition hover:bg-slate-50"
+                    style={{ borderColor: 'var(--beige-400)' }}
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="h-6 w-6" strokeWidth={2.25} />
+                  </button>
+                </div>
+              ) : null}
             </div>
 
             {/* Details */}
             <div>
               {scan.active && viewerImageNatural.w > 0 && viewerImageNatural.h > 0 && viewerImageWrapRef.current ? (
                 <div className="hidden lg:block w-full rounded-2xl overflow-hidden shadow-lg bg-black/90 border border-black/10">
-                  <div className="relative h-[600px] w-full">
+                  <div className="relative h-[720px] w-full">
                     {(() => {
                       const wrap = viewerImageWrapRef.current!;
                       const rect = wrap.getBoundingClientRect();
@@ -349,12 +377,10 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Full description */}
-              <div className="prose prose-slate max-w-none mb-8">
+              {/* Full description (clamp + Read more when long) */}
+              <div className="mb-8">
                 <h2 className="text-lg font-semibold text-slate-900 mb-2">Description</h2>
-                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {product.description}
-                </p>
+                <ExpandableRichProductDescription description={product.description} />
               </div>
 
               {/* Attributes */}
@@ -409,25 +435,25 @@ export default function ProductDetailPage() {
         </div>
       </main>
       {showImageFrame && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-black/80">
-          <div className="flex items-center justify-between px-4 py-3 sm:px-6 border-b border-black/40 bg-black/60">
-            <div className="text-sm sm:text-base font-medium text-white/90">
-              {product.name}
+        <div className="fixed inset-0 z-50 flex min-h-0 flex-col bg-black/90 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
+          {/* Toolbar: stacks on narrow phones, zoom row can scroll horizontally */}
+          <div className="flex shrink-0 flex-col gap-2 border-b border-white/10 bg-black/70 px-2 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-3">
+            <div className="min-w-0 text-sm font-medium text-white/95 sm:text-base">
+              <span className="line-clamp-2 sm:line-clamp-1">{product.name}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5 overflow-x-auto pb-0.5 [-webkit-overflow-scrolling:touch] sm:flex-none sm:gap-2 sm:pb-0 sm:overflow-visible">
               <button
                 type="button"
                 onClick={() => {
                   setZoomCursor('out');
                   setZoom((z) => Math.max(0.5, Math.round((z - 0.25) * 100) / 100));
                 }}
-                className="inline-flex items-center justify-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20"
+                className="inline-flex shrink-0 items-center justify-center rounded-full bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/20 sm:px-3"
                 aria-label="Zoom out"
               >
-                <ZoomOut className="h-4 w-4 mr-1" />
-                -
+                <ZoomOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
-              <span className="text-xs sm:text-sm font-semibold text-white/80 min-w-[3.5rem] text-center">
+              <span className="shrink-0 text-xs font-semibold tabular-nums text-white/85 sm:text-sm min-w-[2.75rem] text-center">
                 {Math.round(zoom * 100)}%
               </span>
               <button
@@ -436,11 +462,10 @@ export default function ProductDetailPage() {
                   setZoomCursor('in');
                   setZoom((z) => Math.min(4, Math.round((z + 0.25) * 100) / 100));
                 }}
-                className="inline-flex items-center justify-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20"
+                className="inline-flex shrink-0 items-center justify-center rounded-full bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/20 sm:px-3"
                 aria-label="Zoom in"
               >
-                <ZoomIn className="h-4 w-4 mr-1" />
-                +
+                <ZoomIn className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
               <button
                 type="button"
@@ -448,7 +473,7 @@ export default function ProductDetailPage() {
                   setZoom(1);
                   setZoomCursor('default');
                 }}
-                className="inline-flex items-center justify-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20"
+                className="inline-flex shrink-0 items-center justify-center rounded-full bg-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-white/20 sm:px-3 sm:text-xs"
                 aria-label="Reset view"
               >
                 Reset
@@ -459,89 +484,78 @@ export default function ProductDetailPage() {
                   setZoomCursor('default');
                   setShowImageFrame(false);
                 }}
-                className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/30"
+                className="ml-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/30 sm:ml-1 sm:h-8 sm:w-8"
                 aria-label="Close image view"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 sm:h-4 sm:w-4" />
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-hidden min-h-0">
-            <div className="h-full w-full px-4 pt-2 pb-4 sm:px-6 sm:pt-3 sm:pb-6 flex items-stretch justify-center">
-              <div className="h-full w-[96vw] max-w-7xl grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
-                {/* Main viewer (left) */}
-                <div className="min-w-0 h-full flex items-center justify-center">
-                  <div
-                    className={`h-full w-full rounded-xl border border-black/40 bg-black/90 flex items-center justify-center overflow-hidden ${
-                      zoomCursor === 'in' ? 'cursor-zoom-in' : zoomCursor === 'out' ? 'cursor-zoom-out' : 'cursor-default'
-                    }`}
-                    role="application"
-                    aria-label="Image viewer"
-                    onClick={() => {
-                      if (zoomCursor === 'in') {
-                        setZoom((z) => Math.min(4, Math.round((z + 0.25) * 100) / 100));
-                      } else if (zoomCursor === 'out') {
-                        setZoom((z) => Math.max(0.5, Math.round((z - 0.25) * 100) / 100));
-                      }
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="mx-auto flex w-full min-h-0 max-w-7xl flex-1 flex-col items-center gap-2 px-2 py-2 sm:gap-4 sm:px-4 sm:py-3 md:px-6">
+              {/* Main zoom image — height uses dynamic viewport so mobile browser chrome is handled */}
+              <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+                <div
+                  className={`flex max-h-[min(72dvh,calc(100dvh-9.5rem))] w-full max-w-6xl items-center justify-center overflow-hidden rounded-lg border border-white/20 bg-black/80 max-lg:landscape:!max-h-[min(56dvh,calc(100dvh-8.75rem))] sm:max-h-[min(78dvh,calc(100dvh-10.5rem))] sm:rounded-xl md:max-h-[min(82dvh,calc(100dvh-11rem))] ${
+                    zoomCursor === 'in' ? 'cursor-zoom-in' : zoomCursor === 'out' ? 'cursor-zoom-out' : 'cursor-default'
+                  }`}
+                  role="application"
+                  aria-label="Image viewer"
+                  onClick={() => {
+                    if (zoomCursor === 'in') {
+                      setZoom((z) => Math.min(4, Math.round((z + 0.25) * 100) / 100));
+                    } else if (zoomCursor === 'out') {
+                      setZoom((z) => Math.max(0.5, Math.round((z - 0.25) * 100) / 100));
+                    }
+                  }}
+                >
+                  <img
+                    src={mainImageUrl}
+                    alt={product.name}
+                    className="max-h-[min(72dvh,calc(100dvh-9.5rem))] max-w-full object-contain select-none max-lg:landscape:!max-h-[min(56dvh,calc(100dvh-8.75rem))] sm:max-h-[min(78dvh,calc(100dvh-10.5rem))] md:max-h-[min(82dvh,calc(100dvh-11rem))]"
+                    draggable={false}
+                    style={{
+                      transform: `scale(${zoom})`,
+                      transformOrigin: 'center center',
+                      transition: 'transform 120ms ease-out',
                     }}
-                  >
-                    <img
-                      src={mainImageUrl}
-                      alt={product.name}
-                      className="h-full w-full object-contain select-none"
-                      draggable={false}
-                      style={{
-                        transform: `scale(${zoom})`,
-                        transformOrigin: 'center center',
-                        transition: 'transform 120ms ease-out',
-                      }}
-                    />
-                  </div>
+                  />
                 </div>
+              </div>
 
-                {/* Thumbnails / info (right) */}
-                <aside className="h-full rounded-xl border border-black/40 bg-white overflow-hidden flex flex-col">
-                  <div className="px-4 py-3 border-b border-slate-200">
-                    <p className="text-sm font-semibold text-slate-900 line-clamp-2">{product.name}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Click a thumbnail to view</p>
-                    {product.description ? (
-                      <div className="mt-3 rounded-lg bg-slate-50 border border-slate-200 p-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-xs font-semibold text-slate-700">Description</p>
-                          <button
-                            type="button"
-                            onClick={() => setShowFullViewerDescription((v) => !v)}
-                            className="text-xs font-semibold text-emerald-700 hover:text-emerald-900"
-                          >
-                            {showFullViewerDescription ? 'Read less' : 'Read more'}
-                          </button>
-                        </div>
-                        <p
-                          className={`mt-2 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap ${
-                            showFullViewerDescription ? '' : 'line-clamp-5'
-                          }`}
-                        >
-                          {product.description}
-                        </p>
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="flex-1 overflow-auto p-4">
-                    <div className="grid grid-cols-4 gap-2">
+              {/* Thumbnail carousel */}
+              {imageList.length > 1 ? (
+                <div className="flex w-full max-w-4xl shrink-0 items-center gap-1.5 pb-1 sm:gap-2 sm:pb-2 md:gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedImageIndex((i) => (i <= 0 ? imageList.length - 1 : i - 1));
+                      setZoom(1);
+                      setZoomCursor('default');
+                    }}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white shadow-md transition active:bg-white/25 sm:h-10 sm:w-10 md:h-11 md:w-11 touch-manipulation"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2.25} />
+                  </button>
+                  <div className="min-h-[3.5rem] min-w-0 flex-1 overflow-x-auto overscroll-x-contain py-0.5 [scrollbar-width:thin] sm:min-h-[4.5rem] sm:py-1">
+                    <div className="flex min-h-[3.25rem] min-w-min flex-row items-center justify-start gap-1.5 px-0.5 sm:min-h-[4rem] sm:gap-2 sm:px-1 md:gap-3">
                       {imageList.map((url, i) => {
                         const active = i === selectedImageIndex;
                         return (
                           <button
                             key={i}
                             type="button"
+                            ref={(el) => {
+                              modalThumbRefs.current[i] = el;
+                            }}
                             onClick={() => {
                               setSelectedImageIndex(i);
                               setZoom(1);
                               setZoomCursor('default');
-                              setShowFullViewerDescription(false);
                             }}
-                            className={`relative aspect-square rounded-lg overflow-hidden border ${
-                              active ? 'border-slate-900 ring-2 ring-slate-900/30' : 'border-slate-200 hover:border-slate-400'
+                            className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-md border sm:h-16 sm:w-16 sm:rounded-lg md:h-20 md:w-20 touch-manipulation ${
+                              active ? 'border-white ring-2 ring-white/50' : 'border-white/25 hover:border-white/50'
                             }`}
                             aria-label={`View image ${i + 1}`}
                           >
@@ -551,7 +565,7 @@ export default function ProductDetailPage() {
                               className="h-full w-full object-cover"
                             />
                             {active ? (
-                              <span className="absolute inset-x-0 bottom-0 bg-black/60 text-white text-[10px] font-semibold py-0.5 text-center">
+                              <span className="absolute inset-x-0 bottom-0 bg-black/75 py-0.5 text-center text-[9px] font-semibold text-white sm:text-[10px]">
                                 Viewing
                               </span>
                             ) : null}
@@ -560,8 +574,20 @@ export default function ProductDetailPage() {
                       })}
                     </div>
                   </div>
-                </aside>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedImageIndex((i) => (i >= imageList.length - 1 ? 0 : i + 1));
+                      setZoom(1);
+                      setZoomCursor('default');
+                    }}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white shadow-md transition active:bg-white/25 sm:h-10 sm:w-10 md:h-11 md:w-11 touch-manipulation"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2.25} />
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

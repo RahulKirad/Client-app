@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { ExternalLink, Edit2, Check, X, Eye, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
-import { resolveMediaUrl } from '../../lib/api';
+import { resolveMediaUrl, API_BASE_URL } from '../../lib/api';
+import { mergeEcototeContent } from '../../data/ecototeDuopackDefaults';
 
 interface ContentSection {
   id: string;
@@ -19,6 +20,24 @@ function normalizeSectionContent(raw: unknown): unknown {
     try { parsed = JSON.parse(parsed); } catch { break; }
   }
   return parsed;
+}
+
+/**
+ * Hero `slides` may be stored as a JSON array, or as a string (double-encoded / TEXT import).
+ * Hosted DBs often differ from local JSON columns; normalize so the admin UI always gets an array.
+ */
+function coerceHeroSlidesArray(raw: unknown): unknown[] {
+  let v: unknown = raw;
+  for (let depth = 0; depth < 4 && typeof v === 'string'; depth++) {
+    const s = (v as string).trim();
+    if (!s) return [];
+    try {
+      v = JSON.parse(s);
+    } catch {
+      return [];
+    }
+  }
+  return Array.isArray(v) ? v : [];
 }
 
 function isLikelyImageField(key: string, value: unknown): boolean {
@@ -101,7 +120,6 @@ export default function ContentManager() {
   const [openSlides, setOpenSlides] = useState<Set<number>>(new Set());
   const [collapsedSectionIds, setCollapsedSectionIds] = useState<Set<string>>(new Set());
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
   const authHeaders = () => {
     const t = token ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('admin_token') : null);
     return t ? { Authorization: `Bearer ${t}` } : {};
@@ -124,8 +142,9 @@ export default function ContentManager() {
       setSections(normalized);
       const hero = normalized.find((s) => s.section_key === 'hero');
       const hc = hero && hero.content && typeof hero.content === 'object' ? (hero.content as Record<string, unknown>) : null;
-      const slides = hc && Array.isArray((hc as any).slides) ? ((hc as any).slides as any[]) : [];
-      setSlideDraft(slides.map((x) => (x && typeof x === 'object' ? { ...x } : x)));
+      const slidesRaw = hc ? hc.slides : undefined;
+      const slides = coerceHeroSlidesArray(slidesRaw);
+      setSlideDraft(slides.map((x) => (x && typeof x === 'object' ? { ...(x as Record<string, unknown>) } : x)));
       setOpenSlides(new Set()); // collapsed by default
       setCollapsedSectionIds(new Set(normalized.map((s) => s.id))); // all collapsed by default
     } catch (e) { console.error(e); }
@@ -134,7 +153,10 @@ export default function ContentManager() {
 
   const startEditing = (s: ContentSection) => {
     setEditingSection(s.id);
-    setEditData({ title: s.title, content: normalizeSectionContent(s.content), is_active: s.is_active });
+    const normalized = normalizeSectionContent(s.content);
+    const content =
+      s.section_key === 'ecotote_duopack' ? mergeEcototeContent(normalized) : normalized;
+    setEditData({ title: s.title, content, is_active: s.is_active });
     setCollapsedSectionIds((prev) => {
       const next = new Set(prev);
       next.delete(s.id); // ensure open while editing
@@ -797,7 +819,11 @@ export default function ContentManager() {
                       </div>
                     </div>
                   ) : (
-                    renderPreview(section.content)
+                    renderPreview(
+                      section.section_key === 'ecotote_duopack'
+                        ? mergeEcototeContent(normalizeSectionContent(section.content))
+                        : section.content
+                    )
                   )}
                 </div>
               )}

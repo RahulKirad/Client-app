@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, ShoppingBag, Filter, Grid, List, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { apiClient, Product, normalizeProducts, resolveMediaUrl } from '../lib/api';
+import { htmlToPlainText } from '../lib/productDescriptionHtml';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -19,7 +20,7 @@ function productSearchHaystack(p: Product): string {
   }
   const parts = [
     p.name,
-    p.description,
+    htmlToPlainText(p.description),
     p.category,
     p.material,
     p.print_type,
@@ -464,7 +465,7 @@ function ProductCard({ product }: { product: Product }) {
         {/* Description - Hidden by default, appears on hover */}
         <div className="overflow-hidden">
           <p className="text-white/90 text-sm sm:text-base mb-4 drop-shadow-md leading-relaxed transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100 max-h-0 group-hover:max-h-32">
-            {product.description}
+            {htmlToPlainText(product.description)}
           </p>
         </div>
 

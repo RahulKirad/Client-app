@@ -11,7 +11,7 @@ export default function Header() {
   const navLinks = [
     { name: 'Home', path: '#home', route: '/' },
     { name: 'About', path: '#about', route: '/' },
-    { name: 'Products', path: '#products', route: '/' },
+    { name: 'Products', path: '#products-list', route: '/products' },
     { name: 'Corporate Solutions', path: '#corporate', route: '/' },
     { name: 'Sustainability', path: '#sustainability', route: '/' },
     { name: 'Export', path: '#export', route: '/' },
@@ -20,7 +20,19 @@ export default function Header() {
 
   const scrollToSection = (path: string, route?: string) => {
     setIsMenuOpen(false);
-    
+
+    // Standalone routes (e.g. /products) — not home hash sections
+    if (route && route !== '/') {
+      const url = path.startsWith('#') ? `${route}${path}` : route;
+      navigate(url);
+      if (path.startsWith('#')) {
+        setTimeout(() => {
+          document.querySelector(path)?.scrollIntoView({ behavior: 'smooth' });
+        }, 200);
+      }
+      return;
+    }
+
     // If we're not on the home page and trying to navigate to a home page section
     if (!isHomePage && route === '/') {
       // Navigate to home page first, clearing any hash

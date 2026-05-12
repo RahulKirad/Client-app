@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Edit, Trash2, Image, Star, Eye, ExternalLink, X, FolderPlus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Image, Star, Eye, ExternalLink, X, FolderPlus, ChevronDown, ChevronUp, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { normalizeProducts, resolveMediaUrl } from '../../lib/api';
+import { htmlToPlainText, isQuillDescriptionEmpty } from '../../lib/productDescriptionHtml';
+import ProductRichTextEditor from './ProductRichTextEditor';
 
 const PRICING_CURRENCY_ORDER = ['inr', 'usd', 'eur', 'gbp', 'aed', 'sar', 'qar', 'kwd'] as const;
 
@@ -24,6 +26,45 @@ const DEFAULT_PRODUCT_CATEGORIES = [
 ] as const;
 
 const ADMIN_CATEGORIES_STORAGE_KEY = 'cottonunique_admin_product_categories';
+
+/** Admin catalog list page size */
+const PRODUCTS_PAGE_SIZE = 9;
+
+/** Max images per product (admin upload + API). */
+const MAX_PRODUCT_PHOTOS = 10;
+
+function productMatchesAdminFilters(
+  p: Product,
+  searchRaw: string,
+  categoryFilter: string,
+  statusFilter: 'all' | 'active' | 'inactive',
+  featuredFilter: 'all' | 'featured' | 'not'
+): boolean {
+  const q = searchRaw.trim().toLowerCase();
+  if (q) {
+    const hay = [
+      p.name,
+      p.category,
+      p.id,
+      htmlToPlainText(p.description),
+      p.material,
+      p.moq,
+      String(p.price ?? ''),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  if (categoryFilter !== 'all') {
+    if (p.category.trim().toLowerCase() !== categoryFilter.trim().toLowerCase()) return false;
+  }
+  if (statusFilter === 'active' && !p.is_active) return false;
+  if (statusFilter === 'inactive' && p.is_active) return false;
+  if (featuredFilter === 'featured' && !p.is_featured) return false;
+  if (featuredFilter === 'not' && p.is_featured) return false;
+  return true;
+}
 
 function mergeProductCategoryOptions(
   defaults: readonly string[],
@@ -118,6 +159,12 @@ export default function ProductsManager() {
   const [categoryAddError, setCategoryAddError] = useState<string | null>(null);
   const [showAddCategoryPanel, setShowAddCategoryPanel] = useState(false);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filterFeatured, setFilterFeatured] = useState<'all' | 'featured' | 'not'>('all');
+  const [page, setPage] = useState(1);
+
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
   // Use context token or localStorage so the first request (before context hydrates) still sends auth
   const authHeaders = () => {
@@ -173,6 +220,11 @@ export default function ProductsManager() {
       setSubmitting(false);
       return;
     }
+    if (isQuillDescriptionEmpty(formData.description)) {
+      setSubmitError('Please enter a product description.');
+      setSubmitting(false);
+      return;
+    }
     if (MULTI_CURRENCY_ENABLED) {
       specs.pricing = pricing;
     }
@@ -191,7 +243,7 @@ export default function ProductsManager() {
       }
     });
 
-    imageFiles.slice(0, 3).forEach((file) => {
+    imageFiles.slice(0, MAX_PRODUCT_PHOTOS).forEach((file) => {
       submitData.append('images', file);
     });
 
@@ -322,6 +374,37 @@ export default function ProductsManager() {
     [extraCategories, products]
   );
 
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((p) =>
+        productMatchesAdminFilters(p, searchQuery, filterCategory, filterStatus, filterFeatured)
+      ),
+    [products, searchQuery, filterCategory, filterStatus, filterFeatured]
+  );
+
+  const totalPages = useMemo(() => {
+    if (filteredProducts.length === 0) return 1;
+    return Math.ceil(filteredProducts.length / PRODUCTS_PAGE_SIZE);
+  }, [filteredProducts.length]);
+
+  const effectivePage = Math.min(Math.max(1, page), totalPages);
+
+  const paginatedProducts = useMemo(() => {
+    const start = (effectivePage - 1) * PRODUCTS_PAGE_SIZE;
+    return filteredProducts.slice(start, start + PRODUCTS_PAGE_SIZE);
+  }, [filteredProducts, effectivePage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, filterCategory, filterStatus, filterFeatured]);
+
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
+
+  const filterSelectClass =
+    'min-w-0 sm:min-w-[10.5rem] px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500';
+
   const addCustomCategory = () => {
     const name = newCategoryName.trim();
     if (!name) {
@@ -367,7 +450,7 @@ export default function ProductsManager() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Products</h1>
           <p className="text-slate-600">Manage your product catalog</p>
@@ -379,16 +462,124 @@ export default function ProductsManager() {
             setCategoryAddError(null);
             setShowModal(true);
           }}
-          className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+          className="flex shrink-0 items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-full sm:w-auto"
         >
           <Plus size={20} className="mr-2" />
           Add Product
         </button>
       </div>
 
+      {/* Search + filters */}
+      <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+          <div className="relative flex-1 min-w-0 max-w-xl">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name, category, ID, description…"
+              className={`${fieldInputClass} pl-10`}
+              aria-label="Search products"
+            />
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:min-w-[10.5rem]">
+              Category
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className={filterSelectClass}
+              >
+                <option value="all">All categories</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:min-w-[10.5rem]">
+              Status
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'inactive')}
+                className={filterSelectClass}
+              >
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:min-w-[10.5rem]">
+              Featured
+              <select
+                value={filterFeatured}
+                onChange={(e) => setFilterFeatured(e.target.value as 'all' | 'featured' | 'not')}
+                className={filterSelectClass}
+              >
+                <option value="all">All products</option>
+                <option value="featured">Featured only</option>
+                <option value="not">Not featured</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setFilterCategory('all');
+                setFilterStatus('all');
+                setFilterFeatured('all');
+                setPage(1);
+              }}
+              className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 sm:self-end sm:mb-2.5 sm:ml-1"
+            >
+              Clear filters
+            </button>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-slate-600">
+          {filteredProducts.length === 0 ? (
+            <>No products match the current filters.</>
+          ) : (
+            <>
+              Showing{' '}
+              <span className="font-semibold text-slate-800">
+                {(effectivePage - 1) * PRODUCTS_PAGE_SIZE + 1}
+                –
+                {Math.min(effectivePage * PRODUCTS_PAGE_SIZE, filteredProducts.length)}
+              </span>{' '}
+              of <span className="font-semibold text-slate-800">{filteredProducts.length}</span>
+              {filteredProducts.length !== products.length ? (
+                <span className="text-slate-500"> (filtered from {products.length})</span>
+              ) : null}
+            </>
+          )}
+        </p>
+      </div>
+
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
+        {paginatedProducts.length === 0 && products.length === 0 ? (
+          <div className="col-span-full rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center text-slate-600">
+            No products yet. Click &quot;Add Product&quot; to create your first item.
+          </div>
+        ) : paginatedProducts.length === 0 ? (
+          <div className="col-span-full rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center text-slate-600">
+            No products match your search or filters. Try adjusting filters or{' '}
+            <button type="button" className="font-semibold text-emerald-700 underline" onClick={() => {
+              setSearchQuery('');
+              setFilterCategory('all');
+              setFilterStatus('all');
+              setFilterFeatured('all');
+              setPage(1);
+            }}>
+              clear filters
+            </button>
+            .
+          </div>
+        ) : (
+          paginatedProducts.map((product) => (
           <div key={product.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <button
               type="button"
@@ -418,7 +609,7 @@ export default function ProductsManager() {
               <div className="p-4">
                 <h3 className="font-semibold text-slate-900 mb-1">{product.name}</h3>
                 <p className="text-sm text-slate-600 mb-2">{product.category}</p>
-                <p className="text-xs text-slate-500 mb-3 line-clamp-2">{product.description}</p>
+                <p className="text-xs text-slate-500 mb-3 line-clamp-2">{htmlToPlainText(product.description)}</p>
                 {/* Display multi-currency prices (parsed specs) or legacy price column */}
                 <div className="mb-3">
                   {product.specifications?.pricing ? (
@@ -476,10 +667,36 @@ export default function ProductsManager() {
                 </div>
               </div>
           </div>
-        ))}
+          ))
+        )}
       </div>
 
-      {/* Preview modal (iframe) */}
+      {/* Pagination */}
+      {totalPages > 1 && paginatedProducts.length > 0 ? (
+        <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
+          <button
+            type="button"
+            disabled={effectivePage <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </button>
+          <span className="text-sm font-medium text-slate-600 tabular-nums">
+            Page {effectivePage} of {totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={effectivePage >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40"
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
       {previewProductId && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh]">
@@ -609,12 +826,12 @@ export default function ProductsManager() {
 
                 <div>
                   <label className={fieldLabelClass}>Description</label>
-                  <textarea
+                  <p className="text-xs text-slate-500 mb-2">
+                    Use headings, lists, and emphasis for a structured product story. Plain text from older products still works if you do not add formatting.
+                  </p>
+                  <ProductRichTextEditor
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
-                    className={fieldInputClass}
-                    required
+                    onChange={(html) => setFormData({ ...formData, description: html })}
                   />
                 </div>
               </section>
@@ -849,7 +1066,7 @@ export default function ProductsManager() {
                 <div>
                   <label className={fieldLabelClass}>Product Photos</label>
                 <p className="text-xs text-slate-500 mb-2">
-                  Add up to 3 photos. You can select multiple files at once or choose again to replace.
+                  Add up to {MAX_PRODUCT_PHOTOS} photos. You can select multiple files at once or choose again to replace.
                 </p>
                 <input
                   type="file"
@@ -857,7 +1074,7 @@ export default function ProductsManager() {
                   multiple
                   onChange={(e) => {
                     const files = Array.from(e.target.files || []);
-                    setImageFiles(files.slice(0, 3));
+                    setImageFiles(files.slice(0, MAX_PRODUCT_PHOTOS));
                     e.target.value = '';
                   }}
                   className={`${fieldInputClass} file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`}
@@ -888,9 +1105,9 @@ export default function ProductsManager() {
                 {/* New upload previews */}
                 {imageFiles.length > 0 && (
                   <div className="mt-2">
-                    <p className="text-xs text-slate-500 mb-1">New photos ({imageFiles.length}/3):</p>
+                    <p className="text-xs text-slate-500 mb-1">New photos ({imageFiles.length}/{MAX_PRODUCT_PHOTOS}):</p>
                     <div className="flex flex-wrap gap-2">
-                      {imageFiles.slice(0, 3).map((file, i) => (
+                      {imageFiles.map((file, i) => (
                         <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 group">
                           <img
                             src={URL.createObjectURL(file)}
