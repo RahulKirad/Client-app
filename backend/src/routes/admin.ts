@@ -6,7 +6,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
-import mysql, { ResultSetHeader } from 'mysql2/promise';
+import mysql, { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { getSmtpSettingsForAdmin, saveSmtpSettings } from '../services/smtpConfigStore';
 import { sendSmtpTestEmail } from '../services/email';
 
@@ -759,6 +759,109 @@ async function deleteInquiryHandler(req: AuthRequest, res: express.Response) {
 
 router.delete('/inquiries/:id', authenticateToken, deleteInquiryHandler);
 router.post('/inquiries/:id/delete', authenticateToken, deleteInquiryHandler);
+
+function bufferOrValueToString(v: unknown): string | null {
+  if (v === undefined || v === null) return null;
+  if (Buffer.isBuffer(v)) return v.toString('utf8');
+  if (typeof v === 'string') return v;
+  return String(v);
+}
+
+// Sample requests (product page "Request Sample")
+router.get('/sample-requests', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const [rawRows] = await pool.execute<RowDataPacket[]>(
+      `SELECT
+         sr.id,
+         sr.product_id,
+         sr.product_name,
+         sr.name,
+         sr.company,
+         sr.email,
+         sr.region,
+         sr.message,
+         sr.status,
+         sr.created_at,
+         p.image_url AS product_image_url,
+         p.gallery_images AS product_gallery_images,
+         p.description AS product_description,
+         p.category AS product_category,
+         p.material AS product_material,
+         p.print_type AS product_print_type,
+         p.packaging AS product_packaging,
+         p.moq AS product_moq,
+         p.price AS product_price,
+         p.specifications AS product_specifications
+       FROM sample_requests sr
+       LEFT JOIN products p ON BINARY p.id = BINARY sr.product_id
+       ORDER BY sr.created_at DESC`
+    );
+    const rows = Array.isArray(rawRows) ? rawRows : [];
+    /** mysql2 RowDataPacket: do not rely on `{...row}` — joined fields can be lost. Build a plain JSON object explicitly. */
+    const normalized = rows.map((row) => {
+      const r = row as unknown as Record<string, unknown>;
+      return {
+        id: r.id,
+        product_id: r.product_id,
+        product_name: r.product_name,
+        name: r.name,
+        company: r.company,
+        email: r.email,
+        region: r.region,
+        message: r.message,
+        status: r.status,
+        created_at: r.created_at,
+        product_image_url: bufferOrValueToString(r.product_image_url),
+        product_gallery_images: bufferOrValueToString(r.product_gallery_images),
+        product_description: bufferOrValueToString(r.product_description),
+        product_category: bufferOrValueToString(r.product_category),
+        product_material: bufferOrValueToString(r.product_material),
+        product_print_type: bufferOrValueToString(r.product_print_type),
+        product_packaging: bufferOrValueToString(r.product_packaging),
+        product_moq: bufferOrValueToString(r.product_moq),
+        product_price: r.product_price,
+        product_specifications: bufferOrValueToString(r.product_specifications),
+      };
+    });
+    res.json(normalized);
+  } catch (error) {
+    console.error('Error fetching sample requests:', error);
+    res.status(500).json({ error: 'Failed to fetch sample requests' });
+  }
+});
+
+router.put('/sample-requests/:id', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    await pool.execute('UPDATE sample_requests SET status = ? WHERE id = ?', [status, id]);
+    res.json({ message: 'Sample request status updated successfully' });
+  } catch (error) {
+    console.error('Error updating sample request:', error);
+    res.status(500).json({ error: 'Failed to update sample request' });
+  }
+});
+
+async function deleteSampleRequestHandler(req: AuthRequest, res: express.Response) {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'Missing sample request id' });
+    }
+    const [result] = await pool.execute('DELETE FROM sample_requests WHERE id = ?', [id]);
+    const affected = (result as ResultSetHeader).affectedRows;
+    if (affected === 0) {
+      return res.status(404).json({ error: 'Sample request not found' });
+    }
+    res.json({ message: 'Sample request deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting sample request:', error);
+    res.status(500).json({ error: 'Failed to delete sample request' });
+  }
+}
+
+router.delete('/sample-requests/:id', authenticateToken, deleteSampleRequestHandler);
+router.post('/sample-requests/:id/delete', authenticateToken, deleteSampleRequestHandler);
 
 // Get content sections
 router.get('/content', authenticateToken, async (req: AuthRequest, res) => {

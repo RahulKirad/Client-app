@@ -6,7 +6,7 @@ import { htmlToPlainText } from '../../lib/productDescriptionHtml';
 
 interface ProductCarouselProps {
   products: Product[];
-  onRequestSample: () => void;
+  onRequestSample: (product: Product) => void;
 }
 
 const AUTOPLAY_MS = 4500;
@@ -188,7 +188,7 @@ export default function ProductCarousel({ products, onRequestSample }: ProductCa
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        onRequestSample();
+                        onRequestSample(product);
                       }}
                       className="w-full btn-cta-primary mt-5"
                       style={{backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#78350F'}}

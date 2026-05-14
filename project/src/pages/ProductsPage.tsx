@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, ShoppingBag, Filter, Grid, List, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { apiClient, Product, normalizeProducts, resolveMediaUrl } from '../lib/api';
+import { goToHomeContactSection } from '../lib/scrollToContact';
 import { htmlToPlainText } from '../lib/productDescriptionHtml';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import SampleRequestModal from '../components/SampleRequestModal';
 
 const PRODUCTS_PER_PAGE = 8;
 
@@ -73,6 +75,7 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sampleProduct, setSampleProduct] = useState<Product | null>(null);
 
   const categories = ['All', 'Classic Cotton Totes', 'Foldable Travel Totes', 'Branded Corporate Totes', 'Seasonal Gift Editions'];
   const sortOptions = [
@@ -347,7 +350,7 @@ export default function ProductsPage() {
                   }
                 >
                   {paginatedProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <ProductCard key={product.id} product={product} onRequestSample={setSampleProduct} />
                   ))}
                 </div>
 
@@ -409,27 +412,29 @@ export default function ProductsPage() {
             <p className="text-xl text-white/90 mb-8">
               Contact us for samples, custom branding, or bulk orders
             </p>
-            <Link
-              to="/#contact"
+            <button
+              type="button"
+              onClick={() => goToHomeContactSection(navigate)}
               className="inline-flex items-center space-x-2 bg-white px-8 py-3 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
-              style={{color: 'var(--beige-700)'}}
+              style={{ color: 'var(--beige-700)' }}
             >
-              <ShoppingBag size={20} />
+              <ShoppingBag size={20} aria-hidden />
               <span>Get in Touch</span>
-            </Link>
+            </button>
           </div>
         </section>
       </main>
 
       <Footer />
+      {sampleProduct ? (
+        <SampleRequestModal product={sampleProduct} onClose={() => setSampleProduct(null)} />
+      ) : null}
     </div>
   );
 }
 
 // Enhanced Product Card Component with Image Background Style
-function ProductCard({ product }: { product: Product }) {
-  const navigate = useNavigate();
-
+function ProductCard({ product, onRequestSample }: { product: Product; onRequestSample: (p: Product) => void }) {
   return (
     <Link to={`/products/${product.id}`} className="block">
       <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 h-[500px] flex flex-col group cursor-pointer">
@@ -475,7 +480,7 @@ function ProductCard({ product }: { product: Product }) {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            navigate('/#contact');
+            onRequestSample(product);
           }}
           className="w-full btn-cta-primary mt-5"
           style={{backgroundColor: 'rgba(255, 255, 255, 0.95)', color: '#78350F'}}

@@ -213,6 +213,102 @@ export async function sendInquiryEmail(payload: InquiryPayload): Promise<boolean
   }
 }
 
+export interface SampleRequestPayload {
+  name: string;
+  company?: string;
+  email: string;
+  region?: string;
+  message: string;
+  productId: string;
+  productName: string;
+}
+
+/**
+ * Notifies the same recipients as contact inquiries when someone requests a product sample.
+ */
+export async function sendSampleRequestEmail(payload: SampleRequestPayload): Promise<boolean> {
+  const recipients = buildInquiryRecipients(process.env.INQUIRY_RECIPIENT_EMAIL);
+  try {
+    const { transporter, from: fromUser } = await getTransporterAndFrom();
+    const from = fromUser || process.env.EMAIL_USER || recipients[0] || INQUIRY_RECIPIENT_EMAIL;
+    const subject = `[Cottonunique] Sample request: ${payload.productName} — ${payload.name}`;
+    const text = [
+      '═══════════════════════════════════════════════════════',
+      '        PRODUCT SAMPLE REQUEST - COTTONUNIQUE',
+      '═══════════════════════════════════════════════════════',
+      '',
+      'PRODUCT',
+      '───────────────────────────────────────────────────────',
+      `Product:     ${payload.productName}`,
+      `Product ID:  ${payload.productId}`,
+      '',
+      'REQUESTER',
+      '───────────────────────────────────────────────────────',
+      `Name:        ${payload.name}`,
+      `Email:       ${payload.email}`,
+      payload.company ? `Company:     ${payload.company}` : null,
+      payload.region ? `Region:      ${payload.region}` : null,
+      '',
+      'MESSAGE',
+      '───────────────────────────────────────────────────────',
+      payload.message,
+      '',
+      '═══════════════════════════════════════════════════════',
+      `Submitted: ${new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'long' })}`,
+      '═══════════════════════════════════════════════════════',
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Sample request</title></head>
+<body style="margin:0;padding:24px;font-family:system-ui,sans-serif;background:#f5f5f5;">
+  <table role="presentation" style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    <tr>
+      <td style="background:linear-gradient(135deg,#78350F,#A0522D);color:#fff;padding:24px 28px;">
+        <h1 style="margin:0;font-size:22px;">Sample request</h1>
+        <p style="margin:8px 0 0;font-size:14px;opacity:0.95">${escapeHtml(payload.productName)}</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:28px;color:#3a2f1f;">
+        <p style="margin:0 0 12px;"><strong>Product ID:</strong> ${escapeHtml(payload.productId)}</p>
+        <hr style="border:none;border-top:1px solid #E8D5B7;margin:16px 0;" />
+        <p style="margin:0 0 6px;"><strong>Name:</strong> ${escapeHtml(payload.name)}</p>
+        <p style="margin:0 0 6px;"><strong>Email:</strong> <a href="mailto:${escapeHtml(payload.email)}">${escapeHtml(payload.email)}</a></p>
+        ${payload.company ? `<p style="margin:0 0 6px;"><strong>Company:</strong> ${escapeHtml(payload.company)}</p>` : ''}
+        ${payload.region ? `<p style="margin:0 0 6px;"><strong>Region:</strong> ${escapeHtml(payload.region)}</p>` : ''}
+        <h2 style="margin:20px 0 8px;font-size:16px;color:#78350F;">Message</h2>
+        <div style="background:#FDF6E3;padding:16px;border-radius:6px;border-left:4px solid #78350F;white-space:pre-wrap;">${escapeHtml(payload.message)}</div>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:16px 28px;background:#FDF6E3;font-size:12px;color:#78350F;text-align:center;">
+        Submitted from the Cottonunique website · ${escapeHtml(new Date().toISOString())}
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    await transporter.sendMail({
+      from: `Cottonunique Samples <${from}>`,
+      to: recipients.join(', '),
+      subject,
+      text,
+      html,
+      replyTo: payload.email,
+    });
+    console.log(`Sample request email sent to ${recipients.join(', ')} for ${payload.email}`);
+    return true;
+  } catch (err) {
+    console.error('Failed to send sample request email:', err);
+    return false;
+  }
+}
+
 /**
  * Sends a test message using the same credentials as inquiry mail (admin DB settings, else .env).
  */

@@ -5,6 +5,7 @@ import AdminLayout from '../components/admin/AdminLayout';
 import Dashboard from '../components/admin/Dashboard';
 import ProductsManager from '../components/admin/ProductsManager';
 import InquiriesManager from '../components/admin/InquiriesManager';
+import RequestedSamplesManager from '../components/admin/RequestedSamplesManager';
 import ContentManager from '../components/admin/ContentManager';
 import ChatbotControl from '../components/admin/ChatbotControl';
 import SmtpSettings from '../components/admin/SmtpSettings';
@@ -48,6 +49,13 @@ export default function AdminRoutes() {
         <ProtectedRoute>
           <AdminLayout>
             <InquiriesManager />
+          </AdminLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/sample-requests" element={
+        <ProtectedRoute>
+          <AdminLayout>
+            <RequestedSamplesManager />
           </AdminLayout>
         </ProtectedRoute>
       } />

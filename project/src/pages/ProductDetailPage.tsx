@@ -1,14 +1,14 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Package, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { apiClient, Product, resolveMediaUrl } from '../lib/api';
 import ExpandableRichProductDescription from '../components/ExpandableRichProductDescription';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import SampleRequestModal from '../components/SampleRequestModal';
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +21,7 @@ export default function ProductDetailPage() {
   const modalThumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [viewerImageNatural, setViewerImageNatural] = useState({ w: 0, h: 0 });
   const [scan, setScan] = useState<{ active: boolean; x: number; y: number }>({ active: false, x: 0, y: 0 });
+  const [sampleModalOpen, setSampleModalOpen] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -92,10 +93,6 @@ export default function ProductDetailPage() {
       block: 'nearest',
     });
   }, [selectedImageIndex, showImageFrame]);
-
-  const scrollToContact = () => {
-    navigate('/#contact');
-  };
 
   if (loading) {
     return (
@@ -422,7 +419,8 @@ export default function ProductDetailPage() {
               )}
 
               <button
-                onClick={scrollToContact}
+                type="button"
+                onClick={() => setSampleModalOpen(true)}
                 className="inline-flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all"
                 style={{ backgroundColor: 'var(--beige-600)' }}
               >
@@ -592,6 +590,9 @@ export default function ProductDetailPage() {
           </div>
         </div>
       )}
+      {sampleModalOpen && product ? (
+        <SampleRequestModal product={product} onClose={() => setSampleModalOpen(false)} />
+      ) : null}
       <Footer />
     </div>
   );

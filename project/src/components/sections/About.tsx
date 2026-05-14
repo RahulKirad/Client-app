@@ -43,7 +43,7 @@ export default function About() {
   const storyContent = useManagedSectionContent('about_story', storyFallback);
 
   return (
-    <section id="about" className="pt-32 pb-20 bg-white">
+    <section id="about" className="pt-8 sm:pt-10 md:pt-14 pb-16 bg-white">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <div className="mb-10">

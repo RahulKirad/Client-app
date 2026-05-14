@@ -42,6 +42,34 @@ export interface Inquiry {
   created_at?: string;
 }
 
+export interface SampleRequestInput {
+  product_id: string;
+  product_name: string;
+  name: string;
+  company?: string;
+  email: string;
+  region?: string;
+  message: string;
+}
+
+export interface SampleRequestRow extends SampleRequestInput {
+  id: string;
+  status: string;
+  created_at: string;
+  /** Present when admin list joins `products` (current catalog image). */
+  product_image_url?: string | null;
+  /** JSON array string or parsed gallery from joined product. */
+  product_gallery_images?: string | unknown | null;
+  product_description?: string | null;
+  product_category?: string | null;
+  product_material?: string | null;
+  product_print_type?: string | null;
+  product_packaging?: string | null;
+  product_moq?: string | null;
+  product_price?: number | string | null;
+  product_specifications?: string | Record<string, unknown> | null;
+}
+
 export interface ContentSection {
   id: string;
   section_key: string;
@@ -137,6 +165,13 @@ class ApiClient {
     return this.request<{ message: string; id: string }>('/inquiries', {
       method: 'POST',
       body: JSON.stringify(inquiry),
+    });
+  }
+
+  async submitSampleRequest(body: SampleRequestInput): Promise<{ message: string; id: string }> {
+    return this.request<{ message: string; id: string }>('/sample-requests', {
+      method: 'POST',
+      body: JSON.stringify(body),
     });
   }
 

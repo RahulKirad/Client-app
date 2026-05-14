@@ -3,6 +3,7 @@ import { ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient, Product, normalizeProducts } from '../../lib/api';
 import ProductCarousel from '../ui/ProductCarousel';
+import SampleRequestModal from '../SampleRequestModal';
 import { useManagedSectionContent } from '../../hooks/useManagedSectionContent';
 
 const productsHomeFallback = {
@@ -27,6 +28,7 @@ export default function Products() {
   const sectionContent = useManagedSectionContent('products_home', productsHomeFallback);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sampleProduct, setSampleProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -73,10 +75,7 @@ export default function Products() {
           <>
             {/* Product Carousel */}
             <div className="mb-14 sm:mb-16">
-              <ProductCarousel 
-                products={products} 
-                onRequestSample={scrollToContact}
-              />
+              <ProductCarousel products={products} onRequestSample={setSampleProduct} />
             </div>
 
           </>
@@ -107,6 +106,7 @@ export default function Products() {
           </button>
         </div>
       </div>
+      {sampleProduct ? <SampleRequestModal product={sampleProduct} onClose={() => setSampleProduct(null)} /> : null}
     </section>
   );
 }

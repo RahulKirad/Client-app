@@ -7,7 +7,7 @@ import path from 'path';
 import rateLimit from 'express-rate-limit';
 import adminRoutes from './routes/admin';
 import chatbotRoutes from './routes/chatbot';
-import { sendInquiryEmail } from './services/email';
+import { sendInquiryEmail, sendSampleRequestEmail } from './services/email';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -135,6 +135,30 @@ async function repairEmptyProductIds(): Promise<void> {
   }
 }
 
+async function ensureSampleRequestsTable(): Promise<void> {
+  try {
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS sample_requests (
+        id VARCHAR(36) NOT NULL PRIMARY KEY,
+        product_id VARCHAR(36) NOT NULL,
+        product_name VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        company VARCHAR(255) DEFAULT NULL,
+        email VARCHAR(255) NOT NULL,
+        region VARCHAR(100) DEFAULT NULL,
+        message TEXT NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'new',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_sample_status (status),
+        INDEX idx_sample_created (created_at),
+        INDEX idx_sample_product (product_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+  } catch (e) {
+    console.error('ensureSampleRequestsTable failed (non-fatal):', e);
+  }
+}
+
 // Test database connection
 async function testConnection() {
   try {
@@ -226,6 +250,50 @@ app.post('/api/inquiries', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error submitting inquiry:', error);
     res.status(500).json({ error: 'Failed to submit inquiry' });
+  }
+});
+
+// Submit product sample request (same email pipeline as inquiries)
+app.post('/api/sample-requests', async (req: Request, res: Response) => {
+  try {
+    const { product_id, product_name, name, company, email, region, message } = req.body;
+    const pid = String(product_id || '').trim();
+    const pname = String(product_name || '').trim();
+    const nm = String(name || '').trim();
+    const em = String(email || '').trim();
+    const msg = String(message || '').trim();
+
+    if (!pid || !pname) {
+      return res.status(400).json({ error: 'Product is required' });
+    }
+    if (!nm || !em || !msg) {
+      return res.status(400).json({ error: 'Name, email, and message are required' });
+    }
+    if (msg.length < 10) {
+      return res.status(400).json({ error: 'Message must be at least 10 characters' });
+    }
+
+    const id = randomUUID();
+    await pool.execute(
+      `INSERT INTO sample_requests (id, product_id, product_name, name, company, email, region, message)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, pid, pname, nm, company || null, em, region || null, msg]
+    );
+
+    sendSampleRequestEmail({
+      name: nm,
+      company: company ? String(company) : undefined,
+      email: em,
+      region: region ? String(region) : undefined,
+      message: msg,
+      productId: pid,
+      productName: pname,
+    }).catch(() => {});
+
+    res.status(201).json({ message: 'Sample request submitted successfully', id });
+  } catch (error) {
+    console.error('Error submitting sample request:', error);
+    res.status(500).json({ error: 'Failed to submit sample request' });
   }
 });
 
@@ -424,11 +492,19 @@ app.get('/api/health/db', async (req: Request, res: Response) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-  testConnection();
+// Start server (ensure sample_requests exists before accepting traffic)
+async function bootstrap() {
+  await ensureSampleRequestsTable();
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+    testConnection();
+  });
+}
+
+bootstrap().catch((err) => {
+  console.error('Server bootstrap failed:', err);
+  process.exit(1);
 });
 
 export default app;

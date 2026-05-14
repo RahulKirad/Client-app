@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Mail, Phone } from 'lucide-react';
 import { useManagedSectionContent } from '../hooks/useManagedSectionContent';
 
 export default function Footer() {
@@ -7,14 +7,8 @@ export default function Footer() {
   const contactFallback = {
     email_primary: 'abhishek.deolalikar@gmail.com',
     phone: '+91 7020631149',
-    visit_line_1: 'Sr no 131, STG, Alandi Road',
-    visit_line_2: 'Pune - 412105',
   };
   const contactInfo = useManagedSectionContent('contact', contactFallback);
-  const address = [contactInfo.visit_line_1, contactInfo.visit_line_2]
-    .map((v) => String(v || '').trim())
-    .filter(Boolean)
-    .join(', ');
 
   return (
     <footer
@@ -99,33 +93,7 @@ export default function Footer() {
                   {String(contactInfo.phone || contactFallback.phone)}
                 </span>
               </li>
-              <li className="flex items-start space-x-2 group transform transition-all duration-300 hover:translate-x-2">
-                <MapPin size={18} className="mt-1 flex-shrink-0 text-[#FBBF24] transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
-                <span className="text-sm font-medium" style={{fontFamily: 'var(--heading-font)'}}>
-                  {address || `${contactFallback.visit_line_1}, ${contactFallback.visit_line_2}`}
-                </span>
-              </li>
             </ul>
-            <div className="flex space-x-4 mt-6">
-              {[
-                { icon: Facebook, name: 'Facebook' },
-                { icon: Twitter, name: 'Twitter' },
-                { icon: Instagram, name: 'Instagram' },
-                { icon: Linkedin, name: 'LinkedIn' }
-              ].map((social, index) => {
-                const Icon = social.icon;
-                return (
-                  <a 
-                    key={social.name}
-                    href="#" 
-                    className="text-white/90 hover:text-[#FBBF24] transition-all duration-300 bg-white/10 p-2 rounded-none border-2 border-white/20 transform hover:scale-110 hover:rotate-6 hover:bg-white/20 hover:border-[#FBBF24] group"
-                    style={{animationDelay: `${0.5 + index * 0.1}s`}}
-                  >
-                    <Icon size={20} className="transform transition-all duration-300 group-hover:scale-125" />
-                  </a>
-                );
-              })}
-            </div>
           </div>
         </div>
 

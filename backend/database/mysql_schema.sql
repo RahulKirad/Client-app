@@ -46,6 +46,23 @@ CREATE TABLE IF NOT EXISTS inquiries (
     INDEX idx_email (email)
 );
 
+-- Product sample requests (from product listing / detail "Request Sample")
+CREATE TABLE IF NOT EXISTS sample_requests (
+    id VARCHAR(36) PRIMARY KEY,
+    product_id VARCHAR(36) NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    company VARCHAR(255),
+    email VARCHAR(255) NOT NULL,
+    region VARCHAR(100),
+    message TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'new',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_sample_status (status),
+    INDEX idx_sample_created (created_at),
+    INDEX idx_sample_product (product_id)
+);
+
 -- Create admin_users table
 CREATE TABLE IF NOT EXISTS admin_users (
     id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),

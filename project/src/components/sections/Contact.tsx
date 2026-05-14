@@ -98,7 +98,7 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="py-20 paper-texture"
+      className="py-20 paper-texture scroll-mt-24 md:scroll-mt-28"
       style={{ background: 'linear-gradient(to top, #EDE4D6, #FDF8F0)' }}
     >
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">

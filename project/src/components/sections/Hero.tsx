@@ -75,10 +75,6 @@ export default function Hero() {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
-
   const handleMouseDown = () => {
     setIsPaused(true);
   };
@@ -97,9 +93,9 @@ export default function Hero() {
 
   return (
     <section id="home" className="relative w-full max-w-[100vw] flex flex-col overflow-hidden pt-20">
-      {/* Shorter band; mobile height uses svh + caps so the image fills this box edge-to-edge */}
+      {/* Slide band height: svh + min/max caps so imagery fills edge-to-edge without overwhelming small screens */}
       <div
-        className="relative isolate w-full min-h-[260px] h-[38svh] max-h-[340px] sm:min-h-[300px] sm:h-[42svh] sm:max-h-[400px] md:min-h-[320px] md:h-[46svh] md:max-h-[460px] lg:h-[min(48vh,32rem)] lg:max-h-[500px]"
+        className="group relative isolate w-full min-h-[380px] h-[54svh] max-h-[480px] sm:min-h-[420px] sm:h-[58svh] sm:max-h-[540px] md:min-h-[460px] md:h-[62svh] md:max-h-[600px] lg:h-[min(68vh,46rem)] lg:max-h-[680px] overflow-hidden"
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
@@ -109,28 +105,32 @@ export default function Hero() {
         {slides.map((slide, index) => (
           <div
             key={index}
-            className={`absolute inset-0 w-full h-full transition-all duration-700 ${
+            className={`absolute inset-0 min-h-full w-full h-full transition-all duration-700 ${
               index === currentSlide 
                 ? 'opacity-100 z-10' 
                 : 'opacity-0 z-0 pointer-events-none'
             }`}
           >
-            {/* Full Width Background Image */}
-            <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ backgroundColor: 'var(--beige-100)' }}>
+            {/* Background fills slide edge-to-edge at every breakpoint; image scales with object-cover */}
+            <div
+              className="absolute inset-0 z-0 min-h-full w-full overflow-hidden"
+              style={{ backgroundColor: 'var(--beige-100)' }}
+            >
               <img
                 src={resolveMediaUrl(slide.image)}
                 alt={`${slide.title} - ${slide.subtitle}. ${slide.description}`}
-                className="block h-full w-full min-h-0 object-cover object-center"
+                className="pointer-events-none absolute inset-0 z-0 block h-full w-full min-h-full min-w-full max-w-none object-cover object-[center_42%] sm:object-[center_40%] md:object-[center_38%] lg:object-center"
                 sizes="100vw"
                 decoding="async"
+                fetchPriority={index === 0 ? 'high' : 'low'}
               />
               {/* Dark Overlay for Text Readability */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-black/50 to-transparent" />
             </div>
 
             {/* Text Content Overlay */}
-            <div className="relative z-10 flex h-full min-h-0 items-center py-6 sm:py-12 md:py-16">
+            <div className="relative z-10 flex h-full min-h-full w-full items-center py-6 sm:py-12 md:py-16">
               <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8">
                 <div className="max-w-2xl space-y-4 sm:space-y-6 md:space-y-8">
                   <div className="inline-flex items-center space-x-2 px-5 py-1.5 rounded-full text-xs font-medium animate-bounce-subtle soft-shadow bg-white/90 backdrop-blur-sm">
@@ -170,37 +170,28 @@ export default function Hero() {
           </div>
         ))}
 
-        {/* Navigation Arrows */}
         <button
-          onClick={prevSlide}
-          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/80 backdrop-blur-sm soft-shadow hover:shadow-xl transition-all duration-300 hover:scale-110 z-30 group hover:bg-white"
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            prevSlide();
+          }}
+          className="pointer-events-none absolute left-2 top-1/2 z-30 -translate-y-1/2 rounded-full border border-white/30 bg-white/10 p-2 text-white opacity-0 shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-white/20 hover:border-white/50 focus-visible:pointer-events-auto focus-visible:opacity-100 sm:left-4 sm:p-2.5 group-hover:pointer-events-auto group-hover:opacity-100"
           aria-label="Previous slide"
         >
-          <ChevronLeft size={22} className="text-slate-900 group-hover:opacity-80" />
+          <ChevronLeft size={22} className="drop-shadow-md" strokeWidth={2.25} aria-hidden />
         </button>
         <button
-          onClick={nextSlide}
-          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/80 backdrop-blur-sm soft-shadow hover:shadow-xl transition-all duration-300 hover:scale-110 z-30 group hover:bg-white"
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            nextSlide();
+          }}
+          className="pointer-events-none absolute right-2 top-1/2 z-30 -translate-y-1/2 rounded-full border border-white/30 bg-white/10 p-2 text-white opacity-0 shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-white/20 hover:border-white/50 focus-visible:pointer-events-auto focus-visible:opacity-100 sm:right-4 sm:p-2.5 group-hover:pointer-events-auto group-hover:opacity-100"
           aria-label="Next slide"
         >
-          <ChevronRight size={22} className="text-slate-900 group-hover:opacity-80" />
+          <ChevronRight size={22} className="drop-shadow-md" strokeWidth={2.25} aria-hidden />
         </button>
-
-        {/* Slide Indicators */}
-        <div className="absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 space-x-2 sm:bottom-6 sm:space-x-3">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`transition-all duration-300 rounded-full ${
-                index === currentSlide
-                  ? 'w-12 h-3 bg-white'
-                  : 'w-3 h-3 bg-white/50 hover:bg-white/80'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
       </div>
     </section>
   );
